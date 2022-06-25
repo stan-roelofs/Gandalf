@@ -1,9 +1,14 @@
-#include <Gameboy/Cpu.h>
+#include "Cpu.h"
 
 CPU::CPU()
 {
 }
 
-CPU::~CPU
+CPU::~CPU()
 {
+}
+
+void CPU::Step()
+{
+    
 }

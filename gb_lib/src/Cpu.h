@@ -5,10 +5,7 @@
 
 class CPU
 {
-    CPU();
-    ~CPU();
-
-private:
+public:
     struct Registers
     {
         struct
@@ -17,10 +14,10 @@ private:
             {
                 struct
                 {
-                    int8_t F;
-                    int8_t A;
+                    uint8_t F;
+                    uint8_t A;
                 };
-                int16_t AF;
+                uint16_t AF;
             };
         };
         struct
@@ -29,10 +26,10 @@ private:
             {
                 struct
                 {
-                    int8_t C;
-                    int8_t B;
+                    uint8_t C;
+                    uint8_t B;
                 };
-                int16_t BC;
+                uint16_t BC;
             };
         };
         struct
@@ -41,10 +38,10 @@ private:
             {
                 struct
                 {
-                    int8_t E;
-                    int8_t D;
+                    uint8_t E;
+                    uint8_t D;
                 };
-                int16_t DE;
+                uint16_t DE;
             };
         };
         struct
@@ -53,14 +50,23 @@ private:
             {
                 struct
                 {
-                    int8_t L;
-                    int8_t H;
+                    uint8_t L;
+                    uint8_t H;
                 };
-                int16_t HL;
+                uint16_t HL;
             };
         };
+
+        uint16_t SP;
+        uint16_t PC;
     };
 
+    CPU();
+    ~CPU();
+
+    void Step();
+
+private:
     Registers registers;
 };
 

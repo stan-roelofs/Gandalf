@@ -1,5 +1,5 @@
-#ifndef __GAMEBOY_HPP
-#define __GAMEBOY_HPP
+#ifndef __GAMEBOY_H
+#define __GAMEBOY_H
 
 class Gameboy {
     Gameboy();
