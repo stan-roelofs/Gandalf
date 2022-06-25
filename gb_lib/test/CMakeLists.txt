@@ -14,3 +14,6 @@ set(SOURCES
 
 add_executable(gb_lib_test ${SOURCES})
 target_link_libraries(gb_lib_test gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(gb_lib_test)
