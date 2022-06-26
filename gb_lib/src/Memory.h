@@ -79,16 +79,36 @@ const uint16_t RP = 0xFF56;
 const uint16_t OPRI = 0xFF6C;
 const uint16_t SVBK = 0xFF70;
 
+/**
+ * Gives access to the Game Boy's 16-bit address space.
+ */
 class Memory
 {
 public:
+    using Address = uint16_t;
+    using Value = uint8_t;
+
     Memory();
     ~Memory();
 
-    uint8_t& operator[] (uint16_t address);
+    /**
+     * Writes the value to the specified address.
+     *
+     * @param address address that will be written
+     * @param value value that will be written
+     */
+    void Write(Address address, Value value);
+
+    /**
+     * Reads the value at the specified address.
+     *
+     * @param address the address that will be read.
+     * @return Value
+     */
+    Value Read(Address address);
 
 private:
-    std::array<uint8_t, 0xFFFF> _memory; // TODO should we allocate this?
+    std::array<uint8_t, 0xFFFF> memory_;
 };
 
 #endif

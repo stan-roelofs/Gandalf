@@ -4,7 +4,12 @@ Memory::Memory() {}
 
 Memory::~Memory() {}
 
-uint8_t& Memory::operator[](uint16_t address)
+Memory::Value Memory::Read(Address address)
 {
-    return _memory[address];
+    return memory_[address];
+}
+
+void Memory::Write(Address address, Value value)
+{
+    memory_[address] = value;
 }
