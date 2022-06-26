@@ -1,87 +1,87 @@
 #include "bootrom.h"
 
-void RegistersDMG0(CPU::Registers& registers)
+void RegistersDMG0(Registers& registers)
 {
-    registers.A = 0x01;
-    registers.F = 0x00;
-    registers.B = 0xFF;
-    registers.C = 0x13;
-    registers.D = 0x00;
-    registers.E = 0xC1;
-    registers.H = 0x84;
-    registers.L = 0x03;
-    registers.PC = 0x0100;
-    registers.SP = 0xFFFE;
+    registers.a = 0x01;
+    registers.f = 0x00;
+    registers.b = 0xFF;
+    registers.c = 0x13;
+    registers.d = 0x00;
+    registers.e = 0xC1;
+    registers.h = 0x84;
+    registers.l = 0x03;
+    registers.program_counter = 0x0100;
+    registers.stack_pointer = 0xFFFE;
 }
 
-void RegistersDMG(CPU::Registers& registers)
+void RegistersDMG(Registers& registers)
 {
-    registers.A = 0x01;
-    registers.F = 0x80;
-    registers.B = 0x00;
-    registers.C = 0x13;
-    registers.D = 0x00;
-    registers.E = 0xD8;
-    registers.H = 0x01;
-    registers.L = 0x4D;
-    registers.PC = 0x0100;
-    registers.SP = 0xFFFE;
+    registers.a = 0x01;
+    registers.f = 0x80;
+    registers.b = 0x00;
+    registers.c = 0x13;
+    registers.d = 0x00;
+    registers.e = 0xD8;
+    registers.h = 0x01;
+    registers.l = 0x4D;
+    registers.program_counter = 0x0100;
+    registers.stack_pointer = 0xFFFE;
 }
 
-void RegistersMGB(CPU::Registers& registers)
+void RegistersMGB(Registers& registers)
 {
-    registers.A = 0xFF;
-    registers.F = 0x80;
-    registers.B = 0x00;
-    registers.C = 0x13;
-    registers.D = 0x00;
-    registers.E = 0xD8;
-    registers.H = 0x01;
-    registers.L = 0x4D;
-    registers.PC = 0x0100;
-    registers.SP = 0xFFFE;
+    registers.a = 0xFF;
+    registers.f = 0x80;
+    registers.b = 0x00;
+    registers.c = 0x13;
+    registers.d = 0x00;
+    registers.e = 0xD8;
+    registers.h = 0x01;
+    registers.l = 0x4D;
+    registers.program_counter = 0x0100;
+    registers.stack_pointer = 0xFFFE;
 }
 
-void RegistersSGB(CPU::Registers& registers)
+void RegistersSGB(Registers& registers)
 {
-    registers.A = 0x01;
-    registers.F = 0x00;
-    registers.B = 0x00;
-    registers.C = 0x14;
-    registers.D = 0x00;
-    registers.E = 0x00;
-    registers.H = 0xC0;
-    registers.L = 0x60;
-    registers.PC = 0x0100;
-    registers.SP = 0xFFFE;
+    registers.a = 0x01;
+    registers.f = 0x00;
+    registers.b = 0x00;
+    registers.c = 0x14;
+    registers.d = 0x00;
+    registers.e = 0x00;
+    registers.h = 0xC0;
+    registers.l = 0x60;
+    registers.program_counter = 0x0100;
+    registers.stack_pointer = 0xFFFE;
 }
 
-void RegistersSGB2(CPU::Registers& registers)
+void RegistersSGB2(Registers& registers)
 {
-    registers.A = 0xFF;
-    registers.F = 0x00;
-    registers.B = 0x00;
-    registers.C = 0x14;
-    registers.D = 0x00;
-    registers.E = 0x00;
-    registers.H = 0xC0;
-    registers.L = 0x60;
-    registers.PC = 0x0100;
-    registers.SP = 0xFFFE;
+    registers.a = 0xFF;
+    registers.f = 0x00;
+    registers.b = 0x00;
+    registers.c = 0x14;
+    registers.d = 0x00;
+    registers.e = 0x00;
+    registers.h = 0xC0;
+    registers.l = 0x60;
+    registers.program_counter = 0x0100;
+    registers.stack_pointer = 0xFFFE;
 }
 
-void RegistersCGB(CPU::Registers& registers)
+void RegistersCGB(Registers& registers)
 {
-    registers.A = 0x11;
-    registers.F = 0x80;
-    registers.B = 0x00;
-    registers.C = 0x00;
-    registers.D = 0xFF;
-    registers.E = 0x56;
-    registers.H = 0x00;
-    registers.L = 0x0D;
-    registers.PC = 0x0100;
-    registers.SP = 0xFFFE;
+    registers.a = 0x11;
+    registers.f = 0x80;
+    registers.b = 0x00;
+    registers.c = 0x00;
+    registers.d = 0xFF;
+    registers.e = 0x56;
+    registers.h = 0x00;
+    registers.l = 0x0D;
+    registers.program_counter = 0x0100;
+    registers.stack_pointer = 0xFFFE;
 }
 
 void HardwareDMG0(Memory& memory)
@@ -320,7 +320,7 @@ void HardwareCGB(Memory& memory)
     memory.Write(IE, 0x00);
 }
 
-void SimulateBootROM(Model model, CPU::Registers& registers, Memory& memory)
+void SimulateBootROM(Model model, Registers& registers, Memory& memory)
 {
     // CPU registers
     switch (model)

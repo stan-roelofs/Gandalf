@@ -1,11 +1,11 @@
 #ifndef BOOTROM
 #define BOOTROM
 
-#include <Gameboy/Model.h>
+#include <gameboy/model.h>
 
-#include "Cpu.h"
-#include "Memory.h"
+#include "cpu_registers.h"
+#include "memory.h"
 
-void SimulateBootROM(Model model, CPU::Registers& registers, Memory& memory);
+void SimulateBootROM(Model model, Registers& registers, Memory& memory);
 
 #endif

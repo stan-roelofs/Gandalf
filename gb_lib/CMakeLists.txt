@@ -1,9 +1,11 @@
 set(HEADERS
     include/gameboy/gameboy.h
     include/gameboy/model.h
-    src/cpu.h
-    src/memory.h
     src/bootROM.h
+    src/cpu.h
+    src/cpu_registers.h
+    src/memory.h
+    src/timing_handler.h
 )
 
 set(SOURCES
