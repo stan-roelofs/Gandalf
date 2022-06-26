@@ -1,7 +1,7 @@
 set(HEADERS
     include/gameboy/gameboy.h
     include/gameboy/model.h
-    src/bootROM.h
+    src/bootrom.h
     src/cpu.h
     src/cpu_registers.h
     src/memory.h
@@ -9,7 +9,7 @@ set(HEADERS
 )
 
 set(SOURCES
-    src/bootROM.cpp
+    src/bootrom.cpp
     src/cpu.cpp
     src/gameboy.cpp
     src/memory.cpp
