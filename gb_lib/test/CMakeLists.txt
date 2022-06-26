@@ -11,7 +11,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 set(SOURCES
-    src/CpuTest.cpp
+    src/cpu_test.cpp
 )
 
 add_executable(gb_lib_test ${SOURCES})

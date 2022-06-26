@@ -1,4 +1,4 @@
-#include <Gameboy/Gameboy.h>
+#include <gameboy/gameboy.h>
 
 Gameboy::Gameboy()
 {

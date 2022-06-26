@@ -1,16 +1,16 @@
 set(HEADERS
-    include/Gameboy/Gameboy.h
-    include/Gameboy/Model.h
-    src/Cpu.h
-    src/Memory.h
-    src/BootROM.h
+    include/gameboy/gameboy.h
+    include/gameboy/model.h
+    src/cpu.h
+    src/memory.h
+    src/bootROM.h
 )
 
 set(SOURCES
-    src/BootROM.cpp
-    src/Cpu.cpp
-    src/Gameboy.cpp
-    src/Memory.cpp
+    src/bootROM.cpp
+    src/cpu.cpp
+    src/gameboy.cpp
+    src/memory.cpp
 )
 
 add_library(gb_lib ${SOURCES} ${HEADERS})
