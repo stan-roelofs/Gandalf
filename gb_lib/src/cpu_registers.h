@@ -3,6 +3,11 @@
 
 #include <cstdint>
 
+const std::uint8_t kZFlagMask = 0x80;
+const std::uint8_t kNFlagMask = 0x40;
+const std::uint8_t kHFlagMask = 0x20;
+const std::uint8_t kCFlagMask = 0x10;
+
 struct Registers
 {
     struct
