@@ -1,85 +1,87 @@
 #include "bootrom.h"
 
+namespace gandalf {
+
 void RegistersDMG0(Registers& registers)
 {
-    registers.a = 0x01;
-    registers.f = 0x00;
-    registers.b = 0xFF;
-    registers.c = 0x13;
-    registers.d = 0x00;
-    registers.e = 0xC1;
-    registers.h = 0x84;
-    registers.l = 0x03;
+    registers.a() = 0x01;
+    registers.f() = 0x00;
+    registers.b() = 0xFF;
+    registers.c() = 0x13;
+    registers.d() = 0x00;
+    registers.e() = 0xC1;
+    registers.h() = 0x84;
+    registers.l() = 0x03;
     registers.program_counter = 0x0100;
     registers.stack_pointer = 0xFFFE;
 }
 
 void RegistersDMG(Registers& registers)
 {
-    registers.a = 0x01;
-    registers.f = 0x80;
-    registers.b = 0x00;
-    registers.c = 0x13;
-    registers.d = 0x00;
-    registers.e = 0xD8;
-    registers.h = 0x01;
-    registers.l = 0x4D;
+    registers.a() = 0x01;
+    registers.f() = 0x80;
+    registers.b() = 0x00;
+    registers.c() = 0x13;
+    registers.d() = 0x00;
+    registers.e() = 0xD8;
+    registers.h() = 0x01;
+    registers.l() = 0x4D;
     registers.program_counter = 0x0100;
     registers.stack_pointer = 0xFFFE;
 }
 
 void RegistersMGB(Registers& registers)
 {
-    registers.a = 0xFF;
-    registers.f = 0x80;
-    registers.b = 0x00;
-    registers.c = 0x13;
-    registers.d = 0x00;
-    registers.e = 0xD8;
-    registers.h = 0x01;
-    registers.l = 0x4D;
+    registers.a() = 0xFF;
+    registers.f() = 0x80;
+    registers.b() = 0x00;
+    registers.c() = 0x13;
+    registers.d() = 0x00;
+    registers.e() = 0xD8;
+    registers.h() = 0x01;
+    registers.l() = 0x4D;
     registers.program_counter = 0x0100;
     registers.stack_pointer = 0xFFFE;
 }
 
 void RegistersSGB(Registers& registers)
 {
-    registers.a = 0x01;
-    registers.f = 0x00;
-    registers.b = 0x00;
-    registers.c = 0x14;
-    registers.d = 0x00;
-    registers.e = 0x00;
-    registers.h = 0xC0;
-    registers.l = 0x60;
+    registers.a() = 0x01;
+    registers.f() = 0x00;
+    registers.b() = 0x00;
+    registers.c() = 0x14;
+    registers.d() = 0x00;
+    registers.e() = 0x00;
+    registers.h() = 0xC0;
+    registers.l() = 0x60;
     registers.program_counter = 0x0100;
     registers.stack_pointer = 0xFFFE;
 }
 
 void RegistersSGB2(Registers& registers)
 {
-    registers.a = 0xFF;
-    registers.f = 0x00;
-    registers.b = 0x00;
-    registers.c = 0x14;
-    registers.d = 0x00;
-    registers.e = 0x00;
-    registers.h = 0xC0;
-    registers.l = 0x60;
+    registers.a() = 0xFF;
+    registers.f() = 0x00;
+    registers.b() = 0x00;
+    registers.c() = 0x14;
+    registers.d() = 0x00;
+    registers.e() = 0x00;
+    registers.h() = 0xC0;
+    registers.l() = 0x60;
     registers.program_counter = 0x0100;
     registers.stack_pointer = 0xFFFE;
 }
 
 void RegistersCGB(Registers& registers)
 {
-    registers.a = 0x11;
-    registers.f = 0x80;
-    registers.b = 0x00;
-    registers.c = 0x00;
-    registers.d = 0xFF;
-    registers.e = 0x56;
-    registers.h = 0x00;
-    registers.l = 0x0D;
+    registers.a() = 0x11;
+    registers.f() = 0x80;
+    registers.b() = 0x00;
+    registers.c() = 0x00;
+    registers.d() = 0xFF;
+    registers.e() = 0x56;
+    registers.h() = 0x00;
+    registers.l() = 0x0D;
     registers.program_counter = 0x0100;
     registers.stack_pointer = 0xFFFE;
 }
@@ -366,3 +368,4 @@ void SimulateBootROM(Model model, Registers& registers, Memory& memory)
         break;
     }
 }
+} // namespace gandalf

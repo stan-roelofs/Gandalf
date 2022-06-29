@@ -33,3 +33,7 @@
 
 .vscode/
 build/
+
+GPATH
+GRTAGS
+GTAGS

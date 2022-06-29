@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <array>
 
+namespace gandalf {
+
 const std::uint16_t VBK = 0xFF4F;
 const std::uint16_t LCDC = 0xFF40;
 const std::uint16_t LY = 0xFF44;
@@ -85,9 +87,6 @@ const std::uint16_t SVBK = 0xFF70;
 class Memory
 {
 public:
-    using Address = std::uint16_t;
-    using Value = std::uint8_t;
-
     Memory();
     ~Memory();
 
@@ -97,7 +96,7 @@ public:
      * @param address address that will be written
      * @param value value that will be written
      */
-    void Write(Address address, Value value);
+    void Write(std::uint16_t address, std::uint8_t value);
 
     /**
      * Reads the value at the specified address.
@@ -105,10 +104,11 @@ public:
      * @param address the address that will be read.
      * @return Value
      */
-    Value Read(Address address) const;
+    std::uint8_t Read(std::uint16_t address) const;
 
 private:
     std::array<std::uint8_t, 0xFFFF> memory_;
 };
 
+} // namespace gandalf
 #endif
