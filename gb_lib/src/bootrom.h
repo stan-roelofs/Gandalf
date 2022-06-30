@@ -8,7 +8,7 @@
 
 namespace gandalf {
 
-void SimulateBootROM(Model model, Registers& registers, Memory& memory);
+void SimulateBootROM(Model model, Registers &registers, Memory &memory);
 
 } // namespace gandalf
 #endif

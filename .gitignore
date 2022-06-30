@@ -33,6 +33,7 @@
 
 .vscode/
 build/
+buildwin/
 
 GPATH
 GRTAGS

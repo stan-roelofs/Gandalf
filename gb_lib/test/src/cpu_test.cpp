@@ -1,5 +1,3 @@
 #include <gtest/gtest.h>
 
-TEST(CpuTest, Test)
-{
-}
+TEST(CpuTest, Test) {}

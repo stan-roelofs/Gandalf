@@ -3,10 +3,9 @@
 
 namespace gandalf {
 
-class TimingHandler
-{
+class TimingHandler {
 public:
-    virtual void Advance(std::uint8_t cycles) = 0;
+  virtual void Advance(std::uint8_t cycles) = 0;
 };
 
 } // namespace gandalf

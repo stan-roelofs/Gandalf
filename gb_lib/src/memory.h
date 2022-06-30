@@ -1,8 +1,8 @@
 #ifndef __MEMORY_H
 #define __MEMORY_H
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 namespace gandalf {
 
@@ -84,30 +84,29 @@ const std::uint16_t SVBK = 0xFF70;
 /**
  * Gives access to the Game Boy's 16-bit address space.
  */
-class Memory
-{
+class Memory {
 public:
-    Memory();
-    ~Memory();
+  Memory();
+  ~Memory();
 
-    /**
-     * Writes the value to the specified address.
-     *
-     * @param address address that will be written
-     * @param value value that will be written
-     */
-    void Write(std::uint16_t address, std::uint8_t value);
+  /**
+   * Writes the value to the specified address.
+   *
+   * @param address address that will be written
+   * @param value value that will be written
+   */
+  void Write(std::uint16_t address, std::uint8_t value);
 
-    /**
-     * Reads the value at the specified address.
-     *
-     * @param address the address that will be read.
-     * @return Value
-     */
-    std::uint8_t Read(std::uint16_t address) const;
+  /**
+   * Reads the value at the specified address.
+   *
+   * @param address the address that will be read.
+   * @return Value
+   */
+  std::uint8_t Read(std::uint16_t address) const;
 
 private:
-    std::array<std::uint8_t, 0xFFFF> memory_;
+  std::array<std::uint8_t, 0xFFFF> memory_;
 };
 
 } // namespace gandalf

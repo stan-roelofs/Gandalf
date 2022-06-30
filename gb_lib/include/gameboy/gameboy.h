@@ -2,9 +2,9 @@
 #define __GAMEBOY_H
 
 namespace gandalf {
-    class Gameboy {
-        Gameboy();
-        ~Gameboy();
-    };
+class Gameboy {
+  Gameboy();
+  ~Gameboy();
+};
 } // namespace gandalf
 #endif
