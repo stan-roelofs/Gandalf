@@ -13,39 +13,7 @@ namespace gandalf {
     Cartridge();
     virtual ~Cartridge();
 
-    enum class Type : byte {
-      kROMOnly = 0x00,
-      kMBC1 = 0x01,
-      kMBC1RAM = 0x02,
-      kMBC1RAMBattery = 0x03,
-      kMBC2 = 0x05,
-      kMBC2Battery = 0x06,
-      kROMRAM = 0x08,
-      kROMRAMBattery = 0x09,
-      kMMM01 = 0x0B,
-      kMMM01RAM = 0x0C,
-      kMMM01RAMBattery = 0x0D,
-      kMBC3TimerBattery = 0x0F,
-      kMBC3TimerRAMBattery = 0x10,
-      kMBC3 = 0x11,
-      kMBC3RAM = 0x12,
-      kMBC3RAMBattery = 0x13,
-      kMBC5 = 0x19,
-      kMBC5RAM = 0x1A,
-      kMBC5RAMBattery = 0x1B,
-      kMBC5Rumble = 0x1C,
-      kMBC5RumbleRAM = 0x1D,
-      kMBC5RumbleRAMBattery = 0x1E,
-      kMBC6 = 0x20,
-      kMBC7 = 0x22,
-      kPocketCamera = 0xFC,
-      kBandaiTAMA5 = 0xFD,
-      kHuC3 = 0xFE,
-      kHuC1 = 0xFF,
-    };
-
-    class Header {
-    public:
+    struct Header {
       byte logo[0x30];            // 0x104-0x133 - Logo
       byte title[0x10];           // 0x134-0x143 - Title
       byte manufacturer_code[4];  // 0x13F-0x142 - Manufacturer code
@@ -63,10 +31,13 @@ namespace gandalf {
 
       std::string GetTitle() const;
       std::string GetManufacturerCode() const;
-      std::string GetNewLicenseeCode() const;
-      Type GetCartridgeType() const;
-      size_t GetROMSizeBytes() const;
-      size_t GetRAMSizeBytes() const;
+      std::string GetDestination() const;
+      std::string GetLicensee() const;
+      std::string GetType() const;
+      std::string GetROMSize() const;
+      std::string GetRAMSize() const;
+      std::string GetCGBFlag() const;
+      std::string GetSGBFlag() const;
     };
 
     /**
@@ -100,6 +71,10 @@ namespace gandalf {
     byte Read(word address) const;
 
   private:
+    class Type {
+
+    };
+
     std::optional<Header> header_;
   };
 

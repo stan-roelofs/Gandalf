@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.11)
+
 set(HEADERS
     include/gandalf/gameboy.h
     include/gandalf/model.h

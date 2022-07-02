@@ -1,5 +1,5 @@
-#ifndef BOOTROM
-#define BOOTROM
+#ifndef __GANDALF_BOOTROM_H
+#define __GANDALF_BOOTROM_H
 
 #include <gandalf/model.h>
 
