@@ -30,7 +30,7 @@ namespace gandalf {
         result.old_licensee_code = bytes.at(0x14B);
         result.mask_rom_version = bytes.at(0x14C);
         result.header_checksum = bytes.at(0x14D);
-        std::copy(bytes.begin() + 0x14E, bytes.begin() + 0x14F, result.global_checksum);
+        std::copy(bytes.begin() + 0x14E, bytes.begin() + 0x150, result.global_checksum);
         header_ = result;
         return true;
     }
