@@ -1,9 +1,9 @@
-#include <gameboy/gameboy.h>
+#include <gandalf/gameboy.h>
 
 namespace gandalf {
 
-Gameboy::Gameboy() {}
+    Gameboy::Gameboy() {}
 
-Gameboy::~Gameboy() = default;
+    Gameboy::~Gameboy() = default;
 
 } // namespace gandalf

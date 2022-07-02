@@ -1,7 +1,8 @@
 set(HEADERS
-    include/gameboy/gameboy.h
-    include/gameboy/model.h
-    include/gameboy/cartridge.h
+    include/gandalf/gameboy.h
+    include/gandalf/model.h
+    include/gandalf/cartridge.h
+    include/gandalf/types.h
     src/bootrom.h
     src/cpu.h
     src/cpu_registers.h

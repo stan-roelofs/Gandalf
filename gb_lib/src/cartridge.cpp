@@ -1,4 +1,4 @@
-#include <gameboy/cartridge.h>
+#include <gandalf/cartridge.h>
 
 #include <algorithm>
 #include <array>
@@ -12,7 +12,7 @@ namespace gandalf {
 
     Cartridge::~Cartridge() = default;
 
-    bool Cartridge::Load(const std::vector<std::uint8_t>& bytes) {
+    bool Cartridge::Load(const std::vector<byte>& bytes) {
         if (bytes.size() < 0x150) // The header is located at 0x100-0x14F, so bytes must be at least 0x150 bytes long.
             return false;
 

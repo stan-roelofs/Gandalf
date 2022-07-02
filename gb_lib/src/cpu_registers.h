@@ -1,53 +1,53 @@
-#ifndef __CPU_REGISTERS_H
-#define __CPU_REGISTERS_H
+#ifndef __GANDALF_CPU_REGISTERS_H
+#define __GANDALF_CPU_REGISTERS_H
 
-#include <cstdint>
-
-const std::uint8_t kZFlagMask = 0x80;
-const std::uint8_t kNFlagMask = 0x40;
-const std::uint8_t kHFlagMask = 0x20;
-const std::uint8_t kCFlagMask = 0x10;
+#include <gandalf/types.h>
 
 namespace gandalf {
-class Registers {
-public:
-  union {
-    std::uint8_t af_bytes[2];
-    std::uint16_t af_combined;
-  };
-  std::uint8_t &a() { return af_bytes[1]; }
-  std::uint8_t &f() { return af_bytes[0]; }
-  std::uint16_t &af() { return af_combined; }
+  const byte kZFlagMask = 0x80;
+  const byte kNFlagMask = 0x40;
+  const byte kHFlagMask = 0x20;
+  const byte kCFlagMask = 0x10;
 
-  union {
-    std::uint8_t bc_bytes[2];
-    std::uint16_t bc_combined;
-  };
-  std::uint8_t &b() { return bc_bytes[1]; }
-  std::uint8_t &c() { return bc_bytes[0]; }
-  std::uint16_t &bc() { return bc_combined; }
+  class Registers {
+  public:
+    union {
+      byte af_bytes[2];
+      word af_combined;
+    };
+    byte& a() { return af_bytes[1]; }
+    byte& f() { return af_bytes[0]; }
+    word& af() { return af_combined; }
 
-  union {
-    std::uint8_t de_bytes[2];
-    std::uint16_t de_combined;
-  };
-  std::uint8_t &d() { return de_bytes[1]; }
-  std::uint8_t &e() { return de_bytes[0]; }
-  std::uint16_t &de() { return de_combined; }
+    union {
+      byte bc_bytes[2];
+      word bc_combined;
+    };
+    byte& b() { return bc_bytes[1]; }
+    byte& c() { return bc_bytes[0]; }
+    word& bc() { return bc_combined; }
 
-  union {
-    std::uint8_t hl_bytes[2];
-    std::uint16_t hl_combined;
-  };
-  std::uint8_t &h() { return hl_bytes[1]; }
-  std::uint8_t &l() { return hl_bytes[0]; }
-  std::uint16_t &hl() { return hl_combined; }
+    union {
+      byte de_bytes[2];
+      word de_combined;
+    };
+    byte& d() { return de_bytes[1]; }
+    byte& e() { return de_bytes[0]; }
+    word& de() { return de_combined; }
 
-  std::uint16_t stack_pointer;
-  std::uint16_t program_counter;
-  std::uint8_t interrupt_enable;
-  std::uint8_t interrupt_flags;
-  bool interrupt_master_enable;
-};
+    union {
+      byte hl_bytes[2];
+      word hl_combined;
+    };
+    byte& h() { return hl_bytes[1]; }
+    byte& l() { return hl_bytes[0]; }
+    word& hl() { return hl_combined; }
+
+    word stack_pointer;
+    word program_counter;
+    byte interrupt_enable;
+    byte interrupt_flags;
+    bool interrupt_master_enable;
+  };
 } // namespace gandalf
 #endif

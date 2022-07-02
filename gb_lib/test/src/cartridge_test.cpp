@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <gameboy/cartridge.h>
+#include <gandalf/cartridge.h>
 #include <array>
 
 namespace gandalf {
@@ -14,13 +14,13 @@ namespace gandalf {
 
     protected:
         Cartridge cartridge_;
-        std::vector<std::uint8_t> bytes_;
+        std::vector<byte> bytes_;
     };
 
     TEST_F(CartridgeTest, read_logo)
     {
-        std::array<std::uint8_t, 0x30> logo_bytes;
-        for (std::uint8_t i = 0; i < 0x30; i++) {
+        std::array<byte, 0x30> logo_bytes;
+        for (byte i = 0; i < 0x30; i++) {
             logo_bytes[i] = i;
         }
 
@@ -36,7 +36,7 @@ namespace gandalf {
     TEST_F(CartridgeTest, read_title)
     {
         const std::string title("Gandalf");
-        const std::vector<std::uint8_t> title_bytes(title.begin(), title.end());
+        const std::vector<byte> title_bytes(title.begin(), title.end());
         std::copy(title_bytes.begin(), title_bytes.end(), bytes_.begin() + 0x134);
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
@@ -47,7 +47,7 @@ namespace gandalf {
     TEST_F(CartridgeTest, read_manufacturer_code)
     {
         const std::string manufacturer_code("TEST");
-        const std::vector<std::uint8_t> manufacturer_code_bytes(manufacturer_code.begin(), manufacturer_code.end());
+        const std::vector<byte> manufacturer_code_bytes(manufacturer_code.begin(), manufacturer_code.end());
         std::copy(manufacturer_code_bytes.begin(), manufacturer_code_bytes.end(), bytes_.begin() + 0x13F);
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
@@ -57,7 +57,7 @@ namespace gandalf {
 
     TEST_F(CartridgeTest, read_cgb_flag)
     {
-        const std::uint8_t cgb_flag = 0x80;
+        const byte cgb_flag = 0x80;
         bytes_.at(0x143) = cgb_flag;
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
