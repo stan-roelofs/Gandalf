@@ -1,4 +1,5 @@
 #include <gameboy/gameboy.h>
+
 namespace gandalf {
 
 Gameboy::Gameboy() {}

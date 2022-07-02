@@ -11,11 +11,11 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 set(SOURCES
-    src/cpu_test.cpp
+    src/cartridge_test.cpp
 )
 
 add_executable(gb_lib_test ${SOURCES})
-target_link_libraries(gb_lib_test gtest_main)
+target_link_libraries(gb_lib_test gb_lib gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(gb_lib_test)
