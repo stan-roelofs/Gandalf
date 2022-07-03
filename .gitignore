@@ -35,6 +35,4 @@
 build/
 buildwin/
 
-GPATH
-GRTAGS
-GTAGS
+imgui.ini
