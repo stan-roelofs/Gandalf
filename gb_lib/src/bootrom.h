@@ -4,11 +4,11 @@
 #include <gandalf/model.h>
 
 #include "cpu_registers.h"
-#include "memory.h"
+#include "bus.h"
 
 namespace gandalf {
 
-    void SimulateBootROM(Model model, Registers& registers, Memory& memory);
+    void SimulateBootROM(Model model, Registers& registers, Bus& bus);
 
 } // namespace gandalf
 #endif

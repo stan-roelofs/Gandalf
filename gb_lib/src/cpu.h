@@ -2,14 +2,14 @@
 #define __GANDALF_CPU_H
 
 #include "cpu_registers.h"
-#include "memory.h"
+#include "bus.h"
 #include "timing_handler.h"
 
 namespace gandalf {
 
   class CPU {
   public:
-    CPU(TimingHandler& timing_handler, Memory& memory);
+    CPU(TimingHandler& timing_handler, Bus& bus);
     ~CPU();
 
     void Run();
@@ -19,7 +19,7 @@ namespace gandalf {
     void Execute(byte opcode);
 
     Registers registers_;
-    Memory& memory_;
+    Bus& memory_;
     TimingHandler& timing_handler_;
     byte opcode_;
     bool halt_;

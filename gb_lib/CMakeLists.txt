@@ -8,7 +8,7 @@ set(HEADERS
     src/bootrom.h
     src/cpu.h
     src/cpu_registers.h
-    src/memory.h
+    src/bus.h
     src/timing_handler.h
 )
 
@@ -17,7 +17,7 @@ set(SOURCES
     src/cartridge.cpp
     src/cpu.cpp
     src/gameboy.cpp
-    src/memory.cpp
+    src/bus.cpp
 )
 
 add_library(gb_lib ${SOURCES} ${HEADERS})

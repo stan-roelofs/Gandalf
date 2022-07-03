@@ -607,8 +607,8 @@ namespace gandalf {
     CP_A(value);                                                               \
   }
 
-  CPU::CPU(TimingHandler& timing_handler, Memory& memory)
-    : memory_(memory), timing_handler_(timing_handler), halt_(false),
+  CPU::CPU(TimingHandler& timing_handler, Bus& bus)
+    : memory_(bus), timing_handler_(timing_handler), halt_(false),
     stop_(false), halt_bug_(false) {}
 
   CPU::~CPU() = default;

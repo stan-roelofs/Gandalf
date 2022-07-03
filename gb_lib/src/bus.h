@@ -84,10 +84,10 @@ namespace gandalf {
   /**
    * Gives access to the Game Boy's 16-bit address space.
    */
-  class Memory {
+  class Bus {
   public:
-    Memory();
-    ~Memory();
+    Bus();
+    ~Bus();
 
     /**
      * Writes the value to the specified address.
