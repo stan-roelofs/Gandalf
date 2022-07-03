@@ -2,7 +2,9 @@
 #define __GANDALF_MEMORY_H
 
 #include <array>
+
 #include <gandalf/types.h>
+#include <gandalf/address_range.h>
 
 namespace gandalf {
 
@@ -105,8 +107,14 @@ namespace gandalf {
      */
     byte Read(word address) const;
 
+    /**
+     * Attaches a handler for a certain memory range to the bus.
+     * @param handler the memory range to attach
+     */
+    void Attach(AddressRange* handler);
+
   private:
-    std::array<byte, 0xFFFF> memory_;
+    std::array<AddressRange*, 0xFFFF> address_space_;
   };
 
 } // namespace gandalf

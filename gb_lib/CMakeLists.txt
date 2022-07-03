@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 set(HEADERS
+    include/gandalf/address_range.h
     include/gandalf/gameboy.h
     include/gandalf/model.h
     include/gandalf/cartridge.h

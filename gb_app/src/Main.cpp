@@ -1,11 +1,27 @@
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include <string>
 
 #include <gandalf/gameboy.h>
 #include <gandalf/cartridge.h>
+
+static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
+    std::ifstream input(filename, std::ios::binary);
+    if (input.fail()) {
+        std::cerr << "Could not open file " << filename << ": " << std::strerror(errno) << std::endl;
+        return false;
+    }
+
+    // copies all data into buffer
+    buffer.clear();
+    std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
+        std::istreambuf_iterator<char>());
+    buffer = file;
+
+    return true;
+}
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -17,31 +33,10 @@ int main(int argc, char** argv) {
 
     {
         using namespace gandalf;
+
         std::vector<byte> rom;
-
-        {
-            std::ifstream ifs(argv[1], std::ios::binary | std::ios::ate);
-            if (!ifs) {
-                char buffer[256];
-                strerror_s(buffer, 256, errno);
-                throw std::runtime_error(file_path + ": " + buffer);
-            }
-
-            auto end = ifs.tellg();
-            ifs.seekg(0, std::ios::beg);
-
-            std::size_t size(end - ifs.tellg());
-            if (size == 0)
-                throw std::runtime_error(file_path + ": empty file");
-
-            rom.resize(size);
-
-            if (!ifs.read((char*)rom.data(), size)) {
-                char buffer[256];
-                strerror_s(buffer, 256, errno);
-                throw std::runtime_error(file_path + ": " + buffer);
-            }
-        }
+        if (!ReadFile(argv[1], rom))
+            return EXIT_FAILURE;
 
         Cartridge cartridge;
 
