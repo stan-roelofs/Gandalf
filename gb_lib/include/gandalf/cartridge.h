@@ -59,17 +59,20 @@ namespace gandalf {
     byte Read(word address) const override;
     std::set<word> GetAddresses() const override;
 
-  private:
     class MBC {
     public:
-      MBC(Cartridge& cartridge);
+      MBC(const std::vector<byte>& bytes);
       virtual ~MBC();
 
       virtual byte Read(word address) const = 0;
       virtual void Write(word address, byte value) = 0;
+    protected:
+      std::vector<byte> bytes_;
     };
 
+  private:
     std::optional<Header> header_;
+    std::unique_ptr<MBC> mbc_;
   };
 
 }

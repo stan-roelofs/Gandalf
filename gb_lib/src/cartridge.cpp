@@ -7,6 +7,20 @@
 #include <string>
 
 namespace gandalf {
+    class ROMOnly : public Cartridge::MBC {
+    public:
+        ROMOnly(const std::vector<byte>& bytes) : Cartridge::MBC(bytes) {
+            if (bytes_.size() != 0x8000)
+                throw std::runtime_error("ROMOnly: Invalid ROM size");
+        }
+        byte Read(word address) const override {
+            return bytes_[address];
+        }
+        void Write(word, byte) override {
+            // Write is ignored
+        }
+    };
+
     std::string Cartridge::Header::GetTitle() const
     {
         return std::string(reinterpret_cast<const char*>(title), 0x10);
@@ -373,15 +387,18 @@ namespace gandalf {
 
     void Cartridge::Write(word address, byte value)
     {
-        (void)address;
-        (void)value;
-        // TODO
+        if (!mbc_)
+            throw std::runtime_error("No cartridge loaded");
+
+        mbc_->Write(address, value);
     }
 
     byte Cartridge::Read(word address) const
     {
-        (void)address;
-        return 0; // TODO
+        if (!mbc_)
+            throw std::runtime_error("No cartridge loaded");
+
+        return mbc_->Read(address);
     }
 
     std::set<word> Cartridge::GetAddresses() const
@@ -395,4 +412,7 @@ namespace gandalf {
 
         return result;
     }
+
+    Cartridge::MBC::MBC(const std::vector<byte>& bytes) : bytes_(bytes) {}
+    Cartridge::MBC::~MBC() = default;
 }
