@@ -34,5 +34,6 @@
 .vscode/
 build/
 buildwin/
+gb_lib/bootroms/*.*
 
 imgui.ini
