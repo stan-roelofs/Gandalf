@@ -338,7 +338,7 @@ namespace gandalf {
             return "None";
     }
 
-    Cartridge::Cartridge() {}
+    Cartridge::Cartridge() : Bus::AddressHandler("Cartridge") {}
 
     Cartridge::~Cartridge() = default;
 
@@ -371,16 +371,28 @@ namespace gandalf {
         return header_;
     }
 
-    void gandalf::Cartridge::Write(word address, byte value)
+    void Cartridge::Write(word address, byte value)
     {
         (void)address;
         (void)value;
         // TODO
     }
 
-    byte gandalf::Cartridge::Read(word address) const
+    byte Cartridge::Read(word address) const
     {
         (void)address;
         return 0; // TODO
+    }
+
+    std::set<word> Cartridge::GetAddresses() const
+    {
+        std::set<word> result;
+        for (word i = 0; i < 0x8000; ++i)
+            result.insert(i);
+
+        for (word i = 0xA000; i < 0xC000; ++i)
+            result.insert(i);
+
+        return result;
     }
 }

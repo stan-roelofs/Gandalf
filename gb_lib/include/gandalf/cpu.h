@@ -7,19 +7,23 @@
 
 namespace gandalf {
 
-  class CPU {
+  class CPU : public Bus::AddressHandler {
   public:
     CPU(TimingHandler& timing_handler, Bus& bus);
     ~CPU();
 
-    void Run();
+    void Tick();
+
+    byte Read(word address) const override;
+    void Write(word address, byte value) override;
+    std::set<word> GetAddresses() const override;
 
   private:
     void CheckInterrupts();
     void Execute(byte opcode);
 
     Registers registers_;
-    Bus& memory_;
+    Bus& bus_;
     TimingHandler& timing_handler_;
     byte opcode_;
     bool halt_;

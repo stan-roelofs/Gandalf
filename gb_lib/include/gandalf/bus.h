@@ -2,8 +2,10 @@
 #define __GANDALF_MEMORY_H
 
 #include <array>
-#include <set>
 #include <string>
+#include <memory>
+#include <stdexcept>
+#include <set>
 
 #include "types.h"
 
@@ -77,6 +79,8 @@ namespace gandalf {
   const word kNR51 = 0xFF25;
   const word kNR52 = 0xFF26;
 
+  const word kBANK = 0xFF50;
+
   // CGB
   const word kKEY1 = 0xFF4D;
   const word kRP = 0xFF56;
@@ -88,7 +92,7 @@ namespace gandalf {
    */
   class Bus {
   public:
-    class AddressRange
+    class AddressHandler
     {
     public:
       /**
@@ -107,16 +111,14 @@ namespace gandalf {
        */
       virtual byte Read(word address) const = 0;
 
-
-      /// @return the addresses that are handled by this address range.         
+      /// @return The addresses that are managed by this object.
       virtual std::set<word> GetAddresses() const = 0;
 
     protected:
-      AddressRange(const std::string& name, Bus& bus);
+      AddressHandler(const std::string& name);
+      virtual ~AddressHandler();
       std::string name_;
-      Bus& bus_;
     };
-
 
     Bus();
     ~Bus();
@@ -138,13 +140,20 @@ namespace gandalf {
     byte Read(word address) const;
 
     /**
-     * Attaches a handler for a certain memory range to the bus.
-     * @param handler the memory range to attach
+     * Registers an address handler to the bus.
+     * @param handler the handler
      */
-    void Attach(AddressRange* handler);
+    void Register(AddressHandler* handler);
+
+    /**
+     * Removes the specified address handler from the bus.
+     *
+     * @param handler the handler
+    */
+    void Unregister(AddressHandler* handler);
 
   private:
-    std::array<AddressRange*, 0xFFFF> address_space_;
+    std::array<AddressHandler*, 0x10000> address_space_;
   };
 
 } // namespace gandalf

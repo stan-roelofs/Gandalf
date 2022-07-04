@@ -20,15 +20,13 @@ namespace {
             return (prev_div & (1 << 5)) && (!(div & (1 << 5)));
         else
             return (prev_div & (1 << 7)) && (!(div & (1 << 7)));
-
-        throw std::runtime_error("Should not be reached!");
     }
 }
 
 namespace gandalf
 {
     // TODO is initial value correct? verify using tests
-    Timer::Timer(Bus& bus) : AddressRange("Timer", bus), div_(0xAC00), tma_(0), tima_(0), tac_(0)
+    Timer::Timer(Bus& bus) : Bus::AddressHandler("Timer"), div_(0xAC00), tma_(0), tima_(0), tac_(0), bus_(bus)
     {
     }
 
@@ -48,7 +46,7 @@ namespace gandalf
             if (tima_ == 0) {
                 tima_ = tma_;
 
-                bus_.Write(kIE, bus_.Read(kIE) | (1 << 1));
+                bus_.Write(kIE, bus_.Read(kIE) | (1 << 2));
             }
         }
     }
@@ -91,7 +89,6 @@ namespace gandalf
         default:
             throw std::runtime_error("Invalid timer address");
         }
-        return 0;
     }
 
     std::set<word> Timer::GetAddresses() const

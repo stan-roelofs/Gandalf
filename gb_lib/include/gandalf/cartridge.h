@@ -5,10 +5,11 @@
 #include <optional>
 #include <string>
 
+#include "bus.h"
 #include "types.h"
 
 namespace gandalf {
-  class Cartridge {
+  class Cartridge : public Bus::AddressHandler {
   public:
     Cartridge();
     virtual ~Cartridge();
@@ -54,25 +55,18 @@ namespace gandalf {
      */
     std::optional<Header> GetHeader() const;
 
-    /**
-     * Writes the value to the specified address.
-     *
-     * @param address address that will be written
-     * @param value value that will be written
-     */
-    void Write(word address, byte value);
-
-    /**
-     * Reads the value at the specified address.
-     *
-     * @param address the address that will be read.
-     * @return Value
-     */
-    byte Read(word address) const;
+    void Write(word address, byte value) override;
+    byte Read(word address) const override;
+    std::set<word> GetAddresses() const override;
 
   private:
-    class Type {
+    class MBC {
+    public:
+      MBC(Cartridge& cartridge);
+      virtual ~MBC();
 
+      virtual byte Read(word address) const = 0;
+      virtual void Write(word address, byte value) = 0;
     };
 
     std::optional<Header> header_;

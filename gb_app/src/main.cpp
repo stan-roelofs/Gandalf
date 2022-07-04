@@ -19,7 +19,6 @@
 static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
     std::ifstream input(filename, std::ios::binary);
     if (input.fail()) {
-        std::cerr << "Could not open file " << filename << ": " << std::strerror(errno) << std::endl;
         return false;
     }
 
@@ -33,19 +32,34 @@ static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
 }
 
 int main(int argc, char** argv) {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <rom_file>" << std::endl;
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <boot_rom_file>" << " <rom_file>" << std::endl;
         return EXIT_FAILURE;
     }
 
-    std::string file_path(argv[1]);
 
     {
         using namespace gandalf;
+        Gameboy gb;
+
+        std::vector<byte> boot_rom;
+        if (!ReadFile(argv[1], boot_rom))
+            return EXIT_FAILURE;
+
+        if (boot_rom.size() != 0x100) {
+            std::cerr << "Invalid boot rom size %d, expected 0x100 bytes" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        std::array<byte, 0x100> boot_rom_array;
+        std::copy(boot_rom.begin(), boot_rom.end(), boot_rom_array.begin());
 
         std::vector<byte> rom;
-        if (!ReadFile(argv[1], rom))
+        if (!ReadFile(argv[2], rom))
             return EXIT_FAILURE;
+
+        gb.Boot(boot_rom_array, rom);
+        return EXIT_SUCCESS;
 
         Cartridge cartridge;
 
@@ -65,6 +79,10 @@ int main(int argc, char** argv) {
         std::cout << "SGB flag: " << header.GetSGBFlag() << std::endl;
         std::cout << "Cartridge type: " << header.GetType() << std::endl;
         std::cout << "Destination: " << header.GetDestination() << std::endl;
+
+        while (true) {
+            gb.Run();
+        }
 
 
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {

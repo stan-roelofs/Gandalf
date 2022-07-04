@@ -1,11 +1,11 @@
 #include <gandalf/bus.h>
 
-#include <cassert>
-
 namespace gandalf {
-  Bus::AddressRange::AddressRange(const std::string& name, Bus& bus) : name_(name), bus_(bus) {
-    bus.Attach(this);
+  Bus::AddressHandler::AddressHandler(const std::string& name) : name_(name) {
+
   }
+
+  Bus::AddressHandler::~AddressHandler() = default;
 
   Bus::Bus() {
     address_space_.fill(nullptr);
@@ -17,6 +17,8 @@ namespace gandalf {
     if (address_space_[address] != nullptr) {
       address_space_[address]->Write(address, value);
     }
+
+    throw std::runtime_error("Unsupported write to: " + std::to_string(address));
   }
 
   byte Bus::Read(word address) const {
@@ -24,13 +26,27 @@ namespace gandalf {
       return address_space_[address]->Read(address);
     }
 
-    return 0xFF;
+    throw std::runtime_error("Unsupported read from: " + std::to_string(address));
+    // TODO
+    //return 0xFF;
   }
 
-  void Bus::Attach(AddressRange* handler) {
-    for (word address : handler->GetAddresses()) {
-      assert(address_space_[address] == nullptr);
+  void Bus::Register(AddressHandler* handler) {
+    if (handler == nullptr)
+      return;
+
+    for (const word address : handler->GetAddresses()) {
       address_space_[address] = handler;
+    }
+  }
+
+  void Bus::Unregister(AddressHandler* handler)
+  {
+    if (handler == nullptr)
+      return;
+
+    for (const word address : handler->GetAddresses()) {
+      address_space_[address] = nullptr;
     }
   }
 

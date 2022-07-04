@@ -4,11 +4,11 @@
 #include "bus.h"
 
 namespace gandalf {
-    class Timer : public Bus::AddressRange
+    class Timer : public Bus::AddressHandler
     {
     public:
         Timer(Bus& bus);
-        ~Timer();
+        virtual ~Timer();
 
         void Write(word address, byte value) override;
         byte Read(word address) const override;
@@ -21,6 +21,7 @@ namespace gandalf {
         byte tma_;
         byte tima_;
         byte tac_;
+        Bus& bus_;
     };
 }
 

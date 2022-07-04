@@ -17,11 +17,11 @@ namespace gandalf {
 
 #define READ(address, destination)                                             \
   timing_handler_.Advance(4);                                                  \
-  (destination) = memory_.Read(address);
+  (destination) = bus_.Read(address);
 
 #define WRITE(address, value)                                                  \
   timing_handler_.Advance(4);                                                  \
-  memory_.Write(address, value);
+  bus_.Write(address, value);
 
 #define READ_PC(destination) READ(registers_.program_counter++, destination)
 #define READ_SP(destination) READ(registers_.stack_pointer++, destination)
@@ -607,13 +607,39 @@ namespace gandalf {
     CP_A(value);                                                               \
   }
 
-  CPU::CPU(TimingHandler& timing_handler, Bus& bus)
-    : memory_(bus), timing_handler_(timing_handler), halt_(false),
-    stop_(false), halt_bug_(false) {}
+  CPU::CPU(TimingHandler& timing_handler, Bus& bus) : Bus::AddressHandler("CPU"),
+    bus_(bus), timing_handler_(timing_handler), halt_(false), stop_(false), halt_bug_(false) {}
 
   CPU::~CPU() = default;
 
-  void CPU::Run() {
+  byte CPU::Read(word address) const
+  {
+    if (address == kIE)
+      return registers_.interrupt_enable;
+    else if (address == kIF)
+      return registers_.interrupt_flags | 0b11100000;
+
+    throw std::runtime_error("Invalid read from address " +
+      std::to_string(address));
+  }
+
+  void CPU::Write(word address, byte value)
+  {
+    if (address == kIE)
+      registers_.interrupt_enable = value;
+    else if (address == kIF)
+      registers_.interrupt_flags = value;
+
+    throw std::runtime_error("Invalid write to address " +
+      std::to_string(address));
+  }
+
+  std::set<word> CPU::GetAddresses() const
+  {
+    return { kIE, kIF };
+  }
+
+  void CPU::Tick() {
     if (stop_) {
       return; // TODO
     }
