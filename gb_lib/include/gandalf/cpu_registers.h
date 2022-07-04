@@ -1,7 +1,7 @@
 #ifndef __GANDALF_CPU_REGISTERS_H
 #define __GANDALF_CPU_REGISTERS_H
 
-#include <gandalf/types.h>
+#include  "types.h"
 
 namespace gandalf {
   const byte kZFlagMask = 0x80;

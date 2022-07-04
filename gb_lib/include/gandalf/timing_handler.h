@@ -1,6 +1,8 @@
 #ifndef __GANDALF_TIMING_HANDLER_H
 #define __GANDALF_TIMING_HANDLER_H
 
+#include "types.h"
+
 namespace gandalf {
 
   class TimingHandler {

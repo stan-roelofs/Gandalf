@@ -1,4 +1,4 @@
-#include "cpu.h"
+#include <gandalf/cpu.h>
 
 #include <stdexcept>
 #include <string>

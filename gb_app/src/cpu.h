@@ -1,8 +1,8 @@
 #ifndef __GANDALF_CPU_H
 #define __GANDALF_CPU_H
 
-#include "cpu_registers.h"
 #include "bus.h"
+#include "cpu_registers.h"
 #include "timing_handler.h"
 
 namespace gandalf {

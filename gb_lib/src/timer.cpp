@@ -1,0 +1,101 @@
+#include <gandalf/timer.h>
+
+#include <stdexcept>
+
+namespace {
+    bool TimerEnabled(gandalf::byte tac) {
+        return tac & (1 << 2);
+    }
+
+    bool ShouldIncreaseTimer(gandalf::byte tac, gandalf::word prev_div, gandalf::word div) {
+        if (!TimerEnabled(tac))
+            return false;
+
+        const gandalf::byte mode = tac & 0b11;
+        if (mode == 0b00)
+            return (prev_div & (1 << 9)) && (!(div & (1 << 9)));
+        else if (mode == 0b01)
+            return (prev_div & (1 << 3)) && (!(div & (1 << 3)));
+        else if (mode == 0b10)
+            return (prev_div & (1 << 5)) && (!(div & (1 << 5)));
+        else
+            return (prev_div & (1 << 7)) && (!(div & (1 << 7)));
+
+        throw std::runtime_error("Should not be reached!");
+    }
+}
+
+namespace gandalf
+{
+    // TODO is initial value correct? verify using tests
+    Timer::Timer(Bus& bus) : AddressRange("Timer", bus), div_(0xAC00), tma_(0), tima_(0), tac_(0)
+    {
+    }
+
+    Timer::~Timer() = default;
+
+    void Timer::Tick()
+    {
+        // TODO reloading takes some cycles 
+
+        word prev_div = div_;
+
+        div_++;
+
+        if (ShouldIncreaseTimer(tac_, prev_div, div_)) {
+            tima_++;
+
+            if (tima_ == 0) {
+                tima_ = tma_;
+
+                bus_.Write(kIE, bus_.Read(kIE) | (1 << 1));
+            }
+        }
+    }
+
+    void Timer::Write(word address, byte value)
+    {
+        switch (address)
+        {
+        case kTAC:
+            // TODO disabling can cause TIMA increase, we'll ignore this for now and implement it later
+            tac_ = value;
+            break;
+        case kTIMA:
+            tima_ = value;
+            break;
+        case kTMA:
+            tma_ = value;
+            break;
+        case kDIV:
+            // TODO writing to DIV can cause TIMA increase, we'll ignore this for now and implement it later
+            div_ = 0;
+            break;
+        default:
+            throw std::runtime_error("Invalid timer address");
+        }
+    }
+
+    byte Timer::Read(word address) const
+    {
+        switch (address)
+        {
+        case kTAC:
+            return tac_;
+        case kTIMA:
+            return tima_;
+        case kTMA:
+            return tma_;
+        case kDIV:
+            return div_ >> 8;
+        default:
+            throw std::runtime_error("Invalid timer address");
+        }
+        return 0;
+    }
+
+    std::set<word> Timer::GetAddresses() const
+    {
+        return { kTAC, kTIMA, kTMA, kDIV };
+    }
+}

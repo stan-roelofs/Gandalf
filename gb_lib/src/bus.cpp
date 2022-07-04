@@ -1,8 +1,11 @@
-#include "bus.h"
+#include <gandalf/bus.h>
 
 #include <cassert>
 
 namespace gandalf {
+  Bus::AddressRange::AddressRange(const std::string& name, Bus& bus) : name_(name), bus_(bus) {
+    bus.Attach(this);
+  }
 
   Bus::Bus() {
     address_space_.fill(nullptr);

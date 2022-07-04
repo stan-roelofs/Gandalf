@@ -1,24 +1,25 @@
 cmake_minimum_required(VERSION 3.11)
 
 set(HEADERS
-    include/gandalf/address_range.h
+    include/gandalf/bus.h
+    include/gandalf/cartridge.h
+    include/gandalf/cpu.h
+    include/gandalf/cpu_registers.h
     include/gandalf/gameboy.h
     include/gandalf/model.h
-    include/gandalf/cartridge.h
+    include/gandalf/timer.h
+    include/gandalf/timing_handler.h
     include/gandalf/types.h
     src/bootrom.h
-    src/cpu.h
-    src/cpu_registers.h
-    src/bus.h
-    src/timing_handler.h
 )
 
 set(SOURCES
     src/bootrom.cpp
+    src/bus.cpp
     src/cartridge.cpp
     src/cpu.cpp
     src/gameboy.cpp
-    src/bus.cpp
+    src/timer.cpp
 )
 
 add_library(gb_lib ${SOURCES} ${HEADERS})

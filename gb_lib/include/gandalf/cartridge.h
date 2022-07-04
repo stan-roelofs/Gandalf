@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 
-#include <gandalf/types.h>
+#include "types.h"
 
 namespace gandalf {
   class Cartridge {
