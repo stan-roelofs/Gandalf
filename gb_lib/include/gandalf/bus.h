@@ -140,6 +140,15 @@ namespace gandalf {
     byte Read(word address) const;
 
     /**
+     * Returns the true value of the specified address, only for debugging!
+     * The normal Read() method may return 0xFF when the bus is occupied.
+     *
+     * @param address
+     * @return byte
+     */
+    byte DebugRead(word address) const;
+
+    /**
      * Registers an address handler to the bus.
      * @param handler the handler
      */

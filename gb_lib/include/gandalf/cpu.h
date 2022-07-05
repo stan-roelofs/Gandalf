@@ -18,6 +18,8 @@ namespace gandalf {
     void Write(word address, byte value) override;
     std::set<word> GetAddresses() const override;
 
+    Registers& GetRegisters() { return registers_; }
+
   private:
     void CheckInterrupts();
     void Execute(byte opcode);

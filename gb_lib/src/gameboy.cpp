@@ -34,6 +34,7 @@ namespace gandalf {
         if (boot_rom_handler_ && boot_rom_handler_->Done()) {
             bus_.Unregister(boot_rom_handler_.get());
             bus_.Register(&cartridge_);
+            boot_rom_handler_.release();
         }
 
         cpu_.Tick();

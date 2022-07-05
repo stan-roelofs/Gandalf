@@ -22,6 +22,11 @@ namespace gandalf {
   }
 
   byte Bus::Read(word address) const {
+    // TODO if blocked, return 0xFF
+    return DebugRead(address);
+  }
+
+  byte Bus::DebugRead(word address) const {
     if (address_space_[address] != nullptr) {
       return address_space_[address]->Read(address);
     }

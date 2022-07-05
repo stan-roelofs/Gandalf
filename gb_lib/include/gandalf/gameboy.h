@@ -63,9 +63,14 @@ namespace gandalf {
 
     void Run();
 
-    void Advance(byte) override {}
+    void Advance(byte) override {
+
+    }
 
     const Cartridge& GetCartridge() const { return cartridge_; }
+
+    CPU& GetCPU() { return cpu_; }
+    Bus& GetBus() { return bus_; }
 
   private:
     Bus bus_;

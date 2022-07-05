@@ -9,6 +9,9 @@ namespace gandalf {
   const byte kHFlagMask = 0x20;
   const byte kCFlagMask = 0x10;
 
+
+  // TODO make things private?
+
   class Registers {
   public:
     Registers() :
