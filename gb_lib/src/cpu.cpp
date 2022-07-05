@@ -29,7 +29,7 @@ namespace gandalf {
 
 #define LD_RR_NN(r)                                                            \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     r = (high << 8) | low;                                                     \
@@ -66,13 +66,14 @@ namespace gandalf {
   {                                                                            \
     registers_.f() = 0;                                                        \
     const bool carry = (r)&0x80;                                               \
-    (r) = ((r) << 1) if (carry) {                                              \
+    (r) = ((r) << 1);                                                          \
+    if (carry) {                                                               \
       ++r;                                                                     \
       SET_CFLAG()                                                              \
     }                                                                          \
     if ((r) == 0)                                                              \
       SET_ZFLAG()                                                              \
-  }
+}
 
 #define RRC(r)                                                                 \
   {                                                                            \
@@ -107,13 +108,10 @@ namespace gandalf {
     const bool carry = registers_.f() & kCFlagMask;                            \
     const bool new_carry = (r)&0x1;                                            \
     (r) = (r) >> 1;                                                            \
-    if (new_carry) {                                                           \
-      SET_CFLAG();                                                             \
-      r |= 0x80;                                                               \
-    }                                                                          \
-    if ((r) == 0)                                                              \
-      SET_ZFLAG()                                                              \
-  }
+    if (carry) (r) |= 0x80;                                                    \
+    if (new_carry) SET_CFLAG()                                                 \
+    if ((r) == 0) SET_ZFLAG()                                                  \
+}
 
 #define RRCA()                                                                 \
   {                                                                            \
@@ -224,7 +222,7 @@ namespace gandalf {
 
 #define INC_HL()                                                               \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     ++value;                                                                   \
     WRITE(registers_.hl(), value);                                             \
@@ -237,7 +235,7 @@ namespace gandalf {
 
 #define DEC_HL()                                                               \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     --value;                                                                   \
     WRITE(registers_.hl(), value);                                             \
@@ -251,7 +249,7 @@ namespace gandalf {
 
 #define LD_HL_N()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     WRITE(registers_.hl(), value);                                             \
   }
@@ -273,7 +271,7 @@ namespace gandalf {
 
 #define ADD_A(value)                                                           \
   {                                                                            \
-    byte a = registers_.a();                                           \
+    byte a = registers_.a();                                                   \
     registers_.a() += (value);                                                 \
     registers_.f() &= 0xF0;                                                    \
     if (a + (value) == 0)                                                      \
@@ -286,15 +284,15 @@ namespace gandalf {
 
 #define ADD_A_HL()                                                             \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     ADD_A(value);                                                              \
   }
 
 #define ADC_A(value)                                                           \
   {                                                                            \
-    byte a = registers_.a();                                           \
-    const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;         \
+    byte a = registers_.a();                                                   \
+    const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;            \
     registers_.a() += (value + carry);                                         \
     registers_.f() &= 0xF0;                                                    \
     if (a + (value) + carry == 0)                                              \
@@ -307,14 +305,14 @@ namespace gandalf {
 
 #define ADC_A_HL()                                                             \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     ADC_A(value);                                                              \
   }
 
 #define SUB_A(value)                                                           \
   {                                                                            \
-    byte a = registers_.a();                                           \
+    byte a = registers_.a();                                                   \
     registers_.a() -= (value);                                                 \
     registers_.f() = (registers_.f() & 0xF0) | kNFlagMask;                     \
     if (a == value)                                                            \
@@ -327,15 +325,15 @@ namespace gandalf {
 
 #define SUB_A_HL()                                                             \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     SUB_A(value);                                                              \
   }
 
 #define SBC_A(value)                                                           \
   {                                                                            \
-    byte a = registers_.a();                                           \
-    const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;         \
+    byte a = registers_.a();                                                   \
+    const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;            \
     registers_.a() = registers_.a() - (value)-carry;                           \
     registers_.f() = (registers_.f() & 0xF0) | kNFlagMask;                     \
     if (a - value == carry)                                                    \
@@ -348,7 +346,7 @@ namespace gandalf {
 
 #define SBC_A_HL()                                                             \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     SBC_A(value);                                                              \
   }
@@ -359,7 +357,7 @@ namespace gandalf {
 
 #define AND_A_HL()                                                             \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     AND_A(value);                                                              \
   }
@@ -371,7 +369,7 @@ namespace gandalf {
 
 #define XOR_A_HL()                                                             \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     XOR_A(value);                                                              \
   }
@@ -382,14 +380,14 @@ namespace gandalf {
 
 #define OR_A_HL()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     OR_A(value);                                                               \
   }
 
 #define CP_A(value)                                                            \
   {                                                                            \
-    byte a = registers_.a();                                           \
+    byte a = registers_.a();                                                   \
     registers_.f() = (registers_.f() & 0xF0) | kNFlagMask;                     \
     if (a == value)                                                            \
       SET_ZFLAG()                                                              \
@@ -401,14 +399,14 @@ namespace gandalf {
 
 #define CP_A_HL()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.hl(), value);                                              \
     CP_A(value);                                                               \
   }
 
 #define RET()                                                                  \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     registers_.program_counter = low | (high << 8);                            \
@@ -423,7 +421,7 @@ namespace gandalf {
 
 #define POP_RR(destination)                                                    \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_SP(low);                                                              \
     READ_SP(high);                                                             \
     (destination) = low | (high << 8);                                         \
@@ -431,7 +429,7 @@ namespace gandalf {
 
 #define JP_CC_NN(condition)                                                    \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     if (condition) {                                                           \
@@ -442,7 +440,7 @@ namespace gandalf {
 
 #define JP_NN()                                                                \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     timing_handler_.Advance(4);                                                \
@@ -460,7 +458,7 @@ namespace gandalf {
 
 #define CALL_NN()                                                              \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     CALL(low | (high << 8));                                                   \
@@ -468,7 +466,7 @@ namespace gandalf {
 
 #define CALL_CC_NN(condition)                                                  \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     if (condition) {                                                           \
@@ -478,7 +476,7 @@ namespace gandalf {
 
 #define ADD_A_N()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     ADD_A(value);                                                              \
   }
@@ -489,14 +487,14 @@ namespace gandalf {
 
 #define ADC_A_N()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     ADC_A(value);                                                              \
   }
 
 #define SUB_A_N()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     SUB_A(value);                                                              \
   }
@@ -507,14 +505,14 @@ namespace gandalf {
 
 #define SBC_A_N()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     SBC_A(value);                                                              \
   }
 
 #define LDH_N_A()                                                              \
   {                                                                            \
-    word value;                                                       \
+    word value;                                                                \
     READ_PC(value);                                                            \
     WRITE(value + 0xFF00, registers_.a());                                     \
   }
@@ -523,14 +521,14 @@ namespace gandalf {
 
 #define LDH_A_C()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ(registers_.c() + 0xFF00, value);                                      \
     registers_.a() = value;                                                    \
   }
 
 #define AND_A_N()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     AND_A(value);                                                              \
   }
@@ -539,7 +537,7 @@ namespace gandalf {
   {                                                                            \
     signed_byte value;                                                         \
     READ_PC(value);                                                            \
-    word sp = registers_.stack_pointer;                                    \
+    word sp = registers_.stack_pointer;                                        \
     registers_.stack_pointer += value;                                         \
     registers_.f() = 0;                                                        \
     if ((sp & 0xFF) + (value) > 0xFF)                                          \
@@ -551,30 +549,30 @@ namespace gandalf {
 
 #define LD_NN_A()                                                              \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
-    word address = low | (high << 8);                                 \
+    word address = low | (high << 8);                                          \
     READ(address, registers_.a());                                             \
   }
 
 #define XOR_A_N()                                                              \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     XOR_A(value);                                                              \
   }
 
 #define LDH_A_N()                                                              \
   {                                                                            \
-    word value;                                                       \
+    word value;                                                                \
     READ_PC(value);                                                            \
     READ(0xFF00 + value, registers_.a());                                      \
   }
 
 #define OR_A_N()                                                               \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     OR_A(value);                                                               \
   }
@@ -593,18 +591,94 @@ namespace gandalf {
 
 #define LD_A_NN()                                                              \
   {                                                                            \
-    byte low, high;                                                    \
+    byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
-    word address = low | (high << 8);                                 \
+    word address = low | (high << 8);                                          \
     READ(address, registers_.a());                                             \
   }
 
 #define CP_A_N()                                                               \
   {                                                                            \
-    byte value;                                                        \
+    byte value;                                                                \
     READ_PC(value);                                                            \
     CP_A(value);                                                               \
+  }
+
+#define SLA(r)                                                                 \
+  {                                                                            \
+    const bool carry = ((r) & 0x80);                                           \
+    r <<= 1;                                                                   \
+    registers_.f() = 0;                                                        \
+    if (carry) SET_CFLAG()                                                     \
+    if ((r) == 0) SET_ZFLAG()                                                  \
+  }
+
+#define SRA(r)                                                                 \
+  {                                                                            \
+    const bool carry = ((r) & 0x1);                                            \
+    const byte bit7 = (r) & 0x80;                                              \
+    r = (r >> 1) | bit7;                                                       \
+    registers_.f() = 0;                                                        \
+    if (carry) SET_CFLAG()                                                     \
+    if ((r) == 0) SET_ZFLAG()                                                  \
+  }
+
+#define SWAP(r)                                                                \
+  {                                                                            \
+    r = (r >> 4) | (r << 4);                                                   \
+    registers_.f() = 0;                                                        \
+    if (r == 0) SET_ZFLAG()                                                    \
+  }
+
+#define SRL(r)                                                                 \
+  {                                                                            \
+    const bool carry = ((r) & 0x1);                                            \
+    r >>= 1;                                                                   \
+    registers_.f() = 0;                                                        \
+    if (carry) SET_CFLAG()                                                     \
+    if ((r) == 0) SET_ZFLAG()                                                  \
+  }
+
+#define BIT(value, bit)                                                        \
+  {                                                                            \
+    if ((value & (1 << bit)) == 0) SET_ZFLAG() else CLEAR_ZFLAG()              \
+    CLEAR_NFLAG()                                                              \
+    SET_HFLAG()                                                                \
+  }                           
+
+#define BIT_HL(bit)                                                            \
+  {                                                                            \
+    byte value;                                                                \
+    READ(registers_.hl(), value);                                              \
+    BIT(value, bit);                                                           \
+  }
+
+#define RES(r, bit) r = r & ~(1 << bit);
+#define RES_HL(bit)                                                            \
+  {                                                                            \
+    byte value;                                                                \
+    READ(registers_.hl(), value);                                              \
+    RES(value, bit);                                                           \
+    WRITE(registers_.hl(), value);                                             \
+  }
+
+
+#define SET(r, bit) r = r | (1 << bit);
+#define SET_HL(bit)                                                            \
+  {                                                                            \
+    byte value;                                                                \
+    READ(registers_.hl(), value);                                              \
+    SET(value, bit);                                                           \
+    WRITE(registers_.hl(), value);                                             \
+  }
+
+#define OP_HL_RW(op)                                                           \
+  {                                                                            \
+    byte value;                                                                \
+    READ(registers_.hl(), value);                                              \
+    op(value);                                                                 \
+    WRITE(registers_.hl(), value);                                             \
   }
 
   CPU::CPU(TimingHandler& timing_handler, Bus& bus) : Bus::AddressHandler("CPU"),
@@ -619,7 +693,7 @@ namespace gandalf {
     else if (address == kIF)
       return registers_.interrupt_flags | 0b11100000;
 
-    throw std::runtime_error("Invalid read from address " +
+    throw Exception("Invalid read from address " +
       std::to_string(address));
   }
 
@@ -630,7 +704,7 @@ namespace gandalf {
     else if (address == kIF)
       registers_.interrupt_flags = value;
 
-    throw std::runtime_error("Invalid write to address " +
+    throw Exception("Invalid write to address " +
       std::to_string(address));
   }
 
@@ -1117,11 +1191,520 @@ namespace gandalf {
       READ_PC(opcode_)
 
         switch (opcode_) {
-        case 0:
-          break;
-          // TODO
+        case 0x00:
+          RLC(registers_.b()) break;
+        case 0x01:
+          RLC(registers_.c()) break;
+        case 0x02:
+          RLC(registers_.d()) break;
+        case 0x03:
+          RLC(registers_.e()) break;
+        case 0x04:
+          RLC(registers_.h()) break;
+        case 0x05:
+          RLC(registers_.l()) break;
+        case 0x06:
+          OP_HL_RW(RLC) break;
+        case 0x07:
+          RLC(registers_.a()) break;
+        case 0x08:
+          RRC(registers_.b()) break;
+        case 0x09:
+          RRC(registers_.c()) break;
+        case 0x0A:
+          RRC(registers_.d()) break;
+        case 0x0B:
+          RRC(registers_.e()) break;
+        case 0x0C:
+          RRC(registers_.h()) break;
+        case 0x0D:
+          RRC(registers_.l()) break;
+        case 0x0E:
+          OP_HL_RW(RRC) break;
+        case 0x0F:
+          RRC(registers_.a()) break;
+        case 0x10:
+          RL(registers_.b()) break;
+        case 0x11:
+          RL(registers_.c()) break;
+        case 0x12:
+          RL(registers_.d()) break;
+        case 0x13:
+          RL(registers_.e()) break;
+        case 0x14:
+          RL(registers_.h()) break;
+        case 0x15:
+          RL(registers_.l()) break;
+        case 0x16:
+          OP_HL_RW(RL) break;
+        case 0x17:
+          RL(registers_.a()) break;
+        case 0x18:
+          RR(registers_.b()) break;
+        case 0x19:
+          RR(registers_.c()) break;
+        case 0x1A:
+          RR(registers_.d()) break;
+        case 0x1B:
+          RR(registers_.e()) break;
+        case 0x1C:
+          RR(registers_.h()) break;
+        case 0x1D:
+          RR(registers_.l()) break;
+        case 0x1E:
+          OP_HL_RW(RR) break;
+        case 0x1F:
+          RR(registers_.a()) break;
+        case 0x20:
+          SLA(registers_.b()) break;
+        case 0x21:
+          SLA(registers_.c()) break;
+        case 0x22:
+          SLA(registers_.d()) break;
+        case 0x23:
+          SLA(registers_.e()) break;
+        case 0x24:
+          SLA(registers_.h()) break;
+        case 0x25:
+          SLA(registers_.l()) break;
+        case 0x26:
+          OP_HL_RW(SLA) break;
+        case 0x27:
+          SLA(registers_.a()) break;
+        case 0x28:
+          SRA(registers_.b()) break;
+        case 0x29:
+          SRA(registers_.c()) break;
+        case 0x2A:
+          SRA(registers_.d()) break;
+        case 0x2B:
+          SRA(registers_.e()) break;
+        case 0x2C:
+          SRA(registers_.h()) break;
+        case 0x2D:
+          SRA(registers_.l()) break;
+        case 0x2E:
+          OP_HL_RW(SRA) break;
+        case 0x2F:
+          SRA(registers_.a()) break;
+        case 0x30:
+          SWAP(registers_.b()) break;
+        case 0x31:
+          SWAP(registers_.c()) break;
+        case 0x32:
+          SWAP(registers_.d()) break;
+        case 0x33:
+          SWAP(registers_.e()) break;
+        case 0x34:
+          SWAP(registers_.h()) break;
+        case 0x35:
+          SWAP(registers_.l()) break;
+        case 0x36:
+          OP_HL_RW(SWAP) break;
+        case 0x37:
+          SWAP(registers_.a()) break;
+        case 0x38:
+          SRL(registers_.b()) break;
+        case 0x39:
+          SRL(registers_.c()) break;
+        case 0x3A:
+          SRL(registers_.d()) break;
+        case 0x3B:
+          SRL(registers_.e()) break;
+        case 0x3C:
+          SRL(registers_.h()) break;
+        case 0x3D:
+          SRL(registers_.l()) break;
+        case 0x3E:
+          OP_HL_RW(SRL) break;
+        case 0x3F:
+          SRL(registers_.a()) break;
+        case 0x40:
+          BIT(registers_.b(), 0) break;
+        case 0x41:
+          BIT(registers_.c(), 0) break;
+        case 0x42:
+          BIT(registers_.d(), 0) break;
+        case 0x43:
+          BIT(registers_.e(), 0) break;
+        case 0x44:
+          BIT(registers_.h(), 0) break;
+        case 0x45:
+          BIT(registers_.l(), 0) break;
+        case 0x46:
+          BIT_HL(0) break;
+        case 0x47:
+          BIT(registers_.a(), 0) break;
+        case 0x48:
+          BIT(registers_.b(), 1) break;
+        case 0x49:
+          BIT(registers_.c(), 1) break;
+        case 0x4A:
+          BIT(registers_.d(), 1) break;
+        case 0x4B:
+          BIT(registers_.e(), 1) break;
+        case 0x4C:
+          BIT(registers_.h(), 1) break;
+        case 0x4D:
+          BIT(registers_.l(), 1) break;
+        case 0x4E:
+          BIT_HL(1) break;
+        case 0x4F:
+          BIT(registers_.a(), 1) break;
+        case 0x50:
+          BIT(registers_.b(), 2) break;
+        case 0x51:
+          BIT(registers_.c(), 2) break;
+        case 0x52:
+          BIT(registers_.d(), 2) break;
+        case 0x53:
+          BIT(registers_.e(), 2) break;
+        case 0x54:
+          BIT(registers_.h(), 2) break;
+        case 0x55:
+          BIT(registers_.l(), 2) break;
+        case 0x56:
+          BIT_HL(2) break;
+        case 0x57:
+          BIT(registers_.a(), 2) break;
+        case 0x58:
+          BIT(registers_.b(), 3) break;
+        case 0x59:
+          BIT(registers_.c(), 3) break;
+        case 0x5A:
+          BIT(registers_.d(), 3) break;
+        case 0x5B:
+          BIT(registers_.e(), 3) break;
+        case 0x5C:
+          BIT(registers_.h(), 3) break;
+        case 0x5D:
+          BIT(registers_.l(), 3) break;
+        case 0x5E:
+          BIT_HL(3) break;
+        case 0x5F:
+          BIT(registers_.a(), 3) break;
+        case 0x60:
+          BIT(registers_.b(), 4) break;
+        case 0x61:
+          BIT(registers_.c(), 4) break;
+        case 0x62:
+          BIT(registers_.d(), 4) break;
+        case 0x63:
+          BIT(registers_.e(), 4) break;
+        case 0x64:
+          BIT(registers_.h(), 4) break;
+        case 0x65:
+          BIT(registers_.l(), 4) break;
+        case 0x66:
+          BIT_HL(4) break;
+        case 0x67:
+          BIT(registers_.a(), 4) break;
+        case 0x68:
+          BIT(registers_.b(), 5) break;
+        case 0x69:
+          BIT(registers_.c(), 5) break;
+        case 0x6A:
+          BIT(registers_.d(), 5) break;
+        case 0x6B:
+          BIT(registers_.e(), 5) break;
+        case 0x6C:
+          BIT(registers_.h(), 5) break;
+        case 0x6D:
+          BIT(registers_.l(), 5) break;
+        case 0x6E:
+          BIT_HL(5) break;
+        case 0x6F:
+          BIT(registers_.a(), 5) break;
+        case 0x70:
+          BIT(registers_.b(), 6) break;
+        case 0x71:
+          BIT(registers_.c(), 6) break;
+        case 0x72:
+          BIT(registers_.d(), 6) break;
+        case 0x73:
+          BIT(registers_.e(), 6) break;
+        case 0x74:
+          BIT(registers_.h(), 6) break;
+        case 0x75:
+          BIT(registers_.l(), 6) break;
+        case 0x76:
+          BIT_HL(6) break;
+        case 0x77:
+          BIT(registers_.a(), 6) break;
+        case 0x78:
+          BIT(registers_.b(), 7) break;
+        case 0x79:
+          BIT(registers_.c(), 7) break;
+        case 0x7A:
+          BIT(registers_.d(), 7) break;
+        case 0x7B:
+          BIT(registers_.e(), 7) break;
+        case 0x7C:
+          BIT(registers_.h(), 7) break;
+        case 0x7D:
+          BIT(registers_.l(), 7) break;
+        case 0x7E:
+          BIT_HL(7) break;
+        case 0x7F:
+          BIT(registers_.a(), 7) break;
+        case 0x80:
+          RES(registers_.b(), 0) break;
+        case 0x81:
+          RES(registers_.c(), 0) break;
+        case 0x82:
+          RES(registers_.d(), 0) break;
+        case 0x83:
+          RES(registers_.e(), 0) break;
+        case 0x84:
+          RES(registers_.h(), 0) break;
+        case 0x85:
+          RES(registers_.l(), 0) break;
+        case 0x86:
+          RES_HL(0) break;
+        case 0x87:
+          RES(registers_.a(), 0) break;
+        case 0x88:
+          RES(registers_.b(), 1) break;
+        case 0x89:
+          RES(registers_.c(), 1) break;
+        case 0x8A:
+          RES(registers_.d(), 1) break;
+        case 0x8B:
+          RES(registers_.e(), 1) break;
+        case 0x8C:
+          RES(registers_.h(), 1) break;
+        case 0x8D:
+          RES(registers_.l(), 1) break;
+        case 0x8E:
+          RES_HL(1) break;
+        case 0x8F:
+          RES(registers_.a(), 1) break;
+        case 0x90:
+          RES(registers_.b(), 2) break;
+        case 0x91:
+          RES(registers_.c(), 2) break;
+        case 0x92:
+          RES(registers_.d(), 2) break;
+        case 0x93:
+          RES(registers_.e(), 2) break;
+        case 0x94:
+          RES(registers_.h(), 2) break;
+        case 0x95:
+          RES(registers_.l(), 2) break;
+        case 0x96:
+          RES_HL(2) break;
+        case 0x97:
+          RES(registers_.a(), 2) break;
+        case 0x98:
+          RES(registers_.b(), 3) break;
+        case 0x99:
+          RES(registers_.c(), 3) break;
+        case 0x9A:
+          RES(registers_.d(), 3) break;
+        case 0x9B:
+          RES(registers_.e(), 3) break;
+        case 0x9C:
+          RES(registers_.h(), 3) break;
+        case 0x9D:
+          RES(registers_.l(), 3) break;
+        case 0x9E:
+          RES_HL(3) break;
+        case 0x9F:
+          RES(registers_.a(), 3) break;
+        case 0xA0:
+          RES(registers_.b(), 4) break;
+        case 0xA1:
+          RES(registers_.c(), 4) break;
+        case 0xA2:
+          RES(registers_.d(), 4) break;
+        case 0xA3:
+          RES(registers_.e(), 4) break;
+        case 0xA4:
+          RES(registers_.h(), 4) break;
+        case 0xA5:
+          RES(registers_.l(), 4) break;
+        case 0xA6:
+          RES_HL(4) break;
+        case 0xA7:
+          RES(registers_.a(), 4) break;
+        case 0xA8:
+          RES(registers_.b(), 5) break;
+        case 0xA9:
+          RES(registers_.c(), 5) break;
+        case 0xAA:
+          RES(registers_.d(), 5) break;
+        case 0xAB:
+          RES(registers_.e(), 5) break;
+        case 0xAC:
+          RES(registers_.h(), 5) break;
+        case 0xAD:
+          RES(registers_.l(), 5) break;
+        case 0xAE:
+          RES_HL(5) break;
+        case 0xAF:
+          RES(registers_.a(), 5) break;
+        case 0xB0:
+          RES(registers_.b(), 6) break;
+        case 0xB1:
+          RES(registers_.c(), 6) break;
+        case 0xB2:
+          RES(registers_.d(), 6) break;
+        case 0xB3:
+          RES(registers_.e(), 6) break;
+        case 0xB4:
+          RES(registers_.h(), 6) break;
+        case 0xB5:
+          RES(registers_.l(), 6) break;
+        case 0xB6:
+          RES_HL(6) break;
+        case 0xB7:
+          RES(registers_.a(), 6) break;
+        case 0xB8:
+          RES(registers_.b(), 7) break;
+        case 0xB9:
+          RES(registers_.c(), 7) break;
+        case 0xBA:
+          RES(registers_.d(), 7) break;
+        case 0xBB:
+          RES(registers_.e(), 7) break;
+        case 0xBC:
+          RES(registers_.h(), 7) break;
+        case 0xBD:
+          RES(registers_.l(), 7) break;
+        case 0xBE:
+          RES_HL(7) break;
+        case 0xBF:
+          RES(registers_.a(), 7) break;
+        case 0xC0:
+          SET(registers_.b(), 0) break;
+        case 0xC1:
+          SET(registers_.c(), 0) break;
+        case 0xC2:
+          SET(registers_.d(), 0) break;
+        case 0xC3:
+          SET(registers_.e(), 0) break;
+        case 0xC4:
+          SET(registers_.h(), 0) break;
+        case 0xC5:
+          SET(registers_.l(), 0) break;
+        case 0xC6:
+          SET_HL(0) break;
+        case 0xC7:
+          SET(registers_.a(), 0) break;
+        case 0xC8:
+          SET(registers_.b(), 1) break;
+        case 0xC9:
+          SET(registers_.c(), 1) break;
+        case 0xCA:
+          SET(registers_.d(), 1) break;
+        case 0xCB:
+          SET(registers_.e(), 1) break;
+        case 0xCC:
+          SET(registers_.h(), 1) break;
+        case 0xCD:
+          SET(registers_.l(), 1) break;
+        case 0xCE:
+          SET_HL(1) break;
+        case 0xCF:
+          SET(registers_.a(), 1) break;
+        case 0xD0:
+          SET(registers_.b(), 2) break;
+        case 0xD1:
+          SET(registers_.c(), 2) break;
+        case 0xD2:
+          SET(registers_.d(), 2) break;
+        case 0xD3:
+          SET(registers_.e(), 2) break;
+        case 0xD4:
+          SET(registers_.h(), 2) break;
+        case 0xD5:
+          SET(registers_.l(), 2) break;
+        case 0xD6:
+          SET_HL(2) break;
+        case 0xD7:
+          SET(registers_.a(), 2) break;
+        case 0xD8:
+          SET(registers_.b(), 3) break;
+        case 0xD9:
+          SET(registers_.c(), 3) break;
+        case 0xDA:
+          SET(registers_.d(), 3) break;
+        case 0xDB:
+          SET(registers_.e(), 3) break;
+        case 0xDC:
+          SET(registers_.h(), 3) break;
+        case 0xDD:
+          SET(registers_.l(), 3) break;
+        case 0xDE:
+          SET_HL(3) break;
+        case 0xDF:
+          SET(registers_.a(), 3) break;
+        case 0xE0:
+          SET(registers_.b(), 4) break;
+        case 0xE1:
+          SET(registers_.c(), 4) break;
+        case 0xE2:
+          SET(registers_.d(), 4) break;
+        case 0xE3:
+          SET(registers_.e(), 4) break;
+        case 0xE4:
+          SET(registers_.h(), 4) break;
+        case 0xE5:
+          SET(registers_.l(), 4) break;
+        case 0xE6:
+          SET_HL(4) break;
+        case 0xE7:
+          SET(registers_.a(), 4)  break;
+        case 0xE8:
+          SET(registers_.b(), 5) break;
+        case 0xE9:
+          SET(registers_.c(), 5) break;
+        case 0xEA:
+          SET(registers_.d(), 5) break;
+        case 0xEB:
+          SET(registers_.e(), 5) break;
+        case 0xEC:
+          SET(registers_.h(), 5) break;
+        case 0xED:
+          SET(registers_.l(), 5) break;
+        case 0xEE:
+          SET_HL(5) break;
+        case 0xEF:
+          SET(registers_.a(), 5) break;
+        case 0xF0:
+          SET(registers_.b(), 6) break;
+        case 0xF1:
+          SET(registers_.c(), 6) break;
+        case 0xF2:
+          SET(registers_.d(), 6) break;
+        case 0xF3:
+          SET(registers_.e(), 6) break;
+        case 0xF4:
+          SET(registers_.h(), 6) break;
+        case 0xF5:
+          SET(registers_.l(), 6) break;
+        case 0xF6:
+          SET_HL(6) break;
+        case 0xF7:
+          SET(registers_.a(), 6) break;
+        case 0xF8:
+          SET(registers_.b(), 7) break;
+        case 0xF9:
+          SET(registers_.c(), 7) break;
+        case 0xFA:
+          SET(registers_.d(), 7) break;
+        case 0xFB:
+          SET(registers_.e(), 7) break;
+        case 0xFC:
+          SET(registers_.h(), 7) break;
+        case 0xFD:
+          SET(registers_.l(), 7) break;
+        case 0xFE:
+          SET_HL(7) break;
+        case 0xFF:
+          SET(registers_.a(), 7) break;
         default:
-          throw std::runtime_error("Unknown opcode: " + std::to_string(opcode_));
+          throw Exception("Unknown opcode: " + std::to_string(opcode_));
           break;
         }
       break;
@@ -1213,7 +1796,7 @@ namespace gandalf {
     case 0xFF:
       RST(0x38) break;
     default:
-      throw std::runtime_error("Unknown opcode: " + std::to_string(opcode_));
+      throw Exception("Unknown opcode: " + std::to_string(opcode_));
       break;
     }
   }
