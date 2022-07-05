@@ -43,7 +43,7 @@ namespace gandalf {
                 if (address < 0x100)
                     return boot_rom_[address];
 
-                throw std::runtime_error("Invalid read from boot ROM");
+                throw Exception("Invalid read from boot ROM");
             }
 
             std::set<word> GetAddresses() const override

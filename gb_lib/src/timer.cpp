@@ -70,7 +70,7 @@ namespace gandalf
             div_ = 0;
             break;
         default:
-            throw std::runtime_error("Invalid timer address");
+            throw Exception("Invalid timer address");
         }
     }
 
@@ -87,7 +87,7 @@ namespace gandalf
         case kDIV:
             return div_ >> 8;
         default:
-            throw std::runtime_error("Invalid timer address");
+            throw Exception("Invalid timer address");
         }
     }
 

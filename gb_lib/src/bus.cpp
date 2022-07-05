@@ -18,7 +18,7 @@ namespace gandalf {
       address_space_[address]->Write(address, value);
     }
 
-    throw std::runtime_error("Unsupported write to: " + std::to_string(address));
+    throw Exception("Unsupported write to: " + std::to_string(address));
   }
 
   byte Bus::Read(word address) const {
@@ -26,7 +26,7 @@ namespace gandalf {
       return address_space_[address]->Read(address);
     }
 
-    throw std::runtime_error("Unsupported read from: " + std::to_string(address));
+    throw Exception("Unsupported read from: " + std::to_string(address));
     // TODO
     //return 0xFF;
   }
