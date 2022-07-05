@@ -61,13 +61,16 @@ namespace gandalf {
 
     class MBC {
     public:
-      MBC(const std::vector<byte>& bytes);
+      MBC(const std::vector<byte>& rom, word rom_banks, word ram_banks);
       virtual ~MBC();
 
       virtual byte Read(word address) const = 0;
       virtual void Write(word address, byte value) = 0;
     protected:
-      std::vector<byte> bytes_;
+      using ROMBank = std::array<byte, 0x4000>;
+      using RAMBank = std::array<byte, 0x2000>;
+      std::vector<ROMBank> rom_;
+      std::vector<RAMBank> ram_;
     };
 
   private:

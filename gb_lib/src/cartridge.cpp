@@ -9,15 +9,29 @@
 namespace gandalf {
     class ROMOnly : public Cartridge::MBC {
     public:
-        ROMOnly(const std::vector<byte>& bytes) : Cartridge::MBC(bytes) {
-            if (bytes_.size() != 0x8000)
-                throw std::runtime_error("ROMOnly: Invalid ROM size");
+        ROMOnly(const std::vector<byte>& rom, word ram_banks) : Cartridge::MBC(rom, 2, ram_banks) {
+            if (rom_.size() != 0x8000)
+                throw Exception("ROMOnly: Invalid ROM size");
+
+            if (ram_banks != 1)
+                throw Exception("ROMOnly: Invalid RAM size");
         }
         byte Read(word address) const override {
-            return bytes_[address];
+            if (address <= 0x8000)
+                return rom_[address / 0x4000][address % 0x4000];
+            else if (ram_.size() > 0 && address > 0xA000 && address < 0xC000)
+                return ram_[0][address % 0xA000];
+
+            throw Exception("ROMOnly: Invalid read address");
         }
-        void Write(word, byte) override {
-            // Write is ignored
+
+        void Write(word address, byte value) override {
+            if (ram_.size() > 0 && address > 0xA000 && address < 0xC000) {
+                ram_[0][address % 0xA000] = value;
+                return;
+            }
+
+            throw Exception("ROMOnly: Invalid write address");
         }
     };
 
@@ -388,7 +402,7 @@ namespace gandalf {
     void Cartridge::Write(word address, byte value)
     {
         if (!mbc_)
-            throw std::runtime_error("No cartridge loaded");
+            throw Exception("No cartridge loaded");
 
         mbc_->Write(address, value);
     }
@@ -396,7 +410,7 @@ namespace gandalf {
     byte Cartridge::Read(word address) const
     {
         if (!mbc_)
-            throw std::runtime_error("No cartridge loaded");
+            throw Exception("No cartridge loaded");
 
         return mbc_->Read(address);
     }
@@ -413,6 +427,17 @@ namespace gandalf {
         return result;
     }
 
-    Cartridge::MBC::MBC(const std::vector<byte>& bytes) : bytes_(bytes) {}
+    Cartridge::MBC::MBC(const std::vector<byte>& rom, word rom_banks, word ram_banks) {
+        rom_.resize(rom_banks);
+        ram_.resize(ram_banks);
+
+        if (rom.size() < rom_banks * 0x4000)
+            throw Exception("ROM is too small");
+
+        for (word bank = 0; bank < rom_banks; ++bank)
+        {
+            std::copy(rom.begin() + bank * 0x4000, rom.begin() + (bank + 1) * 0x4000, rom_[bank].begin());
+        }
+    }
     Cartridge::MBC::~MBC() = default;
 }
