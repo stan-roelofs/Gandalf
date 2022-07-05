@@ -4,17 +4,16 @@
 #include <stdlib.h>
 #include <string>
 
-#include <imgui.h>
-#include <imgui_impl_sdl.h>
-#include <imgui_impl_sdlrenderer.h>
-
 #include <SDL.h>
-#include <SDL_timer.h>
 
 #include <gandalf/gameboy.h>
 #include <gandalf/cartridge.h>
 
 #include "gui.h"
+
+namespace {
+
+}
 
 static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
     std::ifstream input(filename, std::ios::binary);
@@ -31,12 +30,11 @@ static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
     return true;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " <boot_rom_file>" << " <rom_file>" << std::endl;
         return EXIT_FAILURE;
     }
-
 
     try
     {
@@ -56,20 +54,19 @@ int main(int argc, char** argv) {
         std::copy(boot_rom.begin(), boot_rom.end(), boot_rom_array.begin());
 
         std::vector<byte> rom;
-        if (!ReadFile(argv[2], rom))
+        if (!ReadFile(argv[2], rom)) {
+            std::cerr << "Could not read ROM file" << std::endl;
             return EXIT_FAILURE;
+        }
 
-        gb.Boot(boot_rom_array, rom);
-        return EXIT_SUCCESS;
-
-        Cartridge cartridge;
-
-        if (!cartridge.Load(rom)) {
+        if (!gb.Load(rom)) {
             std::cerr << "Could not load ROM" << std::endl;
             return EXIT_FAILURE;
         }
 
-        Cartridge::Header header = *cartridge.GetHeader();
+        gb.LoadBootROM(boot_rom_array);
+
+        Cartridge::Header header = *gb.GetCartridge().GetHeader();
         std::cout << "ROM loaded" << std::endl;
         std::cout << "Title: " << header.GetTitle() << std::endl;
         std::cout << "Manufacturer code: " << header.GetManufacturerCode() << std::endl;
@@ -81,9 +78,21 @@ int main(int argc, char** argv) {
         std::cout << "Cartridge type: " << header.GetType() << std::endl;
         std::cout << "Destination: " << header.GetDestination() << std::endl;
 
-        while (true) {
-            gb.Run();
+        if (!gui::SetupGUI()) {
+            std::cerr << "Could not setup GUI" << std::endl;
+            return EXIT_FAILURE;
         }
+
+        while (true)
+        {
+            gb.Run();
+
+            if (gui::PollEvents())
+                break;
+            gui::RenderGUI();
+        }
+
+        gui::DestroyGUI();
     }
     catch (gandalf::Exception& e) {
         std::cerr << e.what() << std::endl;
