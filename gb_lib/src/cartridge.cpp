@@ -10,10 +10,10 @@ namespace gandalf {
     class ROMOnly : public Cartridge::MBC {
     public:
         ROMOnly(const std::vector<byte>& rom, word ram_banks) : Cartridge::MBC(rom, 2, ram_banks) {
-            if (rom_.size() != 0x8000)
+            if (rom_.size() != 2)
                 throw Exception("ROMOnly: Invalid ROM size");
 
-            if (ram_banks != 1)
+            if (ram_.size() > 1)
                 throw Exception("ROMOnly: Invalid RAM size");
         }
         byte Read(word address) const override {
@@ -391,6 +391,13 @@ namespace gandalf {
         result.header_checksum = bytes.at(0x14D);
         std::copy(bytes.begin() + 0x14E, bytes.begin() + 0x150, result.global_checksum);
         header_ = result;
+
+        switch (result.cartridge_type)
+        {
+        case 0x00: mbc_ = std::make_unique<ROMOnly>(bytes, result.ram_size); break;
+        default: throw Exception("Cartridge type not implemented: " + result.GetType());
+        }
+
         return true;
     }
 
@@ -427,14 +434,14 @@ namespace gandalf {
         return result;
     }
 
-    Cartridge::MBC::MBC(const std::vector<byte>& rom, word rom_banks, word ram_banks) {
+    Cartridge::MBC::MBC(const std::vector<byte>& rom, std::size_t rom_banks, std::size_t ram_banks) {
         rom_.resize(rom_banks);
         ram_.resize(ram_banks);
 
-        if (rom.size() < rom_banks * 0x4000)
-            throw Exception("ROM is too small");
+        if (rom.size() != rom_banks * 0x4000)
+            throw Exception("ROM is incorrect");
 
-        for (word bank = 0; bank < rom_banks; ++bank)
+        for (size_t bank = 0; bank < rom_banks; ++bank)
         {
             std::copy(rom.begin() + bank * 0x4000, rom.begin() + (bank + 1) * 0x4000, rom_[bank].begin());
         }

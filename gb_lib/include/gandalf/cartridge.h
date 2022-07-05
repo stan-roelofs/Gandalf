@@ -61,7 +61,7 @@ namespace gandalf {
 
     class MBC {
     public:
-      MBC(const std::vector<byte>& rom, word rom_banks, word ram_banks);
+      MBC(const std::vector<byte>& rom, std::size_t rom_banks, std::size_t ram_banks);
       virtual ~MBC();
 
       virtual byte Read(word address) const = 0;
