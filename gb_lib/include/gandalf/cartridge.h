@@ -11,6 +11,8 @@
 namespace gandalf {
   class Cartridge : public Bus::AddressHandler {
   public:
+    using ROM = std::vector<byte>;
+
     Cartridge();
     virtual ~Cartridge();
 
@@ -47,7 +49,7 @@ namespace gandalf {
      * @param bytes the cartridge bytes
      * @return true if loaded successfully, false otherwise
      */
-    bool Load(const std::vector<byte>& bytes);
+    bool Load(const ROM& bytes);
 
     /**
      * @brief Get the cartridge header.
@@ -61,7 +63,7 @@ namespace gandalf {
 
     class MBC {
     public:
-      MBC(const std::vector<byte>& rom, std::size_t rom_banks, std::size_t ram_banks);
+      MBC(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks);
       virtual ~MBC();
 
       virtual byte Read(word address) const = 0;

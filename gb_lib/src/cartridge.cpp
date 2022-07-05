@@ -9,7 +9,7 @@
 namespace gandalf {
     class ROMOnly : public Cartridge::MBC {
     public:
-        ROMOnly(const std::vector<byte>& rom, word ram_banks) : Cartridge::MBC(rom, 2, ram_banks) {
+        ROMOnly(const Cartridge::ROM& rom, word ram_banks) : Cartridge::MBC(rom, 2, ram_banks) {
             if (rom_.size() != 2)
                 throw Exception("ROMOnly: Invalid ROM size");
 
@@ -370,7 +370,7 @@ namespace gandalf {
 
     Cartridge::~Cartridge() = default;
 
-    bool Cartridge::Load(const std::vector<byte>& bytes)
+    bool Cartridge::Load(const ROM& bytes)
     {
         if (bytes.size() < 0x150) // The header is located at 0x100-0x14F, so bytes must be at least 0x150 bytes long.
             return false;
@@ -434,7 +434,7 @@ namespace gandalf {
         return result;
     }
 
-    Cartridge::MBC::MBC(const std::vector<byte>& rom, std::size_t rom_banks, std::size_t ram_banks) {
+    Cartridge::MBC::MBC(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks) {
         rom_.resize(rom_banks);
         ram_.resize(ram_banks);
 

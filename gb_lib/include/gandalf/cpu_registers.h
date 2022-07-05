@@ -11,6 +11,20 @@ namespace gandalf {
 
   class Registers {
   public:
+    Registers() :
+      af_combined(0),
+      bc_combined(0),
+      de_combined(0),
+      hl_combined(0),
+      stack_pointer(0),
+      program_counter(0),
+      interrupt_enable(0),
+      interrupt_flags(0),
+      interrupt_master_enable(false)
+    {
+    }
+    ~Registers() = default;
+
     union {
       byte af_bytes[2];
       word af_combined;
