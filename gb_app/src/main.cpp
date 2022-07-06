@@ -83,10 +83,12 @@ int main(int argc, char* argv[]) {
 
     bool run = false;
     bool step = false;
+    bool show_debug_window = true;
     gui::Context context;
     context.run = &run;
     context.step = &step;
     context.gameboy = &gb;
+    context.show_debug_window = &show_debug_window;
     while (true)
     {
         try {

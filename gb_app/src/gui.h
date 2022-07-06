@@ -8,6 +8,7 @@ namespace gui {
         bool* run;
         bool* step;
         gandalf::Gameboy* gameboy;
+        bool* show_debug_window;
     };
 
     bool SetupGUI();

@@ -20,7 +20,10 @@ namespace gui
 {
     void DebugWindow(Context& context)
     {
-        ImGui::Begin("CPU");
+        if (!(*context.show_debug_window))
+            return;
+
+        ImGui::Begin("CPU", nullptr, ImGuiWindowFlags_NoTitleBar);
         ImGui::Checkbox("Run", context.run);
         ImGui::SameLine();
 
@@ -69,23 +72,23 @@ namespace gui
         ImGui::EndDisabled();
         ImGui::End();
 
-        ImGui::Begin("Memory");
+        ImGui::Begin("Memory", nullptr, ImGuiWindowFlags_NoTitleBar);
         const float line_height = ImGui::GetTextLineHeight();
 
-        static bool follow_pc = false;
-        ImGui::Checkbox("Follow PC", &follow_pc);
+        // static bool follow_pc = false;
+        // ImGui::Checkbox("Follow PC", &follow_pc);
 
-        if (*context.run)
-            follow_pc = false;
+        // if (*context.run)
+        //     follow_pc = false;
 
         static char address[5];
         address[4] = '\0';
         ImGui::InputText("address", address, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+        ImGui::SameLine();
 
         std::optional<gandalf::word> scroll_target;
         bool should_scroll = false;
         if (ImGui::Button("Scroll to")) {
-            follow_pc = false;
             auto address_value = std::strtoul(address, nullptr, 16);
             if (address_value < 0)
                 address_value = 0;
@@ -95,7 +98,7 @@ namespace gui
             scroll_target = static_cast<gandalf::word>(address_value);
         }
 
-        if (ImGui::BeginTable("Memory", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY)) {
+        if (ImGui::BeginTable("Memory", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
             if (scroll_target)
                 ImGui::SetScrollY((*scroll_target / 16) * line_height);
 
@@ -115,6 +118,11 @@ namespace gui
                         const gandalf::word address = address_start + column;
                         ImGui::TableNextColumn();
                         ImGui::Text("%02X", context.gameboy->GetBus().DebugRead(address));
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::BeginTooltip();
+                            ImGui::Text("%04X", address);
+                            ImGui::EndTooltip();
+                        }
                     }
                 }
             }
@@ -123,6 +131,38 @@ namespace gui
             ImGui::EndTable();
         }
 
+        ImGui::End();
+
+        ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_NoTitleBar);
+        gandalf::Bus& bus = context.gameboy->GetBus();
+        gandalf::Registers& registers = context.gameboy->GetCPU().GetRegisters();
+
+        if (ImGui::BeginTable("Debugger", 2, ImGuiTableFlags_ScrollY)) {
+            ImGui::SetScrollY((registers.program_counter / 16) * line_height);
+
+            ImGuiListClipper clipper;
+            clipper.Begin(0x10000, line_height);
+            while (clipper.Step())
+            {
+                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                {
+                    // TODO: decode instructions, show name with operand values, group them (e.g. LD_RR_NN should combine into one line)
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+
+                    if (line_no == registers.program_counter)
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
+
+                    ImGui::Text("%04X", line_no);
+
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%02X", bus.DebugRead(line_no));
+                }
+            }
+            clipper.End();
+
+            ImGui::EndTable();
+        }
         ImGui::End();
     }
 
@@ -274,46 +314,19 @@ namespace gui
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
-                if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-                if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
-                if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-                if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
-                ImGui::Separator();
+                if (ImGui::MenuItem("Debug"), nullptr, context.show_debug_window;
 
-                ImGui::EndMenu();
+                    ImGui::EndMenu();
             }
-            HelpMarker(
-                "When docking is enabled, you can ALWAYS dock MOST window into another! Try it now!" "\n"
-                "- Drag from window title bar or their tab to dock/undock." "\n"
-                "- Drag from window menu button (upper-left button) to undock an entire node (all windows)." "\n"
-                "- Hold SHIFT to disable docking (if io.ConfigDockingWithShift == false, default)" "\n"
-                "- Hold SHIFT to enable docking (if io.ConfigDockingWithShift == true)" "\n"
-                "This demo app has nothing to do with enabling docking!" "\n\n"
-                "This demo app only demonstrate the use of ImGui::DockSpace() which allows you to manually create a docking node _within_ another window." "\n\n"
-                "Read comments in ShowExampleAppDockSpace() for more details.");
 
             ImGui::EndMenuBar();
         }
 
         ImGui::End();
 
-        DebugWindow(context);
+            DebugWindow(context);
 
-        static float f = 0.0f;
-        static int counter = 0;
-
-        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
+            ImGui::Begin("fps");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
 
