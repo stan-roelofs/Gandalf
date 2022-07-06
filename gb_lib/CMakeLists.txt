@@ -6,10 +6,13 @@ set(HEADERS
     include/gandalf/cpu.h
     include/gandalf/cpu_registers.h
     include/gandalf/gameboy.h
+    include/gandalf/io.h
+    include/gandalf/lcd.h
     include/gandalf/model.h
+    include/gandalf/ppu.h
     include/gandalf/timer.h
-    include/gandalf/timing_handler.h
     include/gandalf/types.h
+    include/gandalf/wram.h
     src/bootrom.h
 )
 
@@ -19,7 +22,11 @@ set(SOURCES
     src/cartridge.cpp
     src/cpu.cpp
     src/gameboy.cpp
+    src/io.cpp
+    src/lcd.cpp
+    src/ppu.cpp
     src/timer.cpp
+    src/wram.cpp
 )
 
 add_library(gb_lib ${SOURCES} ${HEADERS})

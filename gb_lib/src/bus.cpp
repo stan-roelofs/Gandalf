@@ -1,5 +1,7 @@
 #include <gandalf/bus.h>
 
+#include <iostream> // TODO remove this
+
 namespace gandalf {
   Bus::AddressHandler::AddressHandler(const std::string& name) : name_(name) {
 
@@ -17,8 +19,6 @@ namespace gandalf {
     if (address_space_[address] != nullptr) {
       address_space_[address]->Write(address, value);
     }
-
-    throw Exception("Unsupported write to: " + std::to_string(address));
   }
 
   byte Bus::Read(word address) const {
@@ -31,9 +31,7 @@ namespace gandalf {
       return address_space_[address]->Read(address);
     }
 
-    throw Exception("Unsupported read from: " + std::to_string(address));
-    // TODO
-    //return 0xFF;
+    return 0xFF;
   }
 
   void Bus::Register(AddressHandler* handler) {

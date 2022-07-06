@@ -5,8 +5,10 @@
 
 #include "bus.h"
 #include "cpu.h"
-#include "timer.h"
 #include "cartridge.h"
+#include "constants.h"
+#include "io.h"
+#include "wram.h"
 
 namespace gandalf {
   // TODO move this somewhere else
@@ -32,6 +34,9 @@ namespace gandalf {
       if (address < 0x100)
         return boot_rom_[address];
 
+      if (address == kBANK)
+        return 0xFF;
+
       throw Exception("Invalid read from boot ROM");
     }
 
@@ -51,7 +56,7 @@ namespace gandalf {
     const std::array<byte, 0x100>& boot_rom_;
   };
 
-  class Gameboy : public TimingHandler {
+  class Gameboy {
   public:
     using BootROM = std::array<byte, 0x100>;
 
@@ -63,20 +68,19 @@ namespace gandalf {
 
     void Run();
 
-    void Advance(byte) override {
+    const Cartridge& GetCartridge() const { return *cartridge_; }
 
-    }
-
-    const Cartridge& GetCartridge() const { return cartridge_; }
-
-    CPU& GetCPU() { return cpu_; }
-    Bus& GetBus() { return bus_; }
+    CPU& GetCPU() { return *cpu_; }
+    Bus& GetBus() { return *bus_; }
 
   private:
-    Bus bus_;
-    Timer timer_;
-    CPU cpu_;
-    Cartridge cartridge_;
+    // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.
+    std::unique_ptr<Bus> bus_;
+    std::unique_ptr<IO> io_;
+    std::unique_ptr<CPU> cpu_;
+    std::unique_ptr<WRAM> wram_;
+
+    std::unique_ptr<Cartridge> cartridge_;
 
     std::unique_ptr<BootROMHandler> boot_rom_handler_;
   };

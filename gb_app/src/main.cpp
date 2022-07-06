@@ -102,7 +102,8 @@ int main(int argc, char* argv[]) {
             }
 
             if (run) {
-                gb.Run();
+                for (int i = 0; i < 17476; ++i)
+                    gb.Run();
             }
         }
         catch (gandalf::Exception& e) {

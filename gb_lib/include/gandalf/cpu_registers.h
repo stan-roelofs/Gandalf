@@ -4,12 +4,6 @@
 #include  "types.h"
 
 namespace gandalf {
-  const byte kZFlagMask = 0x80;
-  const byte kNFlagMask = 0x40;
-  const byte kHFlagMask = 0x20;
-  const byte kCFlagMask = 0x10;
-
-
   // TODO make things private?
 
   class Registers {

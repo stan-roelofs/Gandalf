@@ -1,5 +1,7 @@
 #include "bootrom.h"
 
+#include <gandalf/constants.h>
+
 namespace gandalf {
 
   void RegistersDMG0(Registers& registers) {

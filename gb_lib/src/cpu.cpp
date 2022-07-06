@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <gandalf/constants.h>
+
 namespace gandalf {
 
 #define SET_ZFLAG() registers_.f() |= kZFlagMask;
@@ -16,11 +18,11 @@ namespace gandalf {
 #define CLEAR_CFLAG() registers_.f() &= ~kCFlagMask;
 
 #define READ(address, destination)                                             \
-  timing_handler_.Advance(4);                                                  \
+  io_.Tick(4);                                                  \
   (destination) = bus_.Read(address);
 
 #define WRITE(address, value)                                                  \
-  timing_handler_.Advance(4);                                                  \
+  io_.Tick(4);                                                  \
   bus_.Write(address, value);
 
 #define READ_PC(destination) READ(registers_.program_counter++, destination)
@@ -37,12 +39,12 @@ namespace gandalf {
 
 #define INC_RR(r)                                                              \
   {                                                                            \
-    timing_handler_.Advance(4);                                                \
+    io_.Tick(4);                                                \
     ++(r);                                                                     \
   }
 
 #define DEC_RR(r)                                                              \
-  timing_handler_.Advance(4);                                                  \
+  io_.Tick(4);                                                  \
   --(r);
 
 #define INC_R(r)                                                               \
@@ -172,7 +174,7 @@ namespace gandalf {
 #define ADD_HL_RR(r)                                                           \
   {                                                                            \
     word hl = registers_.hl();                                        \
-    timing_handler_.Advance(4);                                                \
+    io_.Tick(4);                                                \
     registers_.hl() += (r);                                                    \
     registers_.f() &= ~(kNFlagMask | kCFlagMask | kHFlagMask);                 \
     if (((hl & 0xFFF) + ((r)&0xFFF)) > 0xFFF)                                  \
@@ -186,7 +188,7 @@ namespace gandalf {
     signed_byte value;                                                         \
     READ_PC(value);                                                            \
     registers_.program_counter += value;                                       \
-    timing_handler_.Advance(4);                                                \
+    io_.Tick(4);                                                \
   }
 
 #define JR_CC_N(condition)                                                     \
@@ -410,11 +412,11 @@ namespace gandalf {
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     registers_.program_counter = low | (high << 8);                            \
-    timing_handler_.Advance(4);                                                \
+    io_.Tick(4);                                                \
   }
 
 #define RET_CC(condition)                                                      \
-  timing_handler_.Advance(4);                                                  \
+  io_.Tick(4);                                                  \
   if (condition) {                                                             \
     RET();                                                                     \
   }
@@ -433,7 +435,7 @@ namespace gandalf {
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     if (condition) {                                                           \
-      timing_handler_.Advance(4);                                              \
+      io_.Tick(4);                                              \
       registers_.program_counter = low | (high << 8);                          \
     }                                                                          \
   }
@@ -443,12 +445,12 @@ namespace gandalf {
     byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
-    timing_handler_.Advance(4);                                                \
+    io_.Tick(4);                                                \
     registers_.program_counter = low | (high << 8);                            \
   }
 
 #define PUSH_RR(rr)                                                            \
-  timing_handler_.Advance(4);                                                  \
+  io_.Tick(4);                                                  \
   WRITE_SP((rr) >> 8)                                                          \
   WRITE_SP((rr)&0xFF);
 
@@ -544,7 +546,7 @@ namespace gandalf {
       SET_CFLAG();                                                             \
     if ((sp & 0xF) + (value & 0xF) > 0xF)                                      \
       SET_HFLAG();                                                             \
-    timing_handler_.Advance(8);                                                \
+    io_.Tick(8);                                                \
   }
 
 #define LD_NN_A()                                                              \
@@ -681,8 +683,8 @@ namespace gandalf {
     WRITE(registers_.hl(), value);                                             \
   }
 
-  CPU::CPU(TimingHandler& timing_handler, Bus& bus) : Bus::AddressHandler("CPU"),
-    bus_(bus), timing_handler_(timing_handler), halt_(false), stop_(false), halt_bug_(false) {}
+  CPU::CPU(IO& io, Bus& bus) : Bus::AddressHandler("CPU"),
+    bus_(bus), io_(io), halt_(false), stop_(false), halt_bug_(false) {}
 
   CPU::~CPU() = default;
 

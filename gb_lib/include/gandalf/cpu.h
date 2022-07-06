@@ -3,13 +3,13 @@
 
 #include "bus.h"
 #include "cpu_registers.h"
-#include "timing_handler.h"
+#include "io.h"
 
 namespace gandalf {
 
   class CPU : public Bus::AddressHandler {
   public:
-    CPU(TimingHandler& timing_handler, Bus& bus);
+    CPU(IO& io, Bus& bus);
     ~CPU();
 
     void Tick();
@@ -26,7 +26,7 @@ namespace gandalf {
 
     Registers registers_;
     Bus& bus_;
-    TimingHandler& timing_handler_;
+    IO& io_;
     byte opcode_;
     bool halt_;
     bool stop_;

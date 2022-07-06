@@ -98,13 +98,13 @@ namespace gui
             scroll_target = static_cast<gandalf::word>(address_value);
         }
 
-        if (ImGui::BeginTable("Memory", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
+        if (ImGui::BeginTable("Memory viewer", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
             if (scroll_target)
                 ImGui::SetScrollY((*scroll_target / 16) * line_height);
 
             gandalf::Bus& bus = context.gameboy->GetBus();
             ImGuiListClipper clipper;
-            clipper.Begin(0x10000, line_height);
+            clipper.Begin(0x10000 / 16, line_height);
             while (clipper.Step())
             {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
@@ -314,9 +314,9 @@ namespace gui
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Debug"), nullptr, context.show_debug_window;
+                ImGui::MenuItem("Debug", nullptr, context.show_debug_window);
 
-                    ImGui::EndMenu();
+                ImGui::EndMenu();
             }
 
             ImGui::EndMenuBar();
