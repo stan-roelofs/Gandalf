@@ -137,8 +137,12 @@ namespace gui
         gandalf::Bus& bus = context.gameboy->GetBus();
         gandalf::Registers& registers = context.gameboy->GetCPU().GetRegisters();
 
-        if (ImGui::BeginTable("Debugger", 2, ImGuiTableFlags_ScrollY)) {
-            ImGui::SetScrollY((registers.program_counter / 16) * line_height);
+        if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
+            static gandalf::word last_pc = registers.program_counter;
+            if (last_pc != registers.program_counter) {
+                ImGui::SetScrollY(registers.program_counter* line_height);
+                last_pc = registers.program_counter;
+            }
 
             ImGuiListClipper clipper;
             clipper.Begin(0x10000, line_height);
@@ -148,14 +152,26 @@ namespace gui
                 {
                     // TODO: decode instructions, show name with operand values, group them (e.g. LD_RR_NN should combine into one line)
                     ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
 
                     if (line_no == registers.program_counter)
-                        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
+
+                    ImGui::TableSetColumnIndex(0);
+
+                    bool dummy = false;
+                    std::string label = "##b" + std::to_string(line_no);
+                    if (ImGui::Selectable(label.c_str(), *context.breakpoint && **context.breakpoint == line_no)) {
+                        if (context.breakpoint && *context.breakpoint == line_no)
+                            *context.breakpoint = std::nullopt;
+                        else
+                            *context.breakpoint = line_no;
+                    }
+
+                    ImGui::TableSetColumnIndex(1);
 
                     ImGui::Text("%04X", line_no);
 
-                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TableSetColumnIndex(2);
                     ImGui::Text("%02X", bus.DebugRead(line_no));
                 }
             }

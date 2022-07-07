@@ -81,6 +81,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    std::optional<word> breakpoint;
     bool run = false;
     bool step = false;
     bool show_debug_window = true;
@@ -89,6 +90,7 @@ int main(int argc, char* argv[]) {
     context.step = &step;
     context.gameboy = &gb;
     context.show_debug_window = &show_debug_window;
+    context.breakpoint = &breakpoint;
     while (true)
     {
         try {
@@ -102,8 +104,13 @@ int main(int argc, char* argv[]) {
             }
 
             if (run) {
-                for (int i = 0; i < 17476; ++i)
+                for (int i = 0; i < 10000; ++i) {
                     gb.Run();
+
+                    if (breakpoint && *breakpoint == gb.GetCPU().GetRegisters().program_counter) {
+                        run = false;
+                    }
+                }
             }
         }
         catch (gandalf::Exception& e) {

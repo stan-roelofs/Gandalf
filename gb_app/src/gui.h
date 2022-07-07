@@ -9,6 +9,7 @@ namespace gui {
         bool* step;
         gandalf::Gameboy* gameboy;
         bool* show_debug_window;
+        std::optional<gandalf::word>* breakpoint;
     };
 
     bool SetupGUI();
