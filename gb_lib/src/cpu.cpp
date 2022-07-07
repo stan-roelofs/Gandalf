@@ -128,14 +128,8 @@ namespace gandalf {
 
 #define RRA()                                                                  \
   {                                                                            \
-    const bool carry = registers_.f() & kCFlagMask;                            \
-    registers_.f() = 0;                                                        \
-    const bool new_carry = registers_.a() & 0x1;                               \
-    registers_.a() = registers_.a() >> 1;                                      \
-    if (carry)                                                                 \
-      registers_.a() |= 0x80;                                                  \
-    if (new_carry)                                                             \
-      SET_CFLAG()                                                              \
+    RR(registers_.a())                                                         \
+    CLEAR_ZFLAG()                                                              \
   }
 
 #define RLCA()                                                                 \
@@ -337,11 +331,11 @@ namespace gandalf {
 #define SBC_A(value)                                                           \
   {                                                                            \
     byte a = registers_.a();                                                   \
-    const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;            \
+    const byte carry = ((registers_.f() & kCFlagMask) != 0) ? 1 : 0;           \
     byte new_a = registers_.a() - (value) - carry;                             \
     registers_.a() = new_a;                                                    \
     registers_.f() = kNFlagMask;                                               \
-    if (new_a == carry)                                                        \
+    if (new_a == 0)                                                            \
       SET_ZFLAG()                                                              \
     if ((a & 0xF) < (value & 0xF) + carry)                                     \
       SET_HFLAG()                                                              \
@@ -369,8 +363,7 @@ namespace gandalf {
 
 #define XOR_A(value)                                                           \
   registers_.a() ^= (value);                                                   \
-  if (registers_.a() == 0)                                                     \
-  SET_ZFLAG()
+  registers_.f() = (registers_.a() == 0 ? kZFlagMask : 0);
 
 #define XOR_A_HL()                                                             \
   {                                                                            \
@@ -1773,7 +1766,9 @@ namespace gandalf {
     case 0xF0:
       LDH_A_N() break;
     case 0xF1:
-      POP_RR(registers_.af()) break;
+      POP_RR(registers_.af());
+      registers_.f() &= 0xF0;
+      break;
     case 0xF2:
       LDH_A_C() break;
     case 0xF3:
