@@ -92,8 +92,8 @@ namespace gandalf {
 
 #define RL(r)                                                                  \
   {                                                                            \
-    registers_.f() = 0;                                                        \
     const bool carry = registers_.f() & kCFlagMask;                            \
+    registers_.f() = 0;                                                        \
     const bool new_carry = (r)&0x80;                                           \
     (r) = ((r) << 1);                                                          \
     if (carry)                                                                 \
@@ -106,8 +106,8 @@ namespace gandalf {
 
 #define RR(r)                                                                  \
   {                                                                            \
-    registers_.f() = 0;                                                        \
     const bool carry = registers_.f() & kCFlagMask;                            \
+    registers_.f() = 0;                                                        \
     const bool new_carry = (r)&0x1;                                            \
     (r) = (r) >> 1;                                                            \
     if (carry) (r) |= 0x80;                                                    \
@@ -128,8 +128,8 @@ namespace gandalf {
 
 #define RRA()                                                                  \
   {                                                                            \
-    registers_.f() = 0;                                                        \
     const bool carry = registers_.f() & kCFlagMask;                            \
+    registers_.f() = 0;                                                        \
     const bool new_carry = registers_.a() & 0x1;                               \
     registers_.a() = registers_.a() >> 1;                                      \
     if (carry)                                                                 \
@@ -151,8 +151,8 @@ namespace gandalf {
 
 #define RLA()                                                                  \
   {                                                                            \
-    registers_.f() = 0;                                                        \
     const bool carry = registers_.f() & kCFlagMask;                            \
+    registers_.f() = 0;                                                        \
     const bool new_carry = registers_.a() & 0x80;                              \
     registers_.a() = (registers_.a() << 1);                                    \
     if (carry)                                                                 \
@@ -173,8 +173,8 @@ namespace gandalf {
 
 #define ADD_HL_RR(r)                                                           \
   {                                                                            \
-    word hl = registers_.hl();                                        \
-    io_.Tick(4);                                                \
+    word hl = registers_.hl();                                                 \
+    io_.Tick(4);                                                               \
     registers_.hl() += (r);                                                    \
     registers_.f() &= ~(kNFlagMask | kCFlagMask | kHFlagMask);                 \
     if (((hl & 0xFFF) + ((r)&0xFFF)) > 0xFFF)                                  \
@@ -274,9 +274,10 @@ namespace gandalf {
 #define ADD_A(value)                                                           \
   {                                                                            \
     byte a = registers_.a();                                                   \
-    registers_.a() += (value);                                                 \
-    registers_.f() &= 0xF0;                                                    \
-    if (a + (value) == 0)                                                      \
+    byte new_a = registers_.a() + (value);                                     \
+    registers_.a() = new_a;                                                    \
+    registers_.f() = 0;                                                        \
+    if (new_a == 0)                                                            \
       SET_ZFLAG()                                                              \
     if ((a & 0xF) + (value & 0xF) > 0xF)                                       \
       SET_HFLAG()                                                              \
@@ -295,9 +296,10 @@ namespace gandalf {
   {                                                                            \
     byte a = registers_.a();                                                   \
     const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;            \
-    registers_.a() += (value + carry);                                         \
-    registers_.f() &= 0xF0;                                                    \
-    if (a + (value) + carry == 0)                                              \
+    byte new_a = registers_.a() + (value) + carry;                             \
+    registers_.a() = new_a;                                                    \
+    registers_.f() = 0;                                                        \
+    if (new_a == 0)                                                            \
       SET_ZFLAG()                                                              \
     if ((a & 0xF) + (value & 0xF) + carry > 0xF)                               \
       SET_HFLAG()                                                              \
@@ -316,7 +318,7 @@ namespace gandalf {
   {                                                                            \
     byte a = registers_.a();                                                   \
     registers_.a() -= (value);                                                 \
-    registers_.f() = (registers_.f() & 0xF0) | kNFlagMask;                     \
+    registers_.f() = kNFlagMask;                                               \
     if (a == value)                                                            \
       SET_ZFLAG()                                                              \
     if ((a & 0xF) < (value & 0xF))                                             \
@@ -336,9 +338,10 @@ namespace gandalf {
   {                                                                            \
     byte a = registers_.a();                                                   \
     const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;            \
-    registers_.a() = registers_.a() - (value)-carry;                           \
-    registers_.f() = (registers_.f() & 0xF0) | kNFlagMask;                     \
-    if (a - value == carry)                                                    \
+    byte new_a = registers_.a() - (value) - carry;                             \
+    registers_.a() = new_a;                                                    \
+    registers_.f() = kNFlagMask;                                               \
+    if (new_a == carry)                                                        \
       SET_ZFLAG()                                                              \
     if ((a & 0xF) < (value & 0xF) + carry)                                     \
       SET_HFLAG()                                                              \
@@ -390,7 +393,7 @@ namespace gandalf {
 #define CP_A(value)                                                            \
   {                                                                            \
     byte a = registers_.a();                                                   \
-    registers_.f() = (registers_.f() & 0xF0) | kNFlagMask;                     \
+    registers_.f() = kNFlagMask;                                               \
     if (a == value)                                                            \
       SET_ZFLAG()                                                              \
     if ((a & 0xF) < (value & 0xF))                                             \
@@ -409,14 +412,14 @@ namespace gandalf {
 #define RET()                                                                  \
   {                                                                            \
     byte low, high;                                                            \
-    READ_PC(low);                                                              \
-    READ_PC(high);                                                             \
+    READ_SP(low);                                                              \
+    READ_SP(high);                                                             \
     registers_.program_counter = low | (high << 8);                            \
-    io_.Tick(4);                                                \
+    io_.Tick(4);                                                               \
   }
 
 #define RET_CC(condition)                                                      \
-  io_.Tick(4);                                                  \
+  io_.Tick(4);                                                                 \
   if (condition) {                                                             \
     RET();                                                                     \
   }
@@ -705,9 +708,9 @@ namespace gandalf {
       registers_.interrupt_enable = value;
     else if (address == kIF)
       registers_.interrupt_flags = value;
-
-    throw Exception("Invalid write to address " +
-      std::to_string(address));
+    else
+      throw Exception("Invalid write to address " +
+        std::to_string(address));
   }
 
   std::set<word> CPU::GetAddresses() const

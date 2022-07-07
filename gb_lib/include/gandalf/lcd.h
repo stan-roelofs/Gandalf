@@ -15,6 +15,10 @@ namespace gandalf {
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
+        byte& GetLCDStatus() { return stat_; }
+        byte& GetLY() { return ly_; }
+        byte& GetLYC() { return lyc_; }
+
     private:
         Bus& bus_;
         byte lcdc_;

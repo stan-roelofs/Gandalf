@@ -1,7 +1,7 @@
 #include <gandalf/io.h>
 
 namespace gandalf {
-    IO::IO(Bus& bus) : bus_(bus), timer_(bus), ppu_(bus), lcd_(bus) {
+    IO::IO(Bus& bus) : bus_(bus), timer_(bus), lcd_(bus), ppu_(bus, lcd_) {
         bus.Register(&ppu_);
         bus.Register(&lcd_);
         bus.Register(&timer_);

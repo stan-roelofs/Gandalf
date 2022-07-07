@@ -109,6 +109,7 @@ int main(int argc, char* argv[]) {
 
                     if (breakpoint && *breakpoint == gb.GetCPU().GetRegisters().program_counter) {
                         run = false;
+                        break;
                     }
                 }
             }

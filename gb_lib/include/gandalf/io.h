@@ -17,8 +17,8 @@ namespace gandalf {
     private:
         Bus& bus_;
         Timer timer_;
-        PPU ppu_;
         LCD lcd_;
+        PPU ppu_;
     };
 } // namespace gandalf
 

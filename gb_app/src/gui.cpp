@@ -73,7 +73,6 @@ namespace gui
         ImGui::End();
 
         ImGui::Begin("Memory", nullptr, ImGuiWindowFlags_NoTitleBar);
-        const float line_height = ImGui::GetTextLineHeight();
 
         // static bool follow_pc = false;
         // ImGui::Checkbox("Follow PC", &follow_pc);
@@ -99,12 +98,14 @@ namespace gui
         }
 
         if (ImGui::BeginTable("Memory viewer", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
+            static float memory_item_height = 0.f;
+
             if (scroll_target)
-                ImGui::SetScrollY((*scroll_target / 16) * line_height);
+                ImGui::SetScrollY((*scroll_target / 16) * memory_item_height);
 
             gandalf::Bus& bus = context.gameboy->GetBus();
             ImGuiListClipper clipper;
-            clipper.Begin(0x10000 / 16, line_height);
+            clipper.Begin(0x10000 / 16);
             while (clipper.Step())
             {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
@@ -125,6 +126,8 @@ namespace gui
                         }
                     }
                 }
+
+                if (clipper.ItemsHeight > 0) memory_item_height = clipper.ItemsHeight;
             }
             clipper.End();
 
@@ -139,13 +142,14 @@ namespace gui
 
         if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
             static gandalf::word last_pc = registers.program_counter;
-            if (last_pc != registers.program_counter) {
-                ImGui::SetScrollY(registers.program_counter* line_height);
+            static float debugger_item_height = 0.f;
+            if (last_pc != registers.program_counter && debugger_item_height > 0) {
+                ImGui::SetScrollY(registers.program_counter* debugger_item_height);
                 last_pc = registers.program_counter;
             }
 
             ImGuiListClipper clipper;
-            clipper.Begin(0x10000, line_height);
+            clipper.Begin(0x10000);
             while (clipper.Step())
             {
                 for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
@@ -174,6 +178,8 @@ namespace gui
                     ImGui::TableSetColumnIndex(2);
                     ImGui::Text("%02X", bus.DebugRead(line_no));
                 }
+
+                if (clipper.ItemsHeight > 0) debugger_item_height = clipper.ItemsHeight;
             }
             clipper.End();
 

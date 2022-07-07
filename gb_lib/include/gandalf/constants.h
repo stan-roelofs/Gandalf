@@ -94,6 +94,10 @@ namespace gandalf {
     const byte kSerialInterruptMask = 0x08;
     const byte kJoypadInterruptMask = 0x10;
 
+    //
+    const int kScreenHeight = 144;
+    const int kScreenWidth = 160;
+
 } // namespace gandalf
 
 #endif
