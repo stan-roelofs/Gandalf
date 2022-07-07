@@ -5,6 +5,7 @@
 #include "timer.h"
 #include "lcd.h"
 #include "ppu.h"
+#include "serial.h"
 
 namespace gandalf {
     class IO {
@@ -19,6 +20,7 @@ namespace gandalf {
         Timer timer_;
         LCD lcd_;
         PPU ppu_;
+        Serial serial_;
     };
 } // namespace gandalf
 

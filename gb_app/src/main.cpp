@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
             }
 
             if (run) {
-                for (int i = 0; i < 10000; ++i) {
+                for (int i = 0; i < 100000; ++i) {
                     gb.Run();
 
                     if (breakpoint && *breakpoint == gb.GetCPU().GetRegisters().program_counter) {

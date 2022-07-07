@@ -11,6 +11,7 @@ set(HEADERS
     include/gandalf/lcd.h
     include/gandalf/model.h
     include/gandalf/ppu.h
+    include/gandalf/serial.h
     include/gandalf/timer.h
     include/gandalf/types.h
     include/gandalf/wram.h
@@ -27,6 +28,7 @@ set(SOURCES
     src/io.cpp
     src/lcd.cpp
     src/ppu.cpp
+    src/serial.cpp
     src/timer.cpp
     src/wram.cpp
 )
