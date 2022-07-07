@@ -1,10 +1,11 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy() : bus_(std::make_unique<Bus>()), io_(std::make_unique<IO>(*bus_)), cpu_(std::make_unique<CPU>(*io_, *bus_)), wram_(std::make_unique<WRAM>()), cartridge_(std::make_unique<Cartridge>())
+    Gameboy::Gameboy() : bus_(std::make_unique<Bus>()), io_(std::make_unique<IO>(*bus_)), cpu_(std::make_unique<CPU>(*io_, *bus_)), wram_(std::make_unique<WRAM>()), hram_(std::make_unique<HRAM>()), cartridge_(std::make_unique<Cartridge>())
     {
         bus_->Register(cpu_.get());
         bus_->Register(wram_.get());
+        bus_->Register(hram_.get());
         bus_->Register(cartridge_.get());
     }
 
@@ -12,6 +13,7 @@ namespace gandalf {
     {
         bus_->Unregister(cpu_.get());
         bus_->Unregister(wram_.get());
+        bus_->Unregister(hram_.get());
         bus_->Unregister(cartridge_.get());
     }
 

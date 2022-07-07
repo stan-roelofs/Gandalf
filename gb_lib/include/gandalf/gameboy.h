@@ -7,6 +7,7 @@
 #include "cpu.h"
 #include "cartridge.h"
 #include "constants.h"
+#include "hram.h"
 #include "io.h"
 #include "wram.h"
 
@@ -79,6 +80,7 @@ namespace gandalf {
     std::unique_ptr<IO> io_;
     std::unique_ptr<CPU> cpu_;
     std::unique_ptr<WRAM> wram_;
+    std::unique_ptr<HRAM> hram_;
 
     std::unique_ptr<Cartridge> cartridge_;
 

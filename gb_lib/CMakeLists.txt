@@ -6,6 +6,7 @@ set(HEADERS
     include/gandalf/cpu.h
     include/gandalf/cpu_registers.h
     include/gandalf/gameboy.h
+    include/gandalf/hram.h
     include/gandalf/io.h
     include/gandalf/lcd.h
     include/gandalf/model.h
@@ -22,6 +23,7 @@ set(SOURCES
     src/cartridge.cpp
     src/cpu.cpp
     src/gameboy.cpp
+    src/hram.cpp
     src/io.cpp
     src/lcd.cpp
     src/ppu.cpp
