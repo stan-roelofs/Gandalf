@@ -6,7 +6,7 @@
 namespace gandalf {
     class LCD : public Bus::AddressHandler {
     public:
-        LCD(Bus& bus);
+        LCD();
         virtual ~LCD();
 
         void Tick();
@@ -20,7 +20,6 @@ namespace gandalf {
         byte& GetLYC() { return lyc_; }
 
     private:
-        Bus& bus_;
         byte lcdc_;
         byte ly_;
         byte lyc_;

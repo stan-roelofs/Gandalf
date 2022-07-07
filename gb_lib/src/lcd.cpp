@@ -4,7 +4,7 @@
 
 namespace gandalf
 {
-    LCD::LCD(Bus& bus) : Bus::AddressHandler("LCD"), bus_(bus), lcdc_(0), ly_(0), lyc_(0), stat_(0), scy_(0), scx_(0), wy_(0), wx_(0), bgp_(0), obp0_(0), obp1_(0), dma_(0)
+    LCD::LCD() : Bus::AddressHandler("LCD"), lcdc_(0), ly_(0), lyc_(0), stat_(0), scy_(0), scx_(0), wy_(0), wx_(0), bgp_(0), obp0_(0), obp1_(0), dma_(0)
     {
     }
 
