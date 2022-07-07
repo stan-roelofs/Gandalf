@@ -52,8 +52,8 @@ namespace gandalf {
   registers_.f() &= ~(kZFlagMask | kHFlagMask | kNFlagMask);                   \
   if ((r) == 0)                                                                \
     SET_ZFLAG()                                                                \
-  if ((r)&0x0F)                                                                \
-  CLEAR_HFLAG()
+  if ((r&0x0F) == 0)                                                           \
+    SET_HFLAG()
 
 #define DEC_R(r)                                                               \
   --(r);                                                                       \
@@ -62,7 +62,7 @@ namespace gandalf {
   if ((r) == 0)                                                                \
     SET_ZFLAG()                                                                \
   if (((r)&0x0F) == 0x0F)                                                      \
-  SET_HFLAG()
+    SET_HFLAG()
 
 #define RLC(r)                                                                 \
   {                                                                            \
@@ -549,7 +549,7 @@ namespace gandalf {
       SET_CFLAG();                                                             \
     if ((sp & 0xF) + (value & 0xF) > 0xF)                                      \
       SET_HFLAG();                                                             \
-    io_.Tick(8);                                                \
+    io_.Tick(8);                                                               \
   }
 
 #define LD_NN_A()                                                              \
@@ -558,7 +558,7 @@ namespace gandalf {
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     word address = low | (high << 8);                                          \
-    READ(address, registers_.a());                                             \
+    WRITE(address, registers_.a());                                            \
   }
 
 #define XOR_A_N()                                                              \
