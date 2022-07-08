@@ -7,7 +7,7 @@ namespace gandalf {
     class CartridgeTest : public ::testing::Test {
     public:
         CartridgeTest() {
-            bytes_.resize(0x150);
+            bytes_.resize(0x8000);
         }
 
         virtual ~CartridgeTest() = default;
@@ -17,7 +17,9 @@ namespace gandalf {
         std::vector<byte> bytes_;
     };
 
-    TEST_F(CartridgeTest, read_logo)
+    TEST_F()
+
+        TEST_F(CartridgeTest, read_logo)
     {
         std::array<byte, 0x30> logo_bytes;
         for (byte i = 0; i < 0x30; i++) {
@@ -78,11 +80,11 @@ namespace gandalf {
 
     TEST_F(CartridgeTest, read_cartridge_type)
     {
-        bytes_.at(0x147) = 0x12;
+        bytes_.at(0x147) = 0x1;
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0x12, cartridge_.GetHeader().value().cartridge_type);
+        EXPECT_EQ(0x1, cartridge_.GetHeader().value().cartridge_type);
     }
 
     TEST_F(CartridgeTest, read_rom_size)
@@ -96,11 +98,11 @@ namespace gandalf {
 
     TEST_F(CartridgeTest, read_ram_size)
     {
-        bytes_.at(0x149) = 0x05;
+        bytes_.at(0x149) = 0x02;
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0x05, cartridge_.GetHeader().value().ram_size);
+        EXPECT_EQ(0x02, cartridge_.GetHeader().value().ram_size);
     }
 
     TEST_F(CartridgeTest, read_destination_code)
