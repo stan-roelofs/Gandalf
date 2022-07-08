@@ -6,7 +6,7 @@
 
 class BlarggTest : public ::testing::TestWithParam<std::string>, protected ResourceHelper {
 public:
-    BlarggTest() : ResourceHelper("blargg/cpu_instrs") {
+    BlarggTest() : ResourceHelper() {
     }
 
     virtual ~BlarggTest() = default;
@@ -20,7 +20,23 @@ TEST_P(BlarggTest, cpu_instructions)
     std::string file_name = GetParam() + ".gb";
     std::cout << "Running test ROM: " << file_name << std::endl;
 
-    auto bytes = ReadFileBytes(file_name);
+    auto rom_bytes = ReadFileBytes("/blargg/cpu_instrs/" + file_name);
+
+    for (const std::string& bootrom : {"dmg"})
+    {
+        try {
+            auto bootrom_bytes = ReadFileBytes("/bootroms/" + bootrom + ".bin");
+            gandalf::Gameboy::BootROM bootrom;
+            std::copy(bootrom_bytes.begin(), bootrom_bytes.end(), bootrom.begin());
+            gandalf::Gameboy gb;
+            gb.LoadBootROM(bootrom);
+            gb.Load(rom_bytes);
+        } catch(std::runtime_error& e)
+        {
+            FAIL() << "Could not find boot rom for: " << bootrom;
+        }        
+    }
+
 }
 
 INSTANTIATE_TEST_SUITE_P(
