@@ -11,11 +11,17 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 set(SOURCES
-    src/cartridge_test.cpp
+  src/blargg_test.cpp
+  src/cartridge_test.cpp
+  src/resource_helper.h
+  src/resource_helper.cpp
 )
 
 add_executable(gb_lib_test ${SOURCES})
 target_link_libraries(gb_lib_test gb_lib gtest_main)
+
+string(CONCAT RESOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/resources)
+target_compile_definitions(gb_lib_test PRIVATE RESOURCE_PATH=\"${RESOURCE_PATH}\")
 
 include(GoogleTest)
 gtest_discover_tests(gb_lib_test)

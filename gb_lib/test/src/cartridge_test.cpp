@@ -17,9 +17,7 @@ namespace gandalf {
         std::vector<byte> bytes_;
     };
 
-    TEST_F()
-
-        TEST_F(CartridgeTest, read_logo)
+    TEST_F(CartridgeTest, read_logo)
     {
         std::array<byte, 0x30> logo_bytes;
         for (byte i = 0; i < 0x30; i++) {
