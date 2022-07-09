@@ -73,6 +73,8 @@ namespace gandalf {
 
     CPU& GetCPU() { return *cpu_; }
     Bus& GetBus() { return *bus_; }
+    LCD& GetLCD() { return io_->GetLCD(); }
+    PPU& GetPPU() { return io_->GetPPU(); }
 
   private:
     // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.

@@ -15,6 +15,9 @@ namespace gandalf {
 
         void Tick(byte cycles);
 
+        LCD& GetLCD() { return lcd_; }
+        PPU& GetPPU() { return ppu_; }
+
     private:
         Bus& bus_;
         Timer timer_;

@@ -10,10 +10,15 @@
 #include <SDL.h>
 #include <SDL_timer.h>
 
+#include <gandalf/constants.h>
+
 namespace {
     SDL_Renderer* renderer;
     SDL_Window* window;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    SDL_Surface* screen;
+    SDL_Texture* texture;
+    std::array<gandalf::byte, gandalf::kScreenHeight* gandalf::kScreenWidth * 3> buffer;
 }
 
 namespace gui
@@ -144,7 +149,7 @@ namespace gui
             static gandalf::word last_pc = registers.program_counter;
             static float debugger_item_height = 0.f;
             if (last_pc != registers.program_counter && debugger_item_height > 0) {
-                ImGui::SetScrollY(registers.program_counter* debugger_item_height);
+                ImGui::SetScrollY(registers.program_counter * debugger_item_height);
                 last_pc = registers.program_counter;
             }
 
@@ -186,6 +191,10 @@ namespace gui
             ImGui::EndTable();
         }
         ImGui::End();
+
+        ImGui::Begin("Gameboy");
+        ImGui::Image(texture, ImVec2(gandalf::kScreenWidth, gandalf::kScreenHeight));
+        ImGui::End();
     }
 
     void HelpMarker(const char* desc)
@@ -223,6 +232,12 @@ namespace gui
         SDL_RendererInfo info;
         SDL_GetRendererInfo(renderer, &info);
         SDL_Log("Current SDL_Renderer: %s", info.name);
+
+        screen = SDL_CreateRGBSurfaceWithFormat(0, gandalf::kScreenWidth, gandalf::kScreenHeight, 16, SDL_PIXELFORMAT_BGR565);
+
+        texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_BGR565,
+            SDL_TEXTUREACCESS_STREAMING,
+            gandalf::kScreenWidth, gandalf::kScreenHeight);
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -346,11 +361,13 @@ namespace gui
 
         ImGui::End();
 
-            DebugWindow(context);
+        DebugWindow(context);
 
-            ImGui::Begin("fps");
+        ImGui::Begin("fps");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
+
+        SDL_UpdateTexture(texture, nullptr, context.gameboy->GetLCD().GetVideoBuffer().data(), screen->pitch);
 
         // Rendering
         ImGui::Render();

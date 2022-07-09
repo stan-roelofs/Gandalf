@@ -4,99 +4,99 @@
 #include "types.h"
 
 namespace gandalf {
-    const word kVBK = 0xFF4F;
-    const word kLCDC = 0xFF40;
-    const word kLY = 0xFF44;
-    const word kLYC = 0xFF45;
-    const word kSTAT = 0xFF41;
-    const word kSCY = 0xFF42;
-    const word kSCX = 0xFF43;
-    const word kWY = 0xFF4A;
-    const word kWX = 0xFF4B;
-    const word kBGP = 0xFF47;
-    const word kOBP0 = 0xFF48;
-    const word kOBP1 = 0xFF49;
-    const word kBCPS = 0xFF68;
-    const word kBCPD = 0xFF69;
-    const word kOCPS = 0xFF6A;
-    const word kOCPD = 0xFF6B;
+    constexpr word kVBK = 0xFF4F;
+    constexpr word kLCDC = 0xFF40;
+    constexpr word kLY = 0xFF44;
+    constexpr word kLYC = 0xFF45;
+    constexpr word kSTAT = 0xFF41;
+    constexpr word kSCY = 0xFF42;
+    constexpr word kSCX = 0xFF43;
+    constexpr word kWY = 0xFF4A;
+    constexpr word kWX = 0xFF4B;
+    constexpr word kBGP = 0xFF47;
+    constexpr word kOBP0 = 0xFF48;
+    constexpr word kOBP1 = 0xFF49;
+    constexpr word kBCPS = 0xFF68;
+    constexpr word kBCPD = 0xFF69;
+    constexpr word kOCPS = 0xFF6A;
+    constexpr word kOCPD = 0xFF6B;
 
     // Interrupts
-    const word kIF = 0xFF0F;
-    const word kIE = 0xFFFF;
+    constexpr word kIF = 0xFF0F;
+    constexpr word kIE = 0xFFFF;
 
     // Timer
-    const word kDIV = 0xFF04;
-    const word kTIMA = 0xFF05;
-    const word kTMA = 0xFF06;
-    const word kTAC = 0xFF07;
+    constexpr word kDIV = 0xFF04;
+    constexpr word kTIMA = 0xFF05;
+    constexpr word kTMA = 0xFF06;
+    constexpr word kTAC = 0xFF07;
 
     // Joypad
-    const word kP1 = 0xFF00;
+    constexpr word kP1 = 0xFF00;
 
     // Serial
-    const word kSB = 0xFF01;
-    const word kSC = 0xFF02;
+    constexpr word kSB = 0xFF01;
+    constexpr word kSC = 0xFF02;
 
     // DMA
-    const word kDMA = 0xFF46;
-    const word kHDMA1 = 0xFF51;
-    const word kHDMA2 = 0xFF52;
-    const word kHDMA3 = 0xFF53;
-    const word kHDMA4 = 0xFF54;
-    const word kHDMA5 = 0xFF55;
+    constexpr word kDMA = 0xFF46;
+    constexpr word kHDMA1 = 0xFF51;
+    constexpr word kHDMA2 = 0xFF52;
+    constexpr word kHDMA3 = 0xFF53;
+    constexpr word kHDMA4 = 0xFF54;
+    constexpr word kHDMA5 = 0xFF55;
 
     // Sound
-    const word kNR10 = 0xFF10;
-    const word kNR11 = 0xFF11;
-    const word kNR12 = 0xFF12;
-    const word kNR13 = 0xFF13;
-    const word kNR14 = 0xFF14;
+    constexpr word kNR10 = 0xFF10;
+    constexpr word kNR11 = 0xFF11;
+    constexpr word kNR12 = 0xFF12;
+    constexpr word kNR13 = 0xFF13;
+    constexpr word kNR14 = 0xFF14;
 
-    const word kNR21 = 0xFF16;
-    const word kNR22 = 0xFF17;
-    const word kNR23 = 0xFF18;
-    const word kNR24 = 0xFF19;
+    constexpr word kNR21 = 0xFF16;
+    constexpr word kNR22 = 0xFF17;
+    constexpr word kNR23 = 0xFF18;
+    constexpr word kNR24 = 0xFF19;
 
-    const word kNR30 = 0xFF1A;
-    const word kNR31 = 0xFF1B;
-    const word kNR32 = 0xFF1C;
-    const word kNR33 = 0xFF1D;
-    const word kNR34 = 0xFF1E;
+    constexpr word kNR30 = 0xFF1A;
+    constexpr word kNR31 = 0xFF1B;
+    constexpr word kNR32 = 0xFF1C;
+    constexpr word kNR33 = 0xFF1D;
+    constexpr word kNR34 = 0xFF1E;
 
-    const word kNR41 = 0xFF20;
-    const word kNR42 = 0xFF21;
-    const word kNR43 = 0xFF22;
-    const word kNR44 = 0xFF23;
+    constexpr word kNR41 = 0xFF20;
+    constexpr word kNR42 = 0xFF21;
+    constexpr word kNR43 = 0xFF22;
+    constexpr word kNR44 = 0xFF23;
 
-    const word kNR50 = 0xFF24;
-    const word kNR51 = 0xFF25;
-    const word kNR52 = 0xFF26;
+    constexpr word kNR50 = 0xFF24;
+    constexpr word kNR51 = 0xFF25;
+    constexpr word kNR52 = 0xFF26;
 
-    const word kBANK = 0xFF50;
+    constexpr word kBANK = 0xFF50;
 
     // CGB
-    const word kKEY1 = 0xFF4D;
-    const word kRP = 0xFF56;
-    const word kOPRI = 0xFF6C;
-    const word kSVBK = 0xFF70;
+    constexpr word kKEY1 = 0xFF4D;
+    constexpr word kRP = 0xFF56;
+    constexpr word kOPRI = 0xFF6C;
+    constexpr word kSVBK = 0xFF70;
 
     // Flags
-    const byte kZFlagMask = 0x80;
-    const byte kNFlagMask = 0x40;
-    const byte kHFlagMask = 0x20;
-    const byte kCFlagMask = 0x10;
+    constexpr byte kZFlagMask = 0x80;
+    constexpr byte kNFlagMask = 0x40;
+    constexpr byte kHFlagMask = 0x20;
+    constexpr byte kCFlagMask = 0x10;
 
     // Interrupts
-    const byte kVBlankInterruptMask = 0x01;
-    const byte kLCDInterruptMask = 0x02;
-    const byte kTimerInterruptMask = 0x04;
-    const byte kSerialInterruptMask = 0x08;
-    const byte kJoypadInterruptMask = 0x10;
+    constexpr byte kVBlankInterruptMask = 0x01;
+    constexpr byte kLCDInterruptMask = 0x02;
+    constexpr byte kTimerInterruptMask = 0x04;
+    constexpr byte kSerialInterruptMask = 0x08;
+    constexpr byte kJoypadInterruptMask = 0x10;
 
     //
-    const int kScreenHeight = 144;
-    const int kScreenWidth = 160;
+    constexpr int kScreenHeight = 144;
+    constexpr int kScreenWidth = 160;
 
 } // namespace gandalf
 

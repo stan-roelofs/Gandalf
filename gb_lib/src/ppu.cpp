@@ -1,5 +1,7 @@
 #include <gandalf/ppu.h>
 
+#include <optional>
+
 #include <gandalf/constants.h>
 
 namespace {
@@ -25,7 +27,7 @@ namespace {
 }
 
 namespace gandalf {
-    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0)
+    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), pipeline_(lcd_, vram_)
     {
         vram_.fill(0xFF);
         oam_.fill(0xFF);
@@ -46,7 +48,11 @@ namespace gandalf {
                 SetMode(PPUMode::PixelTransfer, stat);
             break;
         case PPUMode::PixelTransfer:
-            if (line_ticks_ >= 252) {
+            pipeline_.Process(line_ticks_);
+
+            if (pipeline_.Done()) {
+                pipeline_.Reset();
+
                 SetMode(PPUMode::HBlank, stat);
                 if (stat & 0b00001000)
                     bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
@@ -63,6 +69,9 @@ namespace gandalf {
 
                     if (stat & 0b00010000)
                         bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
+
+                    if (vblank_listener_)
+                        vblank_listener_->OnVBlank();
                 }
                 else
                     SetMode(PPUMode::OamSearch, stat);
@@ -144,5 +153,141 @@ namespace gandalf {
         else {
             stat &= 0b11111011;
         }
+    }
+
+    PPU::Pipeline::Pipeline(LCD& lcd, VRAM& vram) : lcd_(lcd), vram_(vram)
+    {
+        Reset();
+    }
+
+    PPU::Pipeline::~Pipeline() = default;
+
+    void PPU::Pipeline::Reset()
+    {
+        fetcher_state_ = FetcherState::kFetchTileSleep;
+        pixels_pushed_ = 0;
+        fetch_x_ = 0;
+        fetch_y_ = lcd_.GetLY() + lcd_.GetSCY();
+
+        std::queue<Pixel> empty;
+        background_fifo_.swap(empty);
+        sprite_fifo_.swap(empty);
+    }
+
+    bool PPU::Pipeline::Done() const
+    {
+        return pixels_pushed_ == kScreenWidth;
+    }
+
+    void PPU::Pipeline::Process(int line_ticks)
+    {
+        if ((line_ticks & 0b1) == 0)
+            StateMachine();
+
+        RenderPixel();
+    }
+
+    void PPU::Pipeline::StateMachine()
+    {
+        switch (fetcher_state_)
+        {
+        case FetcherState::kFetchTileSleep:
+            fetcher_state_ = FetcherState::kFetchTile;
+            break;
+        case FetcherState::kFetchTile:
+        {
+            const word tile_map_offset = (lcd_.GetLCDControl() & 0b1000) ? 0x1C00 : 0x1800;
+            const word tile_address = tile_map_offset + (fetch_y_ / 8 * 32) + fetch_x_;
+            tile_number_ = vram_.at(tile_address);
+            fetcher_state_ = FetcherState::kFetchDataLowSleep;
+            break;
+        }
+        break;
+        case FetcherState::kFetchDataLowSleep:
+            fetcher_state_ = FetcherState::kFetchDataLow;
+            break;
+        case FetcherState::kFetchDataLow:
+        {
+            const bool tile_data_select = lcd_.GetLCDControl() & 0b10000;
+            const word tile_base_address = tile_data_select ? 0 : 0x1000;
+            const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
+            const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2);
+            tile_data_low_ = vram_.at(total_offset);
+            fetcher_state_ = FetcherState::kFetchDataHighSleep;
+        }
+        break;
+        case FetcherState::kFetchDataHighSleep:
+            fetcher_state_ = FetcherState::kFetchDataHigh;
+            break;
+        case FetcherState::kFetchDataHigh:
+        {
+            const bool tile_data_select = lcd_.GetLCDControl() & 0b10000;
+            const word tile_base_address = tile_data_select ? 0 : 0x1000;
+            const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
+            const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2 + 1);
+            tile_data_high_ = vram_.at(total_offset);
+            fetcher_state_ = FetcherState::kSleep1;
+
+            TryPush();
+        }
+        break;
+        case FetcherState::kSleep1:
+            fetcher_state_ = FetcherState::kSleep2;
+            break;
+
+        case FetcherState::kSleep2:
+            fetcher_state_ = FetcherState::kPush;
+            break;
+        case FetcherState::kPush:
+            TryPush();
+            break;
+        }
+    }
+
+    void PPU::Pipeline::TryPush()
+    {
+        if (background_fifo_.size() <= 8) {
+            for (byte i = 0; i < 8; ++i)
+            {
+                byte color_bit_0 = !!(tile_data_low_ & (1 << (7 - i)));
+                byte color_bit_1 = !!(tile_data_high_ & (1 << (7 - i))) << 1;
+                byte color = color_bit_0 | color_bit_1;
+                background_fifo_.push({ color, 0, 0, 0 });
+            }
+            fetch_x_ = (fetch_x_ + 1) & 0x1F;
+            fetcher_state_ = FetcherState::kFetchTile;
+        }
+    }
+
+    void PPU::Pipeline::RenderPixel()
+    {
+        // Pixels won’t be pushed to the LCD if there is nothing in the background FIFO or the current pixel is pixel 160 or greater.
+        if (background_fifo_.size() <= 8 || pixels_pushed_ >= 160 || background_fifo_.empty())
+            return;
+
+        Pixel background_pixel = background_fifo_.front();
+        background_fifo_.pop();
+
+        // When the background pixel is disabled the pixel color value will be 0, otherwise the color value will be whatever color pixel was popped off the background FIFO.
+        if ((lcd_.GetLCDControl() & 1) == 0) {
+            background_pixel.color = 0;
+        }
+
+        std::optional<Pixel> sprite_pixel;
+        if (!sprite_fifo_.empty()) {
+            sprite_pixel = sprite_fifo_.front();
+            sprite_fifo_.pop();
+        }
+
+        /* We render a bg pixel when
+         * 1. There is no sprite pixel
+         * 2. The sprite pixel is transparent (color 0)
+         * 3. The background pixel is not transparent and the sprite pixel gives the background pixel priority (bit 7 of sprite attributes is set) */
+        if (!sprite_pixel || sprite_pixel->color == 0 || (sprite_pixel->background_priority && background_pixel.color != 0))
+            lcd_.RenderPixel(pixels_pushed_, background_pixel.color, false, 0);
+        else
+            lcd_.RenderPixel(pixels_pushed_, sprite_pixel->color, true, sprite_pixel->palette);
+
+        ++pixels_pushed_;
     }
 } // namespace gandalf

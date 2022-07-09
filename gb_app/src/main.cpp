@@ -1,4 +1,5 @@
 #include <cstring>
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -10,10 +11,6 @@
 #include <gandalf/cartridge.h>
 
 #include "gui.h"
-
-namespace {
-
-}
 
 static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
     std::ifstream input(filename, std::ios::binary);
@@ -91,6 +88,36 @@ int main(int argc, char* argv[]) {
     context.gameboy = &gb;
     context.show_debug_window = &show_debug_window;
     context.breakpoint = &breakpoint;
+
+    struct : VBlankListener
+    {
+        void OnVBlank() {
+            has_frame = true;
+            static int frames = 0;
+            // Some computation here
+            ++frames;
+
+            using namespace std::chrono;
+
+            static high_resolution_clock::time_point t1 = high_resolution_clock::now();;
+
+            high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+            duration<double, std::milli> time_span = t2 - t1;
+
+            if (time_span.count() > 1000) {
+                t1 = t2;
+                std::cout << std::to_string(frames) << std::endl;
+                frames = 0;
+            }
+        };
+
+        bool has_frame;
+    } fps_counter;
+    fps_counter.has_frame = false;
+
+    gb.GetPPU().SetVBlankListener(&fps_counter);
+
     while (true)
     {
         try {
@@ -104,7 +131,7 @@ int main(int argc, char* argv[]) {
             }
 
             if (run) {
-                for (int i = 0; i < 100000; ++i) {
+                while (!fps_counter.has_frame) {
                     gb.Run();
 
                     if (breakpoint && *breakpoint == gb.GetCPU().GetRegisters().program_counter) {
@@ -112,6 +139,7 @@ int main(int argc, char* argv[]) {
                         break;
                     }
                 }
+                fps_counter.has_frame = false;
             }
         }
         catch (gandalf::Exception& e) {
@@ -125,15 +153,7 @@ int main(int argc, char* argv[]) {
 
     // TODO check window and renderer null
 
-    // SDL_Surface* screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
-    //     0x00FF0000,
-    //     0x0000FF00,
-    //     0x000000FF,
-    //     0xFF000000);
 
-    // SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-    //     SDL_TEXTUREACCESS_STREAMING,
-    //     SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // while (true) {
     //     SDL_Rect rc;

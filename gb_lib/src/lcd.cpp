@@ -2,10 +2,15 @@
 
 #include <gandalf/constants.h>
 
+namespace {
+    constexpr gandalf::LCD::BGR565 kColorsDMG[4] = { 0xE7DA, 0x8E0E, 0x334A, 0x08C4 };
+}
+
 namespace gandalf
 {
     LCD::LCD() : Bus::AddressHandler("LCD"), lcdc_(0), ly_(0), lyc_(0), stat_(0), scy_(0), scx_(0), wy_(0), wx_(0), bgp_(0), obp0_(0), obp1_(0), dma_(0)
     {
+        video_buffer_.fill(0);
     }
 
     LCD::~LCD() = default;
@@ -95,5 +100,17 @@ namespace gandalf
     std::set<word> LCD::GetAddresses() const
     {
         return { kLCDC, kSTAT, kSCY, kSCX, kLY, kLYC, kWY, kWX, kBGP, kOBP0, kOBP1, kDMA };
+    }
+
+    void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)
+    {
+        byte palette = 0;
+        if (is_sprite)
+            palette = palette_index = 0 ? obp0_ : obp1_;
+        else
+            palette = bgp_;
+
+        byte color = palette >> (2 * (color_index)) & 0b11;
+        video_buffer_[kScreenWidth * ly_ + x] = kColorsDMG[color];
     }
 }
