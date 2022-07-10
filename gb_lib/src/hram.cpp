@@ -12,15 +12,16 @@ namespace gandalf {
         if (address >= 0xFF80 && address < 0xFFFF)
             return data_[address - 0xFF80];
 
-        throw Exception("Invalid HRAM address : " + std::to_string(address));
+        return 0xFF; // TODO
+        // throw Exception("Invalid HRAM address : " + std::to_string(address));
     }
 
     void HRAM::Write(word address, byte value)
     {
         if (address >= 0xFF80 && address < 0xFFFF)
             data_[address - 0xFF80] = value;
-        else
-            throw Exception("Invalid HRAM address : " + std::to_string(address));
+        //else
+           // throw Exception("Invalid HRAM address : " + std::to_string(address));
     }
 
     std::set<word> HRAM::GetAddresses() const

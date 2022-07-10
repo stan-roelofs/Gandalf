@@ -29,7 +29,7 @@ namespace gandalf {
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
         for (int i = 0; i < 0x30; i++) {
-            EXPECT_EQ(logo_bytes[i], cartridge_.GetHeader()->logo[i]);
+            EXPECT_EQ(logo_bytes[i], cartridge_.GetHeader().logo[i]);
         }
     }
 
@@ -41,7 +41,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_STREQ(title.c_str(), reinterpret_cast<const char*>(cartridge_.GetHeader().value().title));
+        EXPECT_STREQ(title.c_str(), reinterpret_cast<const char*>(cartridge_.GetHeader().title));
     }
 
     TEST_F(CartridgeTest, read_manufacturer_code)
@@ -52,7 +52,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_STREQ(manufacturer_code.c_str(), reinterpret_cast<const char*>(cartridge_.GetHeader().value().manufacturer_code));
+        EXPECT_STREQ(manufacturer_code.c_str(), reinterpret_cast<const char*>(cartridge_.GetHeader().manufacturer_code));
     }
 
     TEST_F(CartridgeTest, read_cgb_flag)
@@ -62,7 +62,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(cgb_flag, cartridge_.GetHeader().value().cgb_flag);
+        EXPECT_EQ(cgb_flag, cartridge_.GetHeader().cgb_flag);
     }
 
     TEST_F(CartridgeTest, read_new_licensee_code)
@@ -72,8 +72,8 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ('G', cartridge_.GetHeader()->new_licensee_code[0]);
-        EXPECT_EQ('B', cartridge_.GetHeader()->new_licensee_code[1]);
+        EXPECT_EQ('G', cartridge_.GetHeader().new_licensee_code[0]);
+        EXPECT_EQ('B', cartridge_.GetHeader().new_licensee_code[1]);
     }
 
     TEST_F(CartridgeTest, read_cartridge_type)
@@ -82,7 +82,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0x1, cartridge_.GetHeader().value().cartridge_type);
+        EXPECT_EQ(0x1, cartridge_.GetHeader().cartridge_type);
     }
 
     TEST_F(CartridgeTest, read_rom_size)
@@ -91,7 +91,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0x08, cartridge_.GetHeader().value().rom_size);
+        EXPECT_EQ(0x08, cartridge_.GetHeader().rom_size);
     }
 
     TEST_F(CartridgeTest, read_ram_size)
@@ -100,7 +100,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0x02, cartridge_.GetHeader().value().ram_size);
+        EXPECT_EQ(0x02, cartridge_.GetHeader().ram_size);
     }
 
     TEST_F(CartridgeTest, read_destination_code)
@@ -109,7 +109,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0x01, cartridge_.GetHeader().value().destination_code);
+        EXPECT_EQ(0x01, cartridge_.GetHeader().destination_code);
     }
 
     TEST_F(CartridgeTest, read_old_licensee_code)
@@ -118,7 +118,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0xFE, cartridge_.GetHeader()->old_licensee_code);
+        EXPECT_EQ(0xFE, cartridge_.GetHeader().old_licensee_code);
     }
 
     TEST_F(CartridgeTest, read_mask_rom_version)
@@ -127,7 +127,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0x01, cartridge_.GetHeader()->mask_rom_version);
+        EXPECT_EQ(0x01, cartridge_.GetHeader().mask_rom_version);
     }
 
     TEST_F(CartridgeTest, read_header_checksum)
@@ -136,7 +136,7 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0xC0, cartridge_.GetHeader()->header_checksum);
+        EXPECT_EQ(0xC0, cartridge_.GetHeader().header_checksum);
     }
 
     TEST_F(CartridgeTest, read_global_checksum)
@@ -146,20 +146,13 @@ namespace gandalf {
 
         EXPECT_TRUE(cartridge_.Load(bytes_));
 
-        EXPECT_EQ(0xC0, cartridge_.GetHeader()->global_checksum[0]);
-        EXPECT_EQ(0xCC, cartridge_.GetHeader()->global_checksum[1]);
+        EXPECT_EQ(0xC0, cartridge_.GetHeader().global_checksum[0]);
+        EXPECT_EQ(0xCC, cartridge_.GetHeader().global_checksum[1]);
     }
 
     TEST_F(CartridgeTest, load_fails_invalid_size)
     {
         bytes_.resize(0x149);
         EXPECT_FALSE(cartridge_.Load(bytes_));
-    }
-
-    TEST_F(CartridgeTest, header_null_when_load_fails)
-    {
-        bytes_.resize(0x149);
-        EXPECT_FALSE(cartridge_.Load(bytes_));
-        EXPECT_EQ(std::nullopt, cartridge_.GetHeader());
     }
 };

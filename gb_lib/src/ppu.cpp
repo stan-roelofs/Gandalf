@@ -15,17 +15,17 @@ namespace {
 
     PPUMode GetMode(gandalf::byte status)
     {
-        return static_cast<PPUMode>(status & 0b11);
+        return static_cast<PPUMode>(status & 0x3);
     }
 
     void SetMode(PPUMode mode, gandalf::byte& status)
     {
-        status = (status & 0b11111100) | static_cast<gandalf::byte>(mode);
+        status = (status & 0xFC) | static_cast<gandalf::byte>(mode);
     }
 }
 
 namespace gandalf {
-    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), pipeline_(lcd_, vram_), vblank_listener_(nullptr)
+    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), vblank_listener_(nullptr), pipeline_(lcd_, vram_)
     {
         vram_.fill(0xFF);
         oam_.fill(0xFF);
@@ -52,7 +52,7 @@ namespace gandalf {
 
             if (pipeline_.Done()) {
                 SetMode(PPUMode::HBlank, stat);
-                if (stat & 0b00001000)
+                if (stat & 0x8)
                     bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
             }
             break;
@@ -65,7 +65,7 @@ namespace gandalf {
 
                     bus_.Write(kIE, bus_.Read(kIE) | kVBlankInterruptMask);
 
-                    if (stat & 0b00010000)
+                    if (stat & 0x10)
                         bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
 
                     if (vblank_listener_)
@@ -103,7 +103,8 @@ namespace gandalf {
         {
             return oam_[address - 0xFE00];
         }
-        throw Exception("Invalid PPU address : " + std::to_string(address));
+        return 0xFF; // TODO
+        // throw Exception("Invalid PPU address : " + std::to_string(address));
     }
 
     void PPU::Write(word address, byte value)
@@ -116,8 +117,8 @@ namespace gandalf {
         {
             oam_[address - 0xFE00] = value;
         }
-        else
-            throw Exception("Invalid PPU address : " + std::to_string(address));
+        //else
+         //   throw Exception("Invalid PPU address : " + std::to_string(address));
     }
 
     std::set<word> PPU::GetAddresses() const
@@ -142,14 +143,14 @@ namespace gandalf {
 
         if (ly == lyc) {
             // Set LY==LYC coincidence flag
-            stat |= 0b100;
+            stat |= 0x4;
 
-            if (stat & 0b01000000) {
+            if (stat & 0x40) {
                 bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
             }
         }
         else {
-            stat &= 0b11111011;
+            stat &= 0xFB;
         }
     }
 
@@ -179,7 +180,7 @@ namespace gandalf {
 
     void PPU::Pipeline::Process(int line_ticks)
     {
-        if ((line_ticks & 0b1) == 0)
+        if ((line_ticks & 0x1) == 0)
             StateMachine();
 
         RenderPixel();
@@ -194,7 +195,7 @@ namespace gandalf {
             break;
         case FetcherState::kFetchTile:
         {
-            const word tile_map_offset = (lcd_.GetLCDControl() & 0b1000) ? 0x1C00 : 0x1800;
+            const word tile_map_offset = (lcd_.GetLCDControl() & 0x8) ? 0x1C00 : 0x1800;
             const word tile_address = tile_map_offset + (fetch_y_ / 8 * 32) + fetch_x_;
             tile_number_ = vram_.at(tile_address);
             fetcher_state_ = FetcherState::kFetchDataLowSleep;
@@ -206,8 +207,8 @@ namespace gandalf {
             break;
         case FetcherState::kFetchDataLow:
         {
-            const bool tile_data_select = lcd_.GetLCDControl() & 0b10000;
-            const word tile_base_address = tile_data_select ? 0 : 0x1000;
+            const bool tile_data_select = lcd_.GetLCDControl() & 0x10;
+            const word tile_base_address = tile_data_select ? 0 : 0x800;
             const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2);
             tile_data_low_ = vram_.at(total_offset);
@@ -219,8 +220,8 @@ namespace gandalf {
             break;
         case FetcherState::kFetchDataHigh:
         {
-            const bool tile_data_select = lcd_.GetLCDControl() & 0b10000;
-            const word tile_base_address = tile_data_select ? 0 : 0x1000;
+            const bool tile_data_select = lcd_.GetLCDControl() & 0x10;
+            const word tile_base_address = tile_data_select ? 0 : 0x800;
             const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2 + 1);
             tile_data_high_ = vram_.at(total_offset);
@@ -275,7 +276,8 @@ namespace gandalf {
         if (!sprite_fifo_.empty()) {
             sprite_pixel = sprite_fifo_.front();
             sprite_fifo_.pop();
-        } else
+        }
+        else
             sprite_pixel.color = 0;
 
         /* We render a bg pixel when

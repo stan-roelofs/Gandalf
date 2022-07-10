@@ -39,7 +39,7 @@ namespace gandalf {
       if (address == kBANK)
         return 0xFF;
 
-      throw Exception("Invalid read from boot ROM");
+      return 0xFF; // TODO
     }
 
     std::set<word> GetAddresses() const override

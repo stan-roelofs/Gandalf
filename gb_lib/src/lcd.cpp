@@ -48,7 +48,9 @@ namespace gandalf
         case kDMA:
             return dma_;
         default:
-            throw Exception("Invalid LCD address");
+            return 0xFF; // TODO
+
+            //  throw Exception("Invalid LCD address");
         }
     }
 
@@ -92,8 +94,8 @@ namespace gandalf
         case kDMA:
             dma_ = value;
             break;
-        default:
-            throw Exception("Invalid LCD address");
+            // default:
+                 //throw Exception("Invalid LCD address");
         }
     }
 
@@ -110,7 +112,7 @@ namespace gandalf
         else
             palette = bgp_;
 
-        byte color = palette >> (2 * (color_index)) & 0b11;
+        byte color = palette >> (2 * (color_index)) & 0x3;
         video_buffer_[kScreenWidth * ly_ + x] = kColorsDMG[color];
     }
 }

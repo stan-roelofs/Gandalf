@@ -13,12 +13,12 @@ namespace {
         if (!TimerEnabled(tac))
             return false;
 
-        const gandalf::byte mode = tac & 0b11;
-        if (mode == 0b00)
+        const gandalf::byte mode = tac & 0x3;
+        if (mode == 0)
             return (prev_div & (1 << 9)) && (!(div & (1 << 9)));
-        else if (mode == 0b01)
+        else if (mode == 0x1)
             return (prev_div & (1 << 3)) && (!(div & (1 << 3)));
-        else if (mode == 0b10)
+        else if (mode == 0x2)
             return (prev_div & (1 << 5)) && (!(div & (1 << 5)));
         else
             return (prev_div & (1 << 7)) && (!(div & (1 << 7)));
@@ -71,8 +71,8 @@ namespace gandalf
             // TODO writing to DIV can cause TIMA increase, we'll ignore this for now and implement it later
             div_ = 0;
             break;
-        default:
-            throw Exception("Invalid timer address");
+            //default:
+                //throw Exception("Invalid timer address");
         }
     }
 
@@ -89,7 +89,8 @@ namespace gandalf
         case kDIV:
             return div_ >> 8;
         default:
-            throw Exception("Invalid timer address");
+            return 0xFF; // TODO
+            // throw Exception("Invalid timer address");
         }
     }
 

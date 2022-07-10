@@ -23,8 +23,8 @@ namespace gandalf {
         }
         else if (address == kSB)
             sb_ = value;
-        else
-            throw Exception("Invalid Serial address : " + std::to_string(address));
+       // else
+          //  throw Exception("Invalid Serial address : " + std::to_string(address));
     }
 
     std::set<word> Serial::GetAddresses() const

@@ -24,7 +24,7 @@ namespace gandalf {
 
     void Gameboy::LoadBootROM(const BootROM& boot_rom)
     {
-        boot_rom_handler_ = std::make_unique<BootROMHandler>(boot_rom);
+        boot_rom_handler_ = std::unique_ptr<BootROMHandler>(new BootROMHandler(boot_rom));
         bus_.Register(boot_rom_handler_.get());
     }
 

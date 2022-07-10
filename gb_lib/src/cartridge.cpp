@@ -11,11 +11,12 @@ namespace gandalf {
     class ROMOnly : public Cartridge::MBC {
     public:
         ROMOnly(const Cartridge::ROM& rom, std::size_t ram_banks) : Cartridge::MBC(rom, 2, ram_banks) {
-            if (rom_.size() != 2)
-                throw Exception("ROMOnly: Invalid ROM size");
+            //if (rom_.size() != 2)
+                //throw Exception("ROMOnly: Invalid ROM size");
 
-            if (ram_.size() > 1)
-                throw Exception("ROMOnly: Invalid RAM size");
+            //if (ram_.size() > 1)
+                //throw Exception("ROMOnly: Invalid RAM size");
+
         }
         byte Read(word address) const override {
             if (address <= 0x8000)
@@ -26,7 +27,7 @@ namespace gandalf {
                 return 0xFF;
             }
 
-            throw Exception("ROMOnly: Invalid read address : " + std::to_string(address));
+            return 0xFF; // TODO
         }
 
         void Write(word address, byte value) override {
@@ -36,19 +37,19 @@ namespace gandalf {
                 if (ram_.size() > 0)
                     ram_[0][address % 0xA000] = value;
             }
-            else
-                throw Exception("ROMOnly: Invalid write address : " + std::to_string(address));
+            //else
+                //throw Exception("ROMOnly: Invalid write address : " + std::to_string(address));
         }
     };
 
     class MBC1 : public Cartridge::MBC {
     public:
         MBC1(const Cartridge::ROM& rom, std::size_t rom_banks, std::size_t ram_banks) : Cartridge::MBC(rom, rom_banks, ram_banks), ram_enabled_(false), rom_bank_number_(0), ram_bank_number_(0), advanced_banking_mode_(false) {
-            if (rom_banks % 2 != 0 || rom_banks > 128)
-                throw Exception("MBC1: Invalid ROM size");
+            // if (rom_banks % 2 != 0 || rom_banks > 128)
+                 // throw Exception("MBC1: Invalid ROM size");
 
-            if (ram_banks != 0 && ram_banks != 1 && ram_banks != 4)
-                throw Exception("MBC1: Invalid RAM size");
+             // if (ram_banks != 0 && ram_banks != 1 && ram_banks != 4)
+                //  throw Exception("MBC1: Invalid RAM size");
         }
         byte Read(word address) const override {
             if (address < 0x4000) {
@@ -75,7 +76,8 @@ namespace gandalf {
                 return ram_[bank_number][address - 0xA000];
             }
             else
-                throw Exception("MBC1: Invalid read address : " + std::to_string(address));
+                return 0xFF; // TODO
+            // throw Exception("MBC1: Invalid read address : " + std::to_string(address));
         }
 
         void Write(word address, byte value) override {
@@ -97,8 +99,8 @@ namespace gandalf {
 
                 ram_[bank_number][address - 0xA000] = value;
             }
-            else
-                throw Exception("MBC1: Invalid write address : " + std::to_string(address));
+            //else
+               // throw Exception("MBC1: Invalid write address : " + std::to_string(address));
         }
 
     private:
@@ -439,7 +441,7 @@ namespace gandalf {
             return "None";
     }
 
-    Cartridge::Cartridge() : Bus::AddressHandler("Cartridge") {}
+    Cartridge::Cartridge() : Bus::AddressHandler("Cartridge"), header_() {}
 
     Cartridge::~Cartridge() = default;
 
@@ -478,7 +480,7 @@ namespace gandalf {
         {
         case 0x00: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, ram_banks)); break;
         case 0x01: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks)); break;
-        default: throw Exception("Cartridge type not implemented: " + result.GetType());
+            //default: throw Exception("Cartridge type not implemented: " + result.GetType());
         }
 
         header_ = result;
@@ -492,16 +494,16 @@ namespace gandalf {
 
     void Cartridge::Write(word address, byte value)
     {
-        if (!mbc_)
-            throw Exception("No cartridge loaded");
+        //if (!mbc_)
+            //throw Exception("No cartridge loaded");
 
         mbc_->Write(address, value);
     }
 
     byte Cartridge::Read(word address) const
     {
-        if (!mbc_)
-            throw Exception("No cartridge loaded");
+        //if (!mbc_)
+           // throw Exception("No cartridge loaded");
 
         return mbc_->Read(address);
     }
@@ -522,8 +524,8 @@ namespace gandalf {
         rom_.resize(rom_banks);
         ram_.resize(ram_banks);
 
-        if (rom.size() != rom_banks * 0x4000)
-            throw Exception("ROM is incorrect");
+        //if (rom.size() != rom_banks * 0x4000)
+           // throw Exception("ROM is incorrect");
 
         for (size_t bank = 0; bank < rom_banks; ++bank)
             std::copy(rom.begin() + bank * 0x4000, rom.begin() + (bank + 1) * 0x4000, rom_[bank].begin());

@@ -14,7 +14,8 @@ namespace gandalf {
         else if (address >= 0xE000 && address < 0xFE00)
             return data_[address - 0xE000];
 
-        throw Exception("Invalid WRAM address : " + std::to_string(address));
+        return 0xFF; // TODO
+        //throw Exception("Invalid WRAM address : " + std::to_string(address));
     }
 
     void WRAM::Write(word address, byte value)
@@ -23,8 +24,8 @@ namespace gandalf {
             data_[address - 0xC000] = value;
         else if (address >= 0xE000 && address < 0xFE00)
             data_[address - 0xE000] = value;
-        else
-            throw Exception("Invalid WRAM address : " + std::to_string(address));
+        //else
+         //   throw Exception("Invalid WRAM address : " + std::to_string(address));
     }
 
     std::set<word> WRAM::GetAddresses() const

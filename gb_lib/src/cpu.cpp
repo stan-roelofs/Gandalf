@@ -690,9 +690,10 @@ namespace gandalf {
       return registers_.interrupt_enable;
     else if (address == kIF)
       return registers_.interrupt_flags | 0xE0;
+    return 0xFF; // TODO
 
-    throw Exception("Invalid read from address " +
-      std::to_string(address));
+    //throw Exception("Invalid read from address " +
+      //std::to_string(address));
   }
 
   void CPU::Write(word address, byte value)
@@ -701,9 +702,9 @@ namespace gandalf {
       registers_.interrupt_enable = value;
     else if (address == kIF)
       registers_.interrupt_flags = value;
-    else
-      throw Exception("Invalid write to address " +
-        std::to_string(address));
+    //else
+      //throw Exception("Invalid write to address " +
+       // std::to_string(address));
   }
 
   std::set<word> CPU::GetAddresses() const
@@ -1701,9 +1702,9 @@ namespace gandalf {
           SET_HL(7) break;
         case 0xFF:
           SET(registers_.a(), 7) break;
-        default:
-          throw Exception("Unknown opcode: " + std::to_string(opcode_));
-          break;
+          //default:
+            //throw Exception("Unknown opcode: " + std::to_string(opcode_));
+            //break;
         }
       break;
     case 0xCC:
@@ -1795,9 +1796,9 @@ namespace gandalf {
       CP_A_N() break;
     case 0xFF:
       RST(0x38) break;
-    default:
-      throw Exception("Unknown opcode: " + std::to_string(opcode_));
-      break;
+      //default:
+       // throw Exception("Unknown opcode: " + std::to_string(opcode_));
+        //break;
     }
   }
 

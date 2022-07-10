@@ -10,7 +10,7 @@ namespace gandalf {
     class LCD : public Bus::AddressHandler {
     public:
         using BGR565 = word;
-        using VideoBuffer = std::array<BGR565, gandalf::kScreenHeight* gandalf::kScreenWidth>;
+        using VideoBuffer = std::array<BGR565, kScreenWidth* kScreenHeight>;
 
         LCD();
         virtual ~LCD();
