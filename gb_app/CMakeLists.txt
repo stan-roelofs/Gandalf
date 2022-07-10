@@ -32,6 +32,7 @@ target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/
 target_link_libraries(imgui SDL2main SDL2-static)
 
 set(HEADERS
+  src/imfilebrowser.h
   src/gui.h
 )
 

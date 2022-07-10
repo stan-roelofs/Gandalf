@@ -1,11 +1,13 @@
 #include "gui.h"
 
 #include <iostream>
+#include <fstream>
 #include <optional>
 
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_sdlrenderer.h>
+#include "imfilebrowser.h"
 
 #include <SDL.h>
 #include <SDL_timer.h>
@@ -19,6 +21,7 @@ namespace {
     SDL_Surface* screen;
     SDL_Texture* texture;
     std::array<gandalf::byte, gandalf::kScreenHeight* gandalf::kScreenWidth * 3> buffer;
+    ImGui::FileBrowser file_dialog;
 }
 
 namespace gui
@@ -251,6 +254,9 @@ namespace gui
         ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
         ImGui_ImplSDLRenderer_Init(renderer);
 
+        file_dialog.SetTitle("Choose ROM");
+        file_dialog.SetTypeFilters({ ".gb", ".gbc" });
+
         return true;
     }
 
@@ -343,6 +349,14 @@ namespace gui
 
         if (ImGui::BeginMenuBar())
         {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Open ROM", "Ctrl+O"))
+                    file_dialog.Open();
+
+                ImGui::EndMenu();
+
+            }
             if (ImGui::BeginMenu("Options"))
             {
                 // Disabling fullscreen would allow the window to be moved to the front of other windows,
@@ -360,6 +374,21 @@ namespace gui
         }
 
         ImGui::End();
+
+        file_dialog.Display();
+        if (file_dialog.HasSelected())
+        {
+            std::ifstream input(file_dialog.GetSelected(), std::ios::binary);
+            if (input.fail())
+                std::cout << "Failed to open file: " << file_dialog.GetSelected().string() << std::endl;
+            else {
+                std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
+                    std::istreambuf_iterator<char>());
+                context.gameboy->Load(file);
+            }
+
+            file_dialog.ClearSelected();
+        }
 
         DebugWindow(context);
 
