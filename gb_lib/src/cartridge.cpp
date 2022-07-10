@@ -30,7 +30,9 @@ namespace gandalf {
         }
 
         void Write(word address, byte value) override {
-            if (address > 0xA000 && address < 0xC000) {
+            if (address <= 0x8000)
+                return;
+            else if (address > 0xA000 && address < 0xC000) {
                 if (ram_.size() > 0)
                     ram_[0][address % 0xA000] = value;
             }
@@ -82,7 +84,7 @@ namespace gandalf {
             else if (address < 0x4000)
                 rom_bank_number_ = (value & 0x1F) % rom_.size();
             else if (address < 0x6000)
-                ram_bank_number_ = (value & 0b11);
+                ram_bank_number_ = (value & 0x3);
             else if (address < 0x8000)
                 advanced_banking_mode_ = (value & 0x1);
             else if (address >= 0xA000 && address < 0xC000) {
@@ -461,7 +463,6 @@ namespace gandalf {
         result.mask_rom_version = bytes.at(0x14C);
         result.header_checksum = bytes.at(0x14D);
         std::copy(bytes.begin() + 0x14E, bytes.begin() + 0x150, result.global_checksum);
-        header_ = result;
 
         std::size_t rom_banks = std::size_t(1) << (result.rom_size + 1);
         std::size_t ram_banks = 0;
@@ -475,15 +476,16 @@ namespace gandalf {
 
         switch (result.cartridge_type)
         {
-        case 0x00: mbc_ = std::make_unique<ROMOnly>(bytes, ram_banks); break;
-        case 0x01: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, ram_banks); break;
+        case 0x00: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, ram_banks)); break;
+        case 0x01: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks)); break;
         default: throw Exception("Cartridge type not implemented: " + result.GetType());
         }
 
+        header_ = result;
         return true;
     }
 
-    std::optional<Cartridge::Header> Cartridge::GetHeader() const
+    Cartridge::Header Cartridge::GetHeader() const
     {
         return header_;
     }

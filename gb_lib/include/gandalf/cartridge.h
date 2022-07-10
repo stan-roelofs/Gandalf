@@ -1,9 +1,10 @@
 #ifndef __GANDALF_CARTRIDGE_H
 #define __GANDALF_CARTRIDGE_H
 
-#include <vector>
+#include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "bus.h"
 #include "types.h"
@@ -53,9 +54,9 @@ namespace gandalf {
 
     /**
      * @brief Get the cartridge header.
-     * @return The header of the cartridge if loaded, otherwise nullopt.
+     * @return The header of the cartridge
      */
-    std::optional<Header> GetHeader() const;
+    Header GetHeader() const;
 
     void Write(word address, byte value) override;
     byte Read(word address) const override;
@@ -76,9 +77,8 @@ namespace gandalf {
     };
 
   private:
-    std::optional<Header> header_;
+    Header header_;
     std::unique_ptr<MBC> mbc_;
   };
-
 }
 #endif

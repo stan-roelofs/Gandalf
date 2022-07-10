@@ -689,7 +689,7 @@ namespace gandalf {
     if (address == kIE)
       return registers_.interrupt_enable;
     else if (address == kIF)
-      return registers_.interrupt_flags | 0b11100000;
+      return registers_.interrupt_flags | 0xE0;
 
     throw Exception("Invalid read from address " +
       std::to_string(address));

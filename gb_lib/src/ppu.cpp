@@ -1,7 +1,5 @@
 #include <gandalf/ppu.h>
 
-#include <optional>
-
 #include <gandalf/constants.h>
 
 namespace {
@@ -27,7 +25,7 @@ namespace {
 }
 
 namespace gandalf {
-    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), pipeline_(lcd_, vram_)
+    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), pipeline_(lcd_, vram_), vblank_listener_(nullptr)
     {
         vram_.fill(0xFF);
         oam_.fill(0xFF);
@@ -44,15 +42,15 @@ namespace gandalf {
         switch (GetMode(lcd_.GetLCDStatus()))
         {
         case PPUMode::OamSearch:
-            if (line_ticks_ >= 80)
+            if (line_ticks_ >= 80) {
+                pipeline_.Reset();
                 SetMode(PPUMode::PixelTransfer, stat);
+            }
             break;
         case PPUMode::PixelTransfer:
             pipeline_.Process(line_ticks_);
 
             if (pipeline_.Done()) {
-                pipeline_.Reset();
-
                 SetMode(PPUMode::HBlank, stat);
                 if (stat & 0b00001000)
                     bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
@@ -273,20 +271,21 @@ namespace gandalf {
             background_pixel.color = 0;
         }
 
-        std::optional<Pixel> sprite_pixel;
+        Pixel sprite_pixel;
         if (!sprite_fifo_.empty()) {
             sprite_pixel = sprite_fifo_.front();
             sprite_fifo_.pop();
-        }
+        } else
+            sprite_pixel.color = 0;
 
         /* We render a bg pixel when
          * 1. There is no sprite pixel
          * 2. The sprite pixel is transparent (color 0)
          * 3. The background pixel is not transparent and the sprite pixel gives the background pixel priority (bit 7 of sprite attributes is set) */
-        if (!sprite_pixel || sprite_pixel->color == 0 || (sprite_pixel->background_priority && background_pixel.color != 0))
+        if (sprite_pixel.color == 0 || (sprite_pixel.background_priority && background_pixel.color != 0))
             lcd_.RenderPixel(pixels_pushed_, background_pixel.color, false, 0);
         else
-            lcd_.RenderPixel(pixels_pushed_, sprite_pixel->color, true, sprite_pixel->palette);
+            lcd_.RenderPixel(pixels_pushed_, sprite_pixel.color, true, sprite_pixel.palette);
 
         ++pixels_pushed_;
     }

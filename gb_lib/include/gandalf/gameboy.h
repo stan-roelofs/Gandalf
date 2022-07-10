@@ -9,6 +9,7 @@
 #include "constants.h"
 #include "hram.h"
 #include "io.h"
+#include "model.h"
 #include "wram.h"
 
 namespace gandalf {
@@ -69,22 +70,21 @@ namespace gandalf {
 
     void Run();
 
-    const Cartridge& GetCartridge() const { return *cartridge_; }
+    const Cartridge& GetCartridge() const { return cartridge_; }
 
-    CPU& GetCPU() { return *cpu_; }
-    Bus& GetBus() { return *bus_; }
-    LCD& GetLCD() { return io_->GetLCD(); }
-    PPU& GetPPU() { return io_->GetPPU(); }
+    CPU& GetCPU() { return cpu_; }
+    Bus& GetBus() { return bus_; }
+    LCD& GetLCD() { return io_.GetLCD(); }
+    PPU& GetPPU() { return io_.GetPPU(); }
 
   private:
     // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.
-    std::unique_ptr<Bus> bus_;
-    std::unique_ptr<IO> io_;
-    std::unique_ptr<CPU> cpu_;
-    std::unique_ptr<WRAM> wram_;
-    std::unique_ptr<HRAM> hram_;
-
-    std::unique_ptr<Cartridge> cartridge_;
+    Bus bus_;
+    IO io_;
+    CPU cpu_;
+    WRAM wram_;
+    HRAM hram_;
+    Cartridge cartridge_;
 
     std::unique_ptr<BootROMHandler> boot_rom_handler_;
   };

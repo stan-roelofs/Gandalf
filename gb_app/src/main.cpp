@@ -28,7 +28,7 @@ static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
+    if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <boot_rom_file>" << std::endl;
         return EXIT_FAILURE;
     }
