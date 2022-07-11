@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <optional>
 #include <stdlib.h>
 #include <string>
 
@@ -49,18 +50,6 @@ int main(int argc, char* argv[]) {
     std::copy(boot_rom.begin(), boot_rom.end(), boot_rom_array.begin());
 
     gb.LoadBootROM(boot_rom_array);
-
-    //Cartridge::Header header = *gb.GetCartridge().GetHeader();
-    //std::cout << "ROM loaded" << std::endl;
-    //std::cout << "Title: " << header.GetTitle() << std::endl;
-    //std::cout << "Manufacturer code: " << header.GetManufacturerCode() << std::endl;
-    //std::cout << "Licensee: " << header.GetLicensee() << std::endl;
-    //std::cout << "ROM Size: " << header.GetROMSize() << std::endl;
-    //std::cout << "RAM Size: " << header.GetRAMSize() << std::endl;
-    //std::cout << "CGB flag: " << header.GetCGBFlag() << std::endl;
-    //std::cout << "SGB flag: " << header.GetSGBFlag() << std::endl;
-    //std::cout << "Cartridge type: " << header.GetType() << std::endl;
-    //std::cout << "Destination: " << header.GetDestination() << std::endl;
 
     if (!gui::SetupGUI()) {
         std::cerr << "Could not setup GUI" << std::endl;

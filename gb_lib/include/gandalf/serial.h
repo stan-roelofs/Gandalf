@@ -15,6 +15,7 @@ namespace gandalf {
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
+    private:
         byte sb_;
         byte sc_;
     };

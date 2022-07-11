@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 #include <string>
 
@@ -11,6 +12,18 @@
 #include "cartridge/rom_only.h"
 
 namespace gandalf {
+
+    struct CartridgeBankProperties
+    {
+        std::vector<std::size_t> rom_banks;
+        std::vector<std::size_t> ram_banks;
+    };
+
+    const std::map<byte, CartridgeBankProperties> kCartridgeBankProperties = {
+        {0x00, {{2}, {0, 1}}},
+        {0x01, {{2, 4, 8, 16, 32, 64, 128}, {0, 1, 4}}}
+    };
+
     std::string Cartridge::Header::GetTitle() const
     {
         return std::string(reinterpret_cast<const char*>(title), 0x10);
@@ -348,52 +361,77 @@ namespace gandalf {
 
     bool Cartridge::Load(const ROM& bytes)
     {
+        header_.reset();
+        mbc_.reset();
+
         if (bytes.size() < 0x150) // The header is located at 0x100-0x14F, so bytes must be at least 0x150 bytes long.
             return false;
 
-        Header result;
-        std::copy(bytes.begin() + 0x104, bytes.begin() + 0x134, result.logo);
-        std::copy(bytes.begin() + 0x134, bytes.begin() + 0x144, result.title);
-        std::copy(bytes.begin() + 0x13F, bytes.begin() + 0x143, result.manufacturer_code);
-        result.cgb_flag = bytes.at(0x143);
-        std::copy(bytes.begin() + 0x144, bytes.begin() + 0x146, result.new_licensee_code);
-        result.sgb_flag = bytes.at(0x146);
-        result.cartridge_type = bytes.at(0x147);
-        result.rom_size = bytes.at(0x148);
-        result.ram_size = bytes.at(0x149);
-        result.destination_code = bytes.at(0x14A);
-        result.old_licensee_code = bytes.at(0x14B);
-        result.mask_rom_version = bytes.at(0x14C);
-        result.header_checksum = bytes.at(0x14D);
-        std::copy(bytes.begin() + 0x14E, bytes.begin() + 0x150, result.global_checksum);
+        std::shared_ptr<Header> result = std::make_shared<Header>();
+        std::copy(bytes.begin() + 0x104, bytes.begin() + 0x134, result->logo);
+        std::copy(bytes.begin() + 0x134, bytes.begin() + 0x144, result->title);
+        std::copy(bytes.begin() + 0x13F, bytes.begin() + 0x143, result->manufacturer_code);
+        result->cgb_flag = bytes.at(0x143);
+        std::copy(bytes.begin() + 0x144, bytes.begin() + 0x146, result->new_licensee_code);
+        result->sgb_flag = bytes.at(0x146);
+        result->cartridge_type = bytes.at(0x147);
+        result->rom_size = bytes.at(0x148);
+        result->ram_size = bytes.at(0x149);
+        result->destination_code = bytes.at(0x14A);
+        result->old_licensee_code = bytes.at(0x14B);
+        result->mask_rom_version = bytes.at(0x14C);
+        result->header_checksum = bytes.at(0x14D);
+        std::copy(bytes.begin() + 0x14E, bytes.begin() + 0x150, result->global_checksum);
 
-        std::size_t rom_banks = std::size_t(1) << (result.rom_size + 1);
+        std::size_t rom_banks = std::size_t(1) << (result->rom_size + 1);
         std::size_t ram_banks = 0;
+        ram_banks = std::size_t(0) << (result->ram_size + 1);
 
-        if (rom_banks % 2 != 0 || (rom_banks * kROMBankSize) != bytes.size()) {
-            std::cerr << "ROM size is not a power of 2 or does not match the size of the file." << std::endl;
+        if (kCartridgeBankProperties.find(result->cartridge_type) == kCartridgeBankProperties.end()) {
+            std::cerr << "Unsupported cartridge type: " << result->GetType() << std::endl;
             return false;
         }
 
-        switch (result.ram_size) {
+        const CartridgeBankProperties bank_properties = kCartridgeBankProperties.at(result->cartridge_type);
+        if (std::find(bank_properties.rom_banks.begin(), bank_properties.rom_banks.end(), rom_banks) == bank_properties.rom_banks.end())
+        {
+            std::cerr << "This cartridge type does not support " << rom_banks << " ROM banks." << std::endl;
+            return false;
+        }
+        if (std::find(bank_properties.ram_banks.begin(), bank_properties.ram_banks.end(), ram_banks) == bank_properties.ram_banks.end())
+        {
+            std::cerr << "This cartridge type does not support " << ram_banks << " RAM banks." << std::endl;
+            return false;
+        }
+
+        const std::size_t expected_file_size = rom_banks * kROMBankSize;
+        if (bytes.size() < expected_file_size)
+        {
+            std::cerr << "The file is too small to contain " << rom_banks << " banks of ROM" << std::endl;
+            return false;
+        }
+        else if (bytes.size() > expected_file_size)
+            std::cout << "Warning: the file contains more data than expected" << std::endl;
+
+        switch (result->ram_size) {
         case 0x02: ram_banks = 1; break;
         case 0x03: ram_banks = 4; break;
         case 0x04: ram_banks = 16; break;
         case 0x05: ram_banks = 8; break;
         }
 
-        switch (result.cartridge_type)
+        switch (result->cartridge_type)
         {
         case 0x00: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, ram_banks)); break;
         case 0x01: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks)); break;
-            //default: throw Exception("Cartridge type not implemented: " + result.GetType());
+        default: assert(false); break;
         }
 
-        header_ = result;
+        header_ = std::move(result);
         return true;
     }
 
-    Cartridge::Header Cartridge::GetHeader() const
+    std::shared_ptr<const Cartridge::Header> Cartridge::GetHeader() const
     {
         return header_;
     }

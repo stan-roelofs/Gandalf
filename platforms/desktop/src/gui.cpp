@@ -198,6 +198,25 @@ namespace gui
         ImGui::Begin("Gameboy");
         ImGui::Image(texture, ImVec2(gandalf::kScreenWidth, gandalf::kScreenHeight));
         ImGui::End();
+
+        ImGui::Begin("Cartridge");
+        std::shared_ptr<const gandalf::Cartridge::Header> header = std::move(context.gameboy->GetCartridge().GetHeader());
+        if (header)
+        {
+            ImGui::Text("ROM loaded");
+            ImGui::Text("Title: %s", header->GetTitle().c_str());
+            ImGui::Text("Manufacturer code: %s", header->GetManufacturerCode().c_str());
+            ImGui::Text("Licensee: %s", header->GetLicensee().c_str());
+            ImGui::Text("ROM Size: %s", header->GetROMSize().c_str());
+            ImGui::Text("RAM Size: %s", header->GetRAMSize().c_str());
+            ImGui::Text("CGB flag: %s", header->GetCGBFlag().c_str());
+            ImGui::Text("SGB flag: %s", header->GetSGBFlag().c_str());
+            ImGui::Text("Cartridge type: %s", header->GetType().c_str());
+            ImGui::Text("Destination: %s", header->GetDestination().c_str());
+        }
+        else
+            ImGui::TextUnformatted("No ROM loaded");
+        ImGui::End();
     }
 
     void HelpMarker(const char* desc)

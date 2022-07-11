@@ -17,6 +17,7 @@ namespace gandalf
 
         virtual byte Read(word address) const = 0;
         virtual void Write(word address, byte value) = 0;
+
     protected:
         using ROMBank = std::array<byte, kROMBankSize>;
         using RAMBank = std::array<byte, kRAMBankSize>;

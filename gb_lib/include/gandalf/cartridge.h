@@ -2,7 +2,6 @@
 #define __GANDALF_CARTRIDGE_H
 
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -45,25 +44,28 @@ namespace gandalf {
     };
 
     /**
-     * @brief Loads a ROM from a vector of bytes.
+     * Loads a ROM from a vector of bytes. Any previously loaded data will be cleared when this is called.
      *
      * @param bytes the cartridge bytes
      * @return true if loaded successfully, false otherwise
      */
     bool Load(const ROM& bytes);
 
+    /// @return True if a cartridge is loaded, false otherwise.
+    bool Loaded() const;
+
     /**
      * @brief Get the cartridge header.
-     * @return The header of the cartridge
-     */
-    Header GetHeader() const;
+     * @return The header of the cartridge, or nullptr if not loaded.
+    */
+    std::shared_ptr<const Header> GetHeader() const;
 
     void Write(word address, byte value) override;
     byte Read(word address) const override;
     std::set<word> GetAddresses() const override;
 
   private:
-    Header header_;
+    std::shared_ptr<const Header> header_;
     std::unique_ptr<MBC> mbc_;
   };
 }

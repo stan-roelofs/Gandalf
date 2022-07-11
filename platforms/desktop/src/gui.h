@@ -1,6 +1,8 @@
 #ifndef __GB_APP_GUI_H
 #define __GB_APP_GUI_H
 
+#include <optional>
+
 #include <gandalf/gameboy.h>
 
 namespace gui {

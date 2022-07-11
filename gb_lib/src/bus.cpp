@@ -18,8 +18,9 @@ namespace gandalf {
   void Bus::Write(word address, byte value) {
     if (address_space_[address] != nullptr) {
       address_space_[address]->Write(address, value);
-    } else 
-        std::cout << "Warning: Bus::Write() called with invalid address: " << std::hex << address << std::endl;
+    }
+    else
+      std::cout << "Warning: Bus::Write() called with invalid address: " << std::hex << address << std::endl;
   }
 
   byte Bus::Read(word address) const {

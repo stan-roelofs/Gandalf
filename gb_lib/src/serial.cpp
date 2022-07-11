@@ -19,7 +19,7 @@ namespace gandalf {
     void Serial::Write(word address, byte value) {
         if (address == kSC) {
             if (value == 0x81)
-            std::cout << sb_;
+                std::cout << sb_;
         }
         else if (address == kSB)
             sb_ = value;

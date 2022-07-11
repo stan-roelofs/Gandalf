@@ -2,7 +2,6 @@
 #define __GANDALF_PPU_H
 
 #include <queue>
-#include <optional>
 #include <functional>
 
 #include "bus.h"
