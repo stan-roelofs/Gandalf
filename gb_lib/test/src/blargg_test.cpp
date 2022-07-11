@@ -20,23 +20,19 @@ TEST_P(BlarggTest, cpu_instructions)
     std::string file_name = GetParam() + ".gb";
     std::cout << "Running test ROM: " << file_name << std::endl;
 
-    auto rom_bytes = ReadFileBytes("/blargg/cpu_instrs/" + file_name);
+    gandalf::ROM rom_bytes;
+    ASSERT_TRUE(ReadFileBytes("/blargg/cpu_instrs/" + file_name, rom_bytes));
 
-    for (const std::string& bootrom : {"dmg"})
+    for (const std::string& bootrom_name : { "dmg" })
     {
-        try {
-            auto bootrom_bytes = ReadFileBytes("/bootroms/" + bootrom + ".bin");
-            gandalf::Gameboy::BootROM bootrom;
-            std::copy(bootrom_bytes.begin(), bootrom_bytes.end(), bootrom.begin());
-            gandalf::Gameboy gb;
-            gb.LoadBootROM(bootrom);
-            gb.Load(rom_bytes);
-        } catch(std::runtime_error& e)
-        {
-            FAIL() << "Could not find boot rom for: " << bootrom;
-        }        
+        gandalf::ROM bootrom_bytes;
+        ASSERT_TRUE(ReadFileBytes("/bootroms/" + bootrom_name + ".bin", rom_bytes));
+        gandalf::Gameboy::BootROM bootrom;
+        std::copy(bootrom_bytes.begin(), bootrom_bytes.end(), bootrom.begin());
+        std::unique_ptr<gandalf::Gameboy> gb = std::unique_ptr<gandalf::Gameboy>(new gandalf::Gameboy());
+        gb->LoadBootROM(bootrom);
+        gb->Load(rom_bytes);
     }
-
 }
 
 INSTANTIATE_TEST_SUITE_P(
