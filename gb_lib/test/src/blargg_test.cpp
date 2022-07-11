@@ -81,16 +81,14 @@ TEST_P(BlarggTest, cpu_instructions)
     bus.Register(&serial_output_reader);
 
     std::size_t ticks = 0;
-    while (!serial_output_reader.Done() && ++ticks < 1e7)
-    {
+    while (!serial_output_reader.Done() && ++ticks < 1e8)
         gb->Run();
-    }
 
     std::cout << "Test output: " << std::endl << serial_output_reader.GetOutput() << std::endl;
 
     std::string output = serial_output_reader.GetOutput();
+    EXPECT_TRUE(serial_output_reader.Done());
     EXPECT_TRUE(output.find("Pass") != std::string::npos);
-
 }
 
 INSTANTIATE_TEST_SUITE_P(

@@ -210,6 +210,8 @@ namespace gandalf {
   }                                                                            \
   if (registers_.a() == 0)                                                     \
     SET_ZFLAG()                                                                \
+  else                                                                         \
+    CLEAR_ZFLAG()                                                              \
   CLEAR_HFLAG()
 
 #define CPL()                                                                  \
@@ -266,15 +268,16 @@ namespace gandalf {
 
 #define ADD_A(value)                                                           \
   {                                                                            \
+    byte value_copy = value;                                                   \
     byte a = registers_.a();                                                   \
     byte new_a = registers_.a() + (value);                                     \
     registers_.a() = new_a;                                                    \
     registers_.f() = 0;                                                        \
     if (new_a == 0)                                                            \
       SET_ZFLAG()                                                              \
-    if ((a & 0xF) + (value & 0xF) > 0xF)                                       \
+    if ((a & 0xF) + (value_copy & 0xF) > 0x0F)                                 \
       SET_HFLAG()                                                              \
-    if ((int)a + (int)value > 0xFF)                                            \
+    if (((int)a) + ((int)value_copy) > 0xFF)                                   \
       SET_CFLAG()                                                              \
   }
 
@@ -287,6 +290,7 @@ namespace gandalf {
 
 #define ADC_A(value)                                                           \
   {                                                                            \
+    byte value_copy = value;                                                   \
     byte a = registers_.a();                                                   \
     const byte carry = ((registers_.f() & kCFlagMask) > 0) ? 1 : 0;            \
     byte new_a = registers_.a() + (value) + carry;                             \
@@ -294,9 +298,9 @@ namespace gandalf {
     registers_.f() = 0;                                                        \
     if (new_a == 0)                                                            \
       SET_ZFLAG()                                                              \
-    if ((a & 0xF) + (value & 0xF) + carry > 0xF)                               \
+    if ((a & 0xF) + (value_copy & 0xF) + carry > 0xF)                          \
       SET_HFLAG()                                                              \
-    if ((int)a + (int)(value) + (int)carry > 0xFF)                             \
+    if (((int)a) + ((int)value_copy) + ((int)carry) > 0xFF)                    \
       SET_CFLAG()                                                              \
   }
 
@@ -309,14 +313,15 @@ namespace gandalf {
 
 #define SUB_A(value)                                                           \
   {                                                                            \
+    byte value_copy = value;                                                   \
     byte a = registers_.a();                                                   \
     registers_.a() -= (value);                                                 \
     registers_.f() = kNFlagMask;                                               \
-    if (a == value)                                                            \
+    if (a == value_copy)                                                       \
       SET_ZFLAG()                                                              \
-    if ((a & 0xF) < (value & 0xF))                                             \
+    if ((a & 0xF) < (value_copy & 0xF))                                        \
       SET_HFLAG()                                                              \
-    if (a < value)                                                             \
+    if (a < value_copy)                                                        \
       SET_CFLAG()                                                              \
   }
 
@@ -329,6 +334,7 @@ namespace gandalf {
 
 #define SBC_A(value)                                                           \
   {                                                                            \
+    byte value_copy = value;                                                   \
     byte a = registers_.a();                                                   \
     const byte carry = ((registers_.f() & kCFlagMask) != 0) ? 1 : 0;           \
     byte new_a = registers_.a() - (value) - carry;                             \
@@ -336,9 +342,9 @@ namespace gandalf {
     registers_.f() = kNFlagMask;                                               \
     if (new_a == 0)                                                            \
       SET_ZFLAG()                                                              \
-    if ((a & 0xF) < (value & 0xF) + carry)                                     \
+    if ((a & 0xF) < (value_copy & 0xF) + carry)                                \
       SET_HFLAG()                                                              \
-    if (a < value + carry)                                                     \
+    if (a < value_copy + carry)                                                \
       SET_CFLAG()                                                              \
   }
 
@@ -538,7 +544,7 @@ namespace gandalf {
     word sp = registers_.stack_pointer;                                        \
     registers_.stack_pointer += value;                                         \
     registers_.f() = 0;                                                        \
-    if ((sp & 0xFF) + (value) > 0xFF)                                          \
+    if ((sp & 0xFF) + (value & 0xFF) > 0xFF)                                   \
       SET_CFLAG();                                                             \
     if ((sp & 0xF) + (value & 0xF) > 0xF)                                      \
       SET_HFLAG();                                                             \
@@ -582,7 +588,7 @@ namespace gandalf {
     value = (signed_byte)value;                                                \
     registers_.hl() = registers_.stack_pointer + value;                        \
     registers_.f() = 0;                                                        \
-    if ((registers_.stack_pointer & 0xFF) + (value) > 0xFF)                    \
+    if ((registers_.stack_pointer & 0xFF) + (value & 0xFF) > 0xFF)             \
       SET_CFLAG();                                                             \
     if ((registers_.stack_pointer & 0xF) + (value & 0xF) > 0xF)                \
       SET_HFLAG();                                                             \
