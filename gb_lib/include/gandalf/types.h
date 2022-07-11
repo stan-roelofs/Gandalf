@@ -12,11 +12,5 @@ namespace gandalf {
     using signed_word = std::int16_t;
 
     using ROM = std::vector<byte>;
-
-    class Exception : public std::runtime_error
-    {
-    public:
-        Exception(std::string message) : std::runtime_error(message) {}
-    };
 }
 #endif

@@ -98,32 +98,27 @@ int main(int argc, char* argv[]) {
 
     while (true)
     {
-        try {
-            if (gui::PollEvents())
-                break;
-            gui::RenderGUI(context);
+        if (gui::PollEvents())
+            break;
+        gui::RenderGUI(context);
 
-            if (step) {
+        if (step) {
+            gb.Run();
+            step = false;
+        }
+
+        if (run) {
+            while (!fps_counter.has_frame) {
                 gb.Run();
-                step = false;
-            }
 
-            if (run) {
-                while (!fps_counter.has_frame) {
-                    gb.Run();
-
-                    if (breakpoint && *breakpoint == gb.GetCPU().GetRegisters().program_counter) {
-                        run = false;
-                        break;
-                    }
+                if (breakpoint && *breakpoint == gb.GetCPU().GetRegisters().program_counter) {
+                    run = false;
+                    break;
                 }
-                fps_counter.has_frame = false;
             }
+            fps_counter.has_frame = false;
         }
-        catch (gandalf::Exception& e) {
-            std::cerr << e.what() << std::endl;
-            run = false;
-        }
+        
     }
 
     gui::DestroyGUI();

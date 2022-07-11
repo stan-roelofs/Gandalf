@@ -48,7 +48,7 @@ namespace gandalf
             if (tima_ == 0) {
                 tima_ = tma_;
 
-                bus_.Write(kIE, bus_.Read(kIE) | kTimerInterruptMask);
+                bus_.Write(kIF, bus_.Read(kIF) | kTimerInterruptMask);
             }
         }
     }

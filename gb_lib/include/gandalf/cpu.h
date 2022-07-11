@@ -23,6 +23,7 @@ namespace gandalf {
   private:
     void CheckInterrupts();
     void Execute(byte opcode);
+    void InterruptServiceRoutine();
 
     Registers registers_;
     Bus& bus_;
@@ -31,7 +32,7 @@ namespace gandalf {
     bool halt_;
     bool stop_;
     bool halt_bug_;
-    bool ei_executed_;
+    bool ei_pending_;
   };
 
 } // namespace gandalf

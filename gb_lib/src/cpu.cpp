@@ -1,5 +1,6 @@
 #include <gandalf/cpu.h>
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 
@@ -680,7 +681,7 @@ namespace gandalf {
   }
 
   CPU::CPU(IO& io, Bus& bus) : Bus::AddressHandler("CPU"),
-    bus_(bus), io_(io), halt_(false), stop_(false), halt_bug_(false) {}
+    bus_(bus), io_(io), halt_(false), stop_(false), halt_bug_(false), ei_pending_(false) {}
 
   CPU::~CPU() = default;
 
@@ -717,18 +718,64 @@ namespace gandalf {
       return; // TODO
     }
 
-    byte interrupt_queue =
-      registers_.interrupt_enable & registers_.interrupt_flags & 0x1F;
-    if (interrupt_queue) {
+    // Handle interrupts if two corresponding bits in IE and IF are set
+    if (registers_.interrupt_enable & registers_.interrupt_flags & 0x1F) {
       halt_ = false;
-
-      registers_.interrupt_master_enable = false;
+      // TODO exit stop when joypad pressed 
+      if (registers_.interrupt_master_enable) {
+        registers_.interrupt_master_enable = false;
+        InterruptServiceRoutine();
+        return;
+      }
     }
 
     if (!halt_) {
+      const bool ei_pending_before = ei_pending_;
+
       READ_PC(opcode_);
       Execute(opcode_);
+
+      // EI is delayed by one instruction.
+      if (ei_pending_before && ei_pending_)
+      {
+        ei_pending_ = false;
+        registers_.interrupt_master_enable = true;
+      }
     }
+    else
+        io_.Tick(4);
+  }
+
+  void CPU::InterruptServiceRoutine()
+  {
+    // The interrupt service routine should take 5 cycles to execute.
+    io_.Tick(8); // 2 cycles
+    WRITE_SP(registers_.program_counter >> 8); // push the high byte of the program counter - 1 cycle
+    byte interrupt_queue = registers_.interrupt_flags & registers_.interrupt_enable & 0x1F;
+    // The push of the high byte may cancel the interrupt if it overwrites IE, if this happens the program counter is set to 0.
+    if (interrupt_queue == 0) {
+      registers_.program_counter = 0;
+      io_.Tick(4);
+      return;
+    }
+    WRITE_SP(registers_.program_counter & 0xFF); // push the low byte of the program counter - 1 cycle
+
+    // Find the interrupt with the highest priority
+    assert(interrupt_queue);
+    byte interrupt_bit = 0;
+    for (byte i = 0; i < 5; ++i) {
+      if (interrupt_queue & (1 << i)) {
+        interrupt_bit = i;
+        break;
+      }
+    }
+    assert(interrupt_bit);
+
+    // We handled the interrupt, clear the bit in the IF registers
+    registers_.interrupt_flags = registers_.interrupt_flags & ~(1 << interrupt_bit);
+
+    const word address = 0x40 + (interrupt_bit << 3);
+    registers_.program_counter = address;
   }
 
   void CPU::Execute(byte opcode) {
@@ -1774,7 +1821,7 @@ namespace gandalf {
       LDH_A_C() break;
     case 0xF3:
       registers_.interrupt_master_enable = false;
-      ei_executed_ = false;
+      ei_pending_ = false;
       break;
     case 0xF5:
       PUSH_RR(registers_.af()) break;
@@ -1790,7 +1837,7 @@ namespace gandalf {
     case 0xFA:
       LD_A_NN() break;
     case 0xFB:
-      ei_executed_ = true;
+      ei_pending_ = true;
       break;
     case 0xFE:
       CP_A_N() break;

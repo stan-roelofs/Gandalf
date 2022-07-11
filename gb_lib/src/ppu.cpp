@@ -53,7 +53,7 @@ namespace gandalf {
             if (pipeline_.Done()) {
                 SetMode(PPUMode::HBlank, stat);
                 if (stat & 0x8)
-                    bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
+                    bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
             }
             break;
         case PPUMode::HBlank:
@@ -63,10 +63,10 @@ namespace gandalf {
                 if (lcd_.GetLY() >= kScreenHeight) {
                     SetMode(PPUMode::VBlank, stat);
 
-                    bus_.Write(kIE, bus_.Read(kIE) | kVBlankInterruptMask);
+                    bus_.Write(kIF, bus_.Read(kIF) | kVBlankInterruptMask);
 
                     if (stat & 0x10)
-                        bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
+                        bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
 
                     if (vblank_listener_)
                         vblank_listener_->OnVBlank();
@@ -146,7 +146,7 @@ namespace gandalf {
             stat |= 0x4;
 
             if (stat & 0x40) {
-                bus_.Write(kIE, bus_.Read(kIE) | kLCDInterruptMask);
+                bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
             }
         }
         else {
