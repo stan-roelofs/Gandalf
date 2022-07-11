@@ -25,7 +25,9 @@ bool ResourceHelper::ReadFileBytes(const std::string& path, std::vector<std::uin
     if (stream.fail())
         return false;
 
-    std::copy(std::istreambuf_iterator<char>(stream),
-        std::istreambuf_iterator<char>(), buffer.begin());
+    std::vector<std::uint8_t> file = std::vector<std::uint8_t>(std::istreambuf_iterator<char>(stream),
+        std::istreambuf_iterator<char>());
+
+    buffer = file;
     return true;
 }
