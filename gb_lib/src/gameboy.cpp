@@ -17,7 +17,7 @@ namespace gandalf {
         bus_.Unregister(&cartridge_);
     }
 
-    bool Gameboy::Load(const Cartridge::ROM& rom)
+    bool Gameboy::Load(const ROM& rom)
     {
         return cartridge_.Load(rom);
     }

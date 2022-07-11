@@ -6,14 +6,14 @@
 #include <string>
 #include <vector>
 
-#include "bus.h"
-#include "types.h"
+#include <gandalf/bus.h>
+#include <gandalf/types.h>
+
+#include "mbc.h"
 
 namespace gandalf {
   class Cartridge : public Bus::AddressHandler {
   public:
-    using ROM = std::vector<byte>;
-
     Cartridge();
     virtual ~Cartridge();
 
@@ -61,20 +61,6 @@ namespace gandalf {
     void Write(word address, byte value) override;
     byte Read(word address) const override;
     std::set<word> GetAddresses() const override;
-
-    class MBC {
-    public:
-      MBC(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks);
-      virtual ~MBC();
-
-      virtual byte Read(word address) const = 0;
-      virtual void Write(word address, byte value) = 0;
-    protected:
-      using ROMBank = std::array<byte, 0x4000>;
-      using RAMBank = std::array<byte, 0x2000>;
-      std::vector<ROMBank> rom_;
-      std::vector<RAMBank> ram_;
-    };
 
   private:
     Header header_;

@@ -11,19 +11,26 @@ set(HEADERS
     include/gandalf/hram.h
     include/gandalf/io.h
     include/gandalf/lcd.h
+    include/gandalf/mbc.h
     include/gandalf/model.h
     include/gandalf/ppu.h
     include/gandalf/serial.h
     include/gandalf/timer.h
     include/gandalf/types.h
+    include/gandalf/util.h
     include/gandalf/wram.h
     src/bootrom.h
+    src/cartridge/mbc1.h
+    src/cartridge/rom_only.h    
 )
 
 set(SOURCES
     src/bootrom.cpp
     src/bus.cpp
     src/cartridge.cpp
+    src/cartridge/mbc.cpp
+    src/cartridge/mbc1.cpp
+    src/cartridge/rom_only.cpp
     src/cpu.cpp
     src/gameboy.cpp
     src/hram.cpp

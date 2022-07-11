@@ -65,7 +65,7 @@ namespace gandalf {
     Gameboy();
     ~Gameboy();
 
-    bool Load(const Cartridge::ROM& rom);
+    bool Load(const ROM& rom);
     void LoadBootROM(const BootROM& boot_rom);
 
     void Run();

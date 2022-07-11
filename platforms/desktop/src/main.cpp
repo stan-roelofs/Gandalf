@@ -109,8 +109,6 @@ int main(int argc, char* argv[]) {
 
     while (true)
     {
-        gb.Run();
-
         try {
             if (gui::PollEvents())
                 break;

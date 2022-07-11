@@ -2,114 +2,15 @@
 
 #include <algorithm>
 #include <array>
-#include <stdexcept>
+#include <cassert>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
+#include "cartridge/mbc1.h"
+#include "cartridge/rom_only.h"
+
 namespace gandalf {
-    // TODO move these classes somewhere ..?
-    class ROMOnly : public Cartridge::MBC {
-    public:
-        ROMOnly(const Cartridge::ROM& rom, std::size_t ram_banks) : Cartridge::MBC(rom, 2, ram_banks) {
-            //if (rom_.size() != 2)
-                //throw Exception("ROMOnly: Invalid ROM size");
-
-            //if (ram_.size() > 1)
-                //throw Exception("ROMOnly: Invalid RAM size");
-
-        }
-        byte Read(word address) const override {
-            if (address <= 0x8000)
-                return rom_[address / 0x4000][address % 0x4000];
-            else if (address > 0xA000 && address < 0xC000) {
-                if (ram_.size() > 0)
-                    return ram_[0][address % 0xA000];
-                return 0xFF;
-            }
-
-            return 0xFF; // TODO
-        }
-
-        void Write(word address, byte value) override {
-            if (address <= 0x8000)
-                return;
-            else if (address > 0xA000 && address < 0xC000) {
-                if (ram_.size() > 0)
-                    ram_[0][address % 0xA000] = value;
-            }
-            //else
-                //throw Exception("ROMOnly: Invalid write address : " + std::to_string(address));
-        }
-    };
-
-    class MBC1 : public Cartridge::MBC {
-    public:
-        MBC1(const Cartridge::ROM& rom, std::size_t rom_banks, std::size_t ram_banks) : Cartridge::MBC(rom, rom_banks, ram_banks), ram_enabled_(false), rom_bank_number_(0), ram_bank_number_(0), advanced_banking_mode_(false) {
-            // if (rom_banks % 2 != 0 || rom_banks > 128)
-                 // throw Exception("MBC1: Invalid ROM size");
-
-             // if (ram_banks != 0 && ram_banks != 1 && ram_banks != 4)
-                //  throw Exception("MBC1: Invalid RAM size");
-        }
-        byte Read(word address) const override {
-            if (address < 0x4000) {
-                byte bank = 0;
-                if (advanced_banking_mode_) {
-                    bank = (ram_bank_number_ << 5) % static_cast<byte>(rom_.size());
-                }
-                return rom_[bank][address];
-            }
-            else if (address < 0x8000) {
-                byte bank = (rom_bank_number_ | (ram_bank_number_ << 5)) % static_cast<byte>(rom_.size());
-                if (rom_bank_number_ == 0)
-                    bank = 1;
-                return rom_[bank][address - 0x4000];
-            }
-            else if (address >= 0xA000 && address < 0xC000) {
-                if (ram_.size() == 0 || !ram_enabled_)
-                    return 0xFF;
-
-                byte bank_number = 0;
-                if (advanced_banking_mode_ && ram_bank_number_ < ram_.size())
-                    bank_number = ram_bank_number_;
-
-                return ram_[bank_number][address - 0xA000];
-            }
-            else
-                return 0xFF; // TODO
-            // throw Exception("MBC1: Invalid read address : " + std::to_string(address));
-        }
-
-        void Write(word address, byte value) override {
-            if (address < 0x2000)
-                ram_enabled_ = (value & 0x0F) == 0x0A;
-            else if (address < 0x4000)
-                rom_bank_number_ = (value & 0x1F) % rom_.size();
-            else if (address < 0x6000)
-                ram_bank_number_ = (value & 0x3);
-            else if (address < 0x8000)
-                advanced_banking_mode_ = (value & 0x1);
-            else if (address >= 0xA000 && address < 0xC000) {
-                if (ram_.size() == 0 || !ram_enabled_)
-                    return;
-
-                byte bank_number = 0;
-                if (advanced_banking_mode_ && ram_bank_number_ < ram_.size())
-                    bank_number = ram_bank_number_;
-
-                ram_[bank_number][address - 0xA000] = value;
-            }
-            //else
-               // throw Exception("MBC1: Invalid write address : " + std::to_string(address));
-        }
-
-    private:
-        bool ram_enabled_;
-        byte rom_bank_number_;
-        byte ram_bank_number_;
-        bool advanced_banking_mode_;
-    };
-
     std::string Cartridge::Header::GetTitle() const
     {
         return std::string(reinterpret_cast<const char*>(title), 0x10);
@@ -469,6 +370,11 @@ namespace gandalf {
         std::size_t rom_banks = std::size_t(1) << (result.rom_size + 1);
         std::size_t ram_banks = 0;
 
+        if (rom_banks % 2 != 0 || (rom_banks * kROMBankSize) != bytes.size()) {
+            std::cerr << "ROM size is not a power of 2 or does not match the size of the file." << std::endl;
+            return false;
+        }
+
         switch (result.ram_size) {
         case 0x02: ram_banks = 1; break;
         case 0x03: ram_banks = 4; break;
@@ -494,16 +400,16 @@ namespace gandalf {
 
     void Cartridge::Write(word address, byte value)
     {
-        //if (!mbc_)
-            //throw Exception("No cartridge loaded");
+        if (!mbc_)
+            return;
 
         mbc_->Write(address, value);
     }
 
     byte Cartridge::Read(word address) const
     {
-        //if (!mbc_)
-           // throw Exception("No cartridge loaded");
+        if (!mbc_)
+            return 0xFF;
 
         return mbc_->Read(address);
     }
@@ -519,19 +425,4 @@ namespace gandalf {
 
         return result;
     }
-
-    Cartridge::MBC::MBC(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks) {
-        rom_.resize(rom_banks);
-        ram_.resize(ram_banks);
-
-        //if (rom.size() != rom_banks * 0x4000)
-           // throw Exception("ROM is incorrect");
-
-        for (size_t bank = 0; bank < rom_banks; ++bank)
-            std::copy(rom.begin() + bank * 0x4000, rom.begin() + (bank + 1) * 0x4000, rom_[bank].begin());
-
-        for (size_t bank = 0; bank < ram_banks; ++bank)
-            ram_[bank].fill(0);
-    }
-    Cartridge::MBC::~MBC() = default;
 }
