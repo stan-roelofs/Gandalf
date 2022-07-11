@@ -17,7 +17,10 @@ namespace gandalf {
 
     private:
         byte sb_;
-        byte sc_;
+
+        bool in_progress_;
+        bool fast_clock_speed_;
+        bool internal_clock_;
     };
 } // namespace gandalf
 

@@ -1,6 +1,9 @@
 #include <gandalf/ppu.h>
 
+#include <cassert>
+
 #include <gandalf/constants.h>
+#include <gandalf/util.h>
 
 namespace {
     const int kTicksPerLine = 456;
@@ -27,8 +30,8 @@ namespace {
 namespace gandalf {
     PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), vblank_listener_(nullptr), pipeline_(lcd_, vram_)
     {
-        vram_.fill(0xFF);
-        oam_.fill(0xFF);
+        vram_.fill(std::rand());
+        oam_.fill(std::rand());
     }
 
     PPU::~PPU() = default;
@@ -95,30 +98,23 @@ namespace gandalf {
 
     byte PPU::Read(word address) const
     {
+        assert(BETWEEN(address, 0x8000, 0xA000) || BETWEEN(address, 0xFE00, 0xFEA0));
+
         if (address >= 0x8000 && address < 0xA000)
-        {
             return vram_[address - 0x8000];
-        }
         else if (address >= 0xFE00 && address < 0xFEA0)
-        {
             return oam_[address - 0xFE00];
-        }
-        return 0xFF; // TODO
-        // throw Exception("Invalid PPU address : " + std::to_string(address));
+        return 0xFF;
     }
 
     void PPU::Write(word address, byte value)
     {
+        assert(BETWEEN(address, 0x8000, 0xA000) || BETWEEN(address, 0xFE00, 0xFEA0));
+
         if (address >= 0x8000 && address < 0xA000)
-        {
             vram_[address - 0x8000] = value;
-        }
         else if (address >= 0xFE00 && address < 0xFEA0)
-        {
             oam_[address - 0xFE00] = value;
-        }
-        //else
-         //   throw Exception("Invalid PPU address : " + std::to_string(address));
     }
 
     std::set<word> PPU::GetAddresses() const

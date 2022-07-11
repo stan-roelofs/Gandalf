@@ -20,7 +20,6 @@ namespace gandalf {
         for (byte i = 0; i < cycles; ++i) {
             timer_.Tick();
             ppu_.Tick();
-            lcd_.Tick();
             serial_.Tick();
         }
     }

@@ -1,27 +1,28 @@
 #include <gandalf/hram.h>
 
+#include <cassert>
+
+#include <gandalf/util.h>
+
 namespace gandalf {
     HRAM::HRAM() : Bus::AddressHandler("HRAM") {
-        data_.fill(0xFF);
+        data_.fill(std::rand());
     }
 
     HRAM::~HRAM() = default;
 
     byte HRAM::Read(word address) const
     {
-        if (address >= 0xFF80 && address < 0xFFFF)
-            return data_[address - 0xFF80];
+        assert(BETWEEN(address, 0xFF80, 0xFFFF));
 
-        return 0xFF; // TODO
-        // throw Exception("Invalid HRAM address : " + std::to_string(address));
+        return data_[address - 0xFF80];
     }
 
     void HRAM::Write(word address, byte value)
     {
-        if (address >= 0xFF80 && address < 0xFFFF)
-            data_[address - 0xFF80] = value;
-        //else
-           // throw Exception("Invalid HRAM address : " + std::to_string(address));
+        assert(BETWEEN(address, 0xFF80, 0xFFFF));
+
+        data_[address - 0xFF80] = value;
     }
 
     std::set<word> HRAM::GetAddresses() const

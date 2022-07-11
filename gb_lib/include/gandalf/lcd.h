@@ -15,8 +15,6 @@ namespace gandalf {
         LCD();
         virtual ~LCD();
 
-        void Tick();
-
         byte Read(word address) const override;
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;

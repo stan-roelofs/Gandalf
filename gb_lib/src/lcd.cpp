@@ -1,6 +1,9 @@
 #include <gandalf/lcd.h>
 
+#include <cassert>
+
 #include <gandalf/constants.h>
+#include <gandalf/util.h>
 
 namespace {
     constexpr gandalf::LCD::BGR565 kColorsDMG[4] = { 0xE7DA, 0x8E0E, 0x334A, 0x08C4 };
@@ -10,17 +13,18 @@ namespace gandalf
 {
     LCD::LCD() : Bus::AddressHandler("LCD"), lcdc_(0), ly_(0), lyc_(0), stat_(0), scy_(0), scx_(0), wy_(0), wx_(0), bgp_(0), obp0_(0), obp1_(0), dma_(0)
     {
-        video_buffer_.fill(0);
+        video_buffer_.fill(std::rand());
     }
 
     LCD::~LCD() = default;
 
-    void LCD::Tick()
-    {
-    }
-
     byte LCD::Read(word address) const
     {
+        assert(address == kLCDC || address == kSTAT || address == kSCY ||
+            address == kSCX || address == kLY || address == kLYC || address == kDMA ||
+            address == kBGP || address == kOBP0 || address == kOBP1 || address == kWY ||
+            address == kWX);
+
         switch (address)
         {
         case kLCDC:
@@ -48,14 +52,17 @@ namespace gandalf
         case kDMA:
             return dma_;
         default:
-            return 0xFF; // TODO
-
-            //  throw Exception("Invalid LCD address");
+            return 0xFF;
         }
     }
 
     void LCD::Write(word address, byte value)
     {
+        assert(address == kLCDC || address == kSTAT || address == kSCY ||
+            address == kSCX || address == kLY || address == kLYC || address == kDMA ||
+            address == kBGP || address == kOBP0 || address == kOBP1 || address == kWY ||
+            address == kWX);
+
         switch (address)
         {
         case kLCDC:
@@ -94,8 +101,6 @@ namespace gandalf
         case kDMA:
             dma_ = value;
             break;
-            // default:
-                 //throw Exception("Invalid LCD address");
         }
     }
 

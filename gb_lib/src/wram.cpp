@@ -1,31 +1,36 @@
 #include <gandalf/wram.h>
 
+#include <cassert>
+
+#include <gandalf/util.h>
+
 namespace gandalf {
     WRAM::WRAM() : Bus::AddressHandler("WRAM") {
-        data_.fill(0xFF);
+        data_.fill(std::rand());
     }
 
     WRAM::~WRAM() = default;
 
     byte WRAM::Read(word address) const
     {
+        assert(BETWEEN(address, 0xC000, 0xE000) || BETWEEN(address, 0xE000, 0xFE00));
+
         if (address >= 0xC000 && address < 0xE000)
             return data_[address - 0xC000];
         else if (address >= 0xE000 && address < 0xFE00)
             return data_[address - 0xE000];
 
-        return 0xFF; // TODO
-        //throw Exception("Invalid WRAM address : " + std::to_string(address));
+        return 0xFF;
     }
 
     void WRAM::Write(word address, byte value)
     {
+        assert(BETWEEN(address, 0xC000, 0xE000) || BETWEEN(address, 0xE000, 0xFE00));
+
         if (address >= 0xC000 && address < 0xE000)
             data_[address - 0xC000] = value;
         else if (address >= 0xE000 && address < 0xFE00)
             data_[address - 0xE000] = value;
-        //else
-         //   throw Exception("Invalid WRAM address : " + std::to_string(address));
     }
 
     std::set<word> WRAM::GetAddresses() const

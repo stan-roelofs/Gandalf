@@ -1,5 +1,6 @@
 #include <gandalf/timer.h>
 
+#include <cassert>
 #include <stdexcept>
 
 #include <gandalf/constants.h>
@@ -55,6 +56,8 @@ namespace gandalf
 
     void Timer::Write(word address, byte value)
     {
+        assert(address == kTAC || address == kTIMA || address == kTMA || address == kDIV);
+
         switch (address)
         {
         case kTAC:
@@ -78,6 +81,8 @@ namespace gandalf
 
     byte Timer::Read(word address) const
     {
+        assert(address == kTAC || address == kTIMA || address == kTMA || address == kDIV);
+
         switch (address)
         {
         case kTAC:
@@ -89,8 +94,7 @@ namespace gandalf
         case kDIV:
             return div_ >> 8;
         default:
-            return 0xFF; // TODO
-            // throw Exception("Invalid timer address");
+            return 0xFF;
         }
     }
 

@@ -720,10 +720,6 @@ namespace gandalf {
   }
 
   void CPU::Tick() {
-    if (stop_) {
-      return; // TODO
-    }
-
     // Handle interrupts if two corresponding bits in IE and IF are set
     if (registers_.interrupt_enable & registers_.interrupt_flags & 0x1F) {
       halt_ = false;
@@ -735,7 +731,7 @@ namespace gandalf {
       }
     }
 
-    if (!halt_) {
+    if (!halt_ && !stop_) {
       const bool ei_pending_before = ei_pending_;
 
       READ_PC(opcode_);
@@ -1755,9 +1751,6 @@ namespace gandalf {
           SET_HL(7) break;
         case 0xFF:
           SET(registers_.a(), 7) break;
-          //default:
-            //throw Exception("Unknown opcode: " + std::to_string(opcode_));
-            //break;
         }
       break;
     case 0xCC:
@@ -1849,9 +1842,6 @@ namespace gandalf {
       CP_A_N() break;
     case 0xFF:
       RST(0x38) break;
-      //default:
-       // throw Exception("Unknown opcode: " + std::to_string(opcode_));
-        //break;
     }
   }
 

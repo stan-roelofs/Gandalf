@@ -13,6 +13,7 @@ namespace gandalf {
 
     byte ROMOnly::Read(word address) const {
         assert(address <= 0x8000 || BETWEEN(address, 0xA000, 0xC000));
+
         if (address <= 0x8000)
             return rom_[address / kROMBankSize][address % kROMBankSize];
         else if (BETWEEN(address, 0xA000, 0xC000)) {
