@@ -6,7 +6,7 @@
 
 namespace gandalf {
     WRAM::WRAM() : Bus::AddressHandler("WRAM") {
-        data_.fill(std::rand());
+        data_.fill((byte)std::rand());
     }
 
     WRAM::~WRAM() = default;

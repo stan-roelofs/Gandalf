@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
     while (true)
     {
-        if (gui::PollEvents())
+        if (gui::PollEvents(context))
             break;
         gui::RenderGUI(context);
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
             }
             fps_counter.has_frame = false;
         }
-        
+
     }
 
     gui::DestroyGUI();

@@ -30,8 +30,8 @@ namespace {
 namespace gandalf {
     PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), vblank_listener_(nullptr), pipeline_(lcd_, vram_)
     {
-        vram_.fill(std::rand());
-        oam_.fill(std::rand());
+        vram_.fill((byte)std::rand());
+        oam_.fill((byte)std::rand());
     }
 
     PPU::~PPU() = default;

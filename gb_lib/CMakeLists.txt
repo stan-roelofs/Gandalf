@@ -10,6 +10,7 @@ set(HEADERS
     include/gandalf/gameboy.h
     include/gandalf/hram.h
     include/gandalf/io.h
+    include/gandalf/joypad.h
     include/gandalf/lcd.h
     include/gandalf/mbc.h
     include/gandalf/model.h
@@ -35,6 +36,7 @@ set(SOURCES
     src/gameboy.cpp
     src/hram.cpp
     src/io.cpp
+    src/joypad.cpp
     src/lcd.cpp
     src/ppu.cpp
     src/serial.cpp

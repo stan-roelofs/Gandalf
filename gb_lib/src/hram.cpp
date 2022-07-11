@@ -6,7 +6,7 @@
 
 namespace gandalf {
     HRAM::HRAM() : Bus::AddressHandler("HRAM") {
-        data_.fill(std::rand());
+        data_.fill((byte)std::rand());
     }
 
     HRAM::~HRAM() = default;

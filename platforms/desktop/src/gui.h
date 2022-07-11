@@ -15,7 +15,7 @@ namespace gui {
     };
 
     bool SetupGUI();
-    bool PollEvents();
+    bool PollEvents(Context& context);
     void RenderGUI(Context& context);
     void DestroyGUI();
 }

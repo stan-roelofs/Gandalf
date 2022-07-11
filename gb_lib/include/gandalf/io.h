@@ -2,10 +2,11 @@
 #define __GANDALF_IO_H
 
 #include "bus.h"
-#include "timer.h"
+#include "joypad.h"
 #include "lcd.h"
 #include "ppu.h"
 #include "serial.h"
+#include "timer.h"
 
 namespace gandalf {
     class IO {
@@ -17,6 +18,7 @@ namespace gandalf {
 
         LCD& GetLCD() { return lcd_; }
         PPU& GetPPU() { return ppu_; }
+        Joypad& GetJoypad() { return joypad_; }
 
     private:
         Bus& bus_;
@@ -24,6 +26,7 @@ namespace gandalf {
         LCD lcd_;
         PPU ppu_;
         Serial serial_;
+        Joypad joypad_;
     };
 } // namespace gandalf
 

@@ -279,15 +279,19 @@ namespace gui
         return true;
     }
 
-    bool PollEvents()
+    bool PollEvents(Context& context)
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
+            {
+
+            }
+            else if (event.type == SDL_QUIT)
                 return true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+            else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
                 return true;
         }
 

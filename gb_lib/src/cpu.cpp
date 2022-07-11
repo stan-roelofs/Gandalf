@@ -687,7 +687,7 @@ namespace gandalf {
   }
 
   CPU::CPU(IO& io, Bus& bus) : Bus::AddressHandler("CPU"),
-    bus_(bus), io_(io), halt_(false), stop_(false), halt_bug_(false), ei_pending_(false) {}
+    bus_(bus), io_(io), opcode_(0), halt_(false), stop_(false), halt_bug_(false), ei_pending_(false) {}
 
   CPU::~CPU() = default;
 
@@ -771,7 +771,6 @@ namespace gandalf {
         break;
       }
     }
-    assert(interrupt_bit);
 
     // We handled the interrupt, clear the bit in the IF registers
     registers_.interrupt_flags = registers_.interrupt_flags & ~(1 << interrupt_bit);
