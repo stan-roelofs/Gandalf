@@ -251,10 +251,8 @@ namespace gandalf {
     WRITE(registers_.hl(), value);                                             \
   }
 
-#define SCF() registers_.f() = (registers_.f() & 0xF8) | kCFlagMask;
-#define CCF()                                                                  \
-  registers_.f() =                                                             \
-      (registers_.f() & 0xF8) | ((registers_.f() & kCFlagMask) ^ kCFlagMask);
+#define SCF() registers_.f() = (registers_.f() & 0x80) | kCFlagMask;
+#define CCF() registers_.f() = (registers_.f() & 0x90) ^ kCFlagMask;
 
 #define HALT()                                                                 \
   if (registers_.interrupt_master_enable) {                                    \
@@ -276,7 +274,7 @@ namespace gandalf {
       SET_ZFLAG()                                                              \
     if ((a & 0xF) + (value & 0xF) > 0xF)                                       \
       SET_HFLAG()                                                              \
-    if (a + (value) > 0xFF)                                                    \
+    if ((int)a + (int)value > 0xFF)                                            \
       SET_CFLAG()                                                              \
   }
 
@@ -298,7 +296,7 @@ namespace gandalf {
       SET_ZFLAG()                                                              \
     if ((a & 0xF) + (value & 0xF) + carry > 0xF)                               \
       SET_HFLAG()                                                              \
-    if (a + (value) + carry > 0xFF)                                            \
+    if ((int)a + (int)(value) + (int)carry > 0xFF)                             \
       SET_CFLAG()                                                              \
   }
 
@@ -534,8 +532,9 @@ namespace gandalf {
 
 #define ADD_SP_N()                                                             \
   {                                                                            \
-    signed_byte value;                                                         \
+    signed_word value;                                                         \
     READ_PC(value);                                                            \
+    value = (signed_byte)value;                                                \
     word sp = registers_.stack_pointer;                                        \
     registers_.stack_pointer += value;                                         \
     registers_.f() = 0;                                                        \
@@ -578,8 +577,9 @@ namespace gandalf {
 
 #define LD_HL_SP_N()                                                           \
   {                                                                            \
-    signed_byte value;                                                         \
+    signed_word value;                                                         \
     READ_PC(value);                                                            \
+    value = (signed_byte)value;                                                \
     registers_.hl() = registers_.stack_pointer + value;                        \
     registers_.f() = 0;                                                        \
     if ((registers_.stack_pointer & 0xFF) + (value) > 0xFF)                    \
@@ -743,7 +743,7 @@ namespace gandalf {
       }
     }
     else
-        io_.Tick(4);
+      io_.Tick(4);
   }
 
   void CPU::InterruptServiceRoutine()
