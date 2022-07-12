@@ -24,8 +24,7 @@ namespace gandalf
         Joypad();
         virtual ~Joypad();
 
-        void ButtonPressed(Button button);
-        void ButtonReleased(Button button);
+        void ButtonEvent(Button button, bool pressed);
 
         byte Read(word address) const override;
         void Write(word address, byte value) override;

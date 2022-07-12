@@ -204,8 +204,9 @@ namespace gandalf {
         case FetcherState::kFetchDataLow:
         {
             const bool tile_data_select = lcd_.GetLCDControl() & 0x10;
-            const word tile_base_address = tile_data_select ? 0 : 0x800;
-            const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
+            const word tile_base_address = tile_data_select ? 0 : 0x1000;
+            int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_));
+            tile_offset *= 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2);
             tile_data_low_ = vram_.at(total_offset);
             fetcher_state_ = FetcherState::kFetchDataHighSleep;
@@ -217,7 +218,7 @@ namespace gandalf {
         case FetcherState::kFetchDataHigh:
         {
             const bool tile_data_select = lcd_.GetLCDControl() & 0x10;
-            const word tile_base_address = tile_data_select ? 0 : 0x800;
+            const word tile_base_address = tile_data_select ? 0 : 0x1000;
             const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2 + 1);
             tile_data_high_ = vram_.at(total_offset);

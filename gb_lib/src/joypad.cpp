@@ -32,15 +32,9 @@ namespace gandalf
 
     Joypad::~Joypad() = default;
 
-    void Joypad::ButtonPressed(Button button)
+    void Joypad::ButtonEvent(Button button, bool pressed)
     {
-        pressed_buttons_[button] = true;
-        Update();
-    }
-
-    void Joypad::ButtonReleased(Button button)
-    {
-        pressed_buttons_[button] = false;
+        pressed_buttons_[button] = pressed;
         Update();
     }
 
@@ -49,7 +43,7 @@ namespace gandalf
         assert(address == kP1);
         (void)address;
 
-        return p1_ | 0xC0;
+        return p1_;
     }
 
     void Joypad::Write(word address, byte value)
@@ -69,10 +63,10 @@ namespace gandalf
     void Joypad::Update()
     {
         byte result = p1_ | 0xCF;
-        const bool select_action = p1_ & (1 << 5);
-        const bool select_direction = p1_ & (1 << 4);
+        const bool select_action_bit = p1_ & 0x20;
+        const bool select_direction_bit = p1_ & 0x10;
         for (int i = 0; i < 8; ++i) {
-            if (pressed_buttons_[i] && ((kButtonMatrix[i].select_bit == 4 && select_direction) || (kButtonMatrix[i].select_bit == 5 && select_action))) {
+            if (pressed_buttons_[i] && ((kButtonMatrix[i].select_bit == 4 && !select_direction_bit) || (kButtonMatrix[i].select_bit == 5 && !select_action_bit))) {
                 result &= ~(1 << kButtonMatrix[i].button_bit);
             }
         }

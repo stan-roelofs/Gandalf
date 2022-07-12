@@ -71,23 +71,23 @@ int main(int argc, char* argv[]) {
     {
         void OnVBlank() {
             has_frame = true;
-            static int frames = 0;
-            // Some computation here
-            ++frames;
+            //static int frames = 0;
+            //// Some computation here
+            //++frames;
 
-            using namespace std::chrono;
+            //using namespace std::chrono;
 
-            static high_resolution_clock::time_point t1 = high_resolution_clock::now();;
+            //static high_resolution_clock::time_point t1 = high_resolution_clock::now();;
 
-            high_resolution_clock::time_point t2 = high_resolution_clock::now();
+            //high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
-            duration<double, std::milli> time_span = t2 - t1;
+            //duration<double, std::milli> time_span = t2 - t1;
 
-            if (time_span.count() > 1000) {
-                t1 = t2;
-                std::cout << std::to_string(frames) << std::endl;
-                frames = 0;
-            }
+            //if (time_span.count() > 1000) {
+            //    t1 = t2;
+            //    std::cout << std::to_string(frames) << std::endl;
+            //    frames = 0;
+            //}
         };
 
         bool has_frame;

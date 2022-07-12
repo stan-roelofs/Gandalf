@@ -276,16 +276,32 @@ namespace gui
         return true;
     }
 
+    void HandleKey(bool pressed, SDL_Keycode key, gandalf::Gameboy& gameboy)
+    {
+        auto& joypad = gameboy.GetJoypad();
+        switch (key)
+        {
+        case SDLK_z: joypad.ButtonEvent(gandalf::Joypad::Button::kA, pressed); break;
+        case SDLK_x: joypad.ButtonEvent(gandalf::Joypad::Button::kB, pressed); break;
+        case SDLK_TAB: joypad.ButtonEvent(gandalf::Joypad::Button::kSelect, pressed); break;
+        case SDLK_RETURN: joypad.ButtonEvent(gandalf::Joypad::Button::kStart, pressed); break;
+        case SDLK_LEFT: joypad.ButtonEvent(gandalf::Joypad::Button::kLeft, pressed); break;
+        case SDLK_RIGHT: joypad.ButtonEvent(gandalf::Joypad::Button::kRight, pressed); break;
+        case SDLK_UP: joypad.ButtonEvent(gandalf::Joypad::Button::kUp, pressed); break;
+        case SDLK_DOWN: joypad.ButtonEvent(gandalf::Joypad::Button::kDown, pressed); break;
+        }
+    }
+
     bool PollEvents(Context& context)
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
-            {
-
-            }
+            if (event.type == SDL_KEYDOWN)
+                HandleKey(true, event.key.keysym.sym, *context.gameboy);
+            else if (event.type == SDL_KEYUP)
+                HandleKey(false, event.key.keysym.sym, *context.gameboy);
             else if (event.type == SDL_QUIT)
                 return true;
             else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))

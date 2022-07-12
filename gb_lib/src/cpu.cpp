@@ -538,9 +538,8 @@ namespace gandalf {
 
 #define ADD_SP_N()                                                             \
   {                                                                            \
-    signed_word value;                                                         \
+    signed_byte value;                                                         \
     READ_PC(value);                                                            \
-    value = (signed_byte)value;                                                \
     word sp = registers_.stack_pointer;                                        \
     registers_.stack_pointer += value;                                         \
     registers_.f() = 0;                                                        \
@@ -583,9 +582,8 @@ namespace gandalf {
 
 #define LD_HL_SP_N()                                                           \
   {                                                                            \
-    signed_word value;                                                         \
+    signed_byte value;                                                         \
     READ_PC(value);                                                            \
-    value = (signed_byte)value;                                                \
     registers_.hl() = registers_.stack_pointer + value;                        \
     registers_.f() = 0;                                                        \
     if ((registers_.stack_pointer & 0xFF) + (value & 0xFF) > 0xFF)             \
