@@ -2,7 +2,6 @@
 #define __GANDALF_PPU_H
 
 #include <queue>
-#include <functional>
 
 #include "bus.h"
 #include "lcd.h"

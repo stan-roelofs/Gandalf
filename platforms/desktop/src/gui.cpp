@@ -22,6 +22,7 @@ namespace {
     SDL_Texture* texture;
     std::array<gandalf::byte, gandalf::kScreenHeight* gandalf::kScreenWidth * 3> buffer;
     ImGui::FileBrowser file_dialog;
+    int scale = 4;
 }
 
 namespace gui
@@ -195,10 +196,6 @@ namespace gui
         }
         ImGui::End();
 
-        ImGui::Begin("Gameboy");
-        ImGui::Image(texture, ImVec2(gandalf::kScreenWidth, gandalf::kScreenHeight));
-        ImGui::End();
-
         ImGui::Begin("Cartridge");
         std::shared_ptr<const gandalf::Cartridge::Header> header = std::move(context.gameboy->GetCartridge().GetHeader());
         if (header)
@@ -242,7 +239,7 @@ namespace gui
 
         // Setup window
         SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-        window = SDL_CreateWindow("Dear ImGui SDL2+SDL_Renderer example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+        window = SDL_CreateWindow("Gandalf", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
 
         // Setup SDL_Renderer instance
         renderer = SDL_CreateRenderer(window, -1, /*SDL_RENDERER_PRESENTVSYNC |*/ SDL_RENDERER_ACCELERATED);
@@ -420,6 +417,11 @@ namespace gui
         ImGui::End();
 
         SDL_UpdateTexture(texture, nullptr, context.gameboy->GetLCD().GetVideoBuffer().data(), screen->pitch);
+
+        ImGui::Begin("Gameboy");
+        ImGui::SliderInt("Scale", &scale, 1, 5);
+        ImGui::Image(texture, ImVec2(gandalf::kScreenWidth * scale, gandalf::kScreenHeight * scale));
+        ImGui::End();
 
         // Rendering
         ImGui::Render();

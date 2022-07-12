@@ -47,6 +47,7 @@ namespace gandalf
     byte Joypad::Read(word address) const
     {
         assert(address == kP1);
+        (void)address;
 
         return p1_ | 0xC0;
     }
@@ -54,6 +55,7 @@ namespace gandalf
     void Joypad::Write(word address, byte value)
     {
         assert(address == kP1);
+        (void)address;
 
         p1_ = value & 0xF0;
         Update();
