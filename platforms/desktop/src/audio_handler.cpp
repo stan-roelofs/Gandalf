@@ -58,11 +58,12 @@ void SDLAudioHandler::Play(gandalf::byte left, gandalf::byte right)
 
     if (index_ == kBufferSizeBytes / 2)
     {
-        while (limit_frames_ && SDL_GetQueuedAudioSize(device_id_) > kBufferSizeBytes / 2)
-        {
+        if (limit_frames_) {
+            while (limit_frames_ && SDL_GetQueuedAudioSize(device_id_) > kBufferSizeBytes / 2) {}
+
+            SDL_QueueAudio(device_id_, audio_buffer_.data(), kBufferSizeBytes / 2);
         }
 
-        SDL_QueueAudio(device_id_, audio_buffer_.data(), kBufferSizeBytes / 2);
         index_ = 0;
     }
 }

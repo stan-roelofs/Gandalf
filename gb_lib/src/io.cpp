@@ -1,13 +1,14 @@
 #include <gandalf/io.h>
 
 namespace gandalf {
-    IO::IO(Bus& bus) : bus_(bus), timer_(bus), ppu_(bus, lcd_) {
-        bus.Register(&ppu_);
-        bus.Register(&lcd_);
-        bus.Register(&timer_);
-        bus.Register(&serial_);
-        bus.Register(&joypad_);
-        bus.Register(&apu_);
+    IO::IO(Bus& bus) : bus_(bus), timer_(bus), ppu_(bus, lcd_), dma_(bus) {
+        bus_.Register(&ppu_);
+        bus_.Register(&lcd_);
+        bus_.Register(&timer_);
+        bus_.Register(&serial_);
+        bus_.Register(&joypad_);
+        bus_.Register(&apu_);
+        bus_.Register(&dma_);
     }
 
     IO::~IO() {
@@ -17,6 +18,7 @@ namespace gandalf {
         bus_.Unregister(&serial_);
         bus_.Unregister(&joypad_);
         bus_.Unregister(&apu_);
+        bus_.Unregister(&dma_);
     }
 
     void IO::Tick(byte cycles)
@@ -26,6 +28,7 @@ namespace gandalf {
             ppu_.Tick();
             serial_.Tick();
             apu_.Tick();
+            dma_.Tick();
         }
     }
 

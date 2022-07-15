@@ -11,7 +11,7 @@ namespace {
 
 namespace gandalf
 {
-    LCD::LCD() : Bus::AddressHandler("LCD"), lcdc_(0), ly_(0), lyc_(0), stat_(0), scy_(0), scx_(0), wy_(0), wx_(0), bgp_(0), obp0_(0), obp1_(0), dma_(0)
+    LCD::LCD() : Bus::AddressHandler("LCD"), lcdc_(0), ly_(0), lyc_(0), stat_(0), scy_(0), scx_(0), wy_(0), wx_(0), bgp_(0), obp0_(0), obp1_(0)
     {
         video_buffer_.fill((byte)std::rand());
     }
@@ -21,7 +21,7 @@ namespace gandalf
     byte LCD::Read(word address) const
     {
         assert(address == kLCDC || address == kSTAT || address == kSCY ||
-            address == kSCX || address == kLY || address == kLYC || address == kDMA ||
+            address == kSCX || address == kLY || address == kLYC ||
             address == kBGP || address == kOBP0 || address == kOBP1 || address == kWY ||
             address == kWX);
 
@@ -48,9 +48,7 @@ namespace gandalf
         case kOBP0:
             return obp0_;
         case kOBP1:
-            return obp1_;
-        case kDMA:
-            return dma_;
+            return obp1_;;
         default:
             return 0xFF;
         }
@@ -59,7 +57,7 @@ namespace gandalf
     void LCD::Write(word address, byte value)
     {
         assert(address == kLCDC || address == kSTAT || address == kSCY ||
-            address == kSCX || address == kLY || address == kLYC || address == kDMA ||
+            address == kSCX || address == kLY || address == kLYC ||
             address == kBGP || address == kOBP0 || address == kOBP1 || address == kWY ||
             address == kWX);
 
@@ -98,22 +96,19 @@ namespace gandalf
         case kOBP1:
             obp1_ = value;
             break;
-        case kDMA:
-            dma_ = value;
-            break;
         }
     }
 
     std::set<word> LCD::GetAddresses() const
     {
-        return { kLCDC, kSTAT, kSCY, kSCX, kLY, kLYC, kWY, kWX, kBGP, kOBP0, kOBP1, kDMA };
+        return { kLCDC, kSTAT, kSCY, kSCX, kLY, kLYC, kWY, kWX, kBGP, kOBP0, kOBP1 };
     }
 
     void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)
     {
         byte palette = 0;
         if (is_sprite)
-            palette = palette_index = 0 ? obp0_ : obp1_;
+            palette = palette_index == 0 ? obp0_ : obp1_;
         else
             palette = bgp_;
 

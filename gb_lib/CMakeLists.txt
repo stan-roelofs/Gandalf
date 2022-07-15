@@ -3,10 +3,13 @@ cmake_minimum_required(VERSION 3.11)
 set(CMAKE_CXX_STANDARD 11)
 
 set(HEADERS
+    include/gandalf/apu.h
     include/gandalf/bus.h
     include/gandalf/cartridge.h
     include/gandalf/cpu.h
     include/gandalf/cpu_registers.h
+    include/gandalf/constants.h
+    include/gandalf/dma.h
     include/gandalf/gameboy.h
     include/gandalf/hram.h
     include/gandalf/io.h
@@ -26,6 +29,7 @@ set(HEADERS
 )
 
 set(SOURCES
+    src/apu.cpp
     src/bootrom.cpp
     src/bus.cpp
     src/cartridge.cpp
@@ -33,6 +37,7 @@ set(SOURCES
     src/cartridge/mbc1.cpp
     src/cartridge/rom_only.cpp
     src/cpu.cpp
+    src/dma.cpp
     src/gameboy.cpp
     src/hram.cpp
     src/io.cpp

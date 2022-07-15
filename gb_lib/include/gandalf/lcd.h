@@ -53,7 +53,6 @@ namespace gandalf {
         byte bgp_;
         byte obp0_;
         byte obp1_;
-        byte dma_;
     };
 } // namespace gandalf
 

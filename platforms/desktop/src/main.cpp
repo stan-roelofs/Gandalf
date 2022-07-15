@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdlib.h>
 #include <string>
+#include <thread>
 
 #include <SDL.h>
 
@@ -12,6 +13,12 @@
 #include <gandalf/cartridge.h>
 
 #include "gui.h"
+#include "audio_handler.h"
+
+namespace
+{
+    constexpr std::uint64_t expected_frame_time_nanoseconds = (1.0 / 60.0) * 1e9;
+}
 
 static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
     std::ifstream input(filename, std::ios::binary);
@@ -28,6 +35,25 @@ static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
     return true;
 }
 
+static void RunGameboy(gui::Context& context)
+{
+    while (true)
+    {
+        while (*context.run)
+        {
+            context.gameboy->Run();
+            if (context.breakpoint && *context.breakpoint == context.gameboy->GetCPU().GetRegisters().program_counter)
+                *context.run = false;
+        }
+
+        if (*context.step)
+        {
+            context.gameboy->Run();
+            *context.step = false;
+        }
+    }
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <boot_rom_file>" << std::endl;
@@ -35,7 +61,9 @@ int main(int argc, char* argv[]) {
     }
 
     using namespace gandalf;
-    Gameboy gb;
+    std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>();
+    auto back_buffer = new LCD::VideoBuffer();
+    auto front_buffer = new LCD::VideoBuffer();
 
     std::vector<byte> boot_rom;
     if (!ReadFile(argv[1], boot_rom))
@@ -49,114 +77,96 @@ int main(int argc, char* argv[]) {
     std::array<byte, 0x100> boot_rom_array;
     std::copy(boot_rom.begin(), boot_rom.end(), boot_rom_array.begin());
 
-    gb.LoadBootROM(boot_rom_array);
+    gb->LoadBootROM(boot_rom_array);
 
     if (!gui::SetupGUI()) {
         std::cerr << "Could not setup GUI" << std::endl;
         return EXIT_FAILURE;
     }
 
+    std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>();
+    gb->GetAPU().SetOutputHandler(handler);
+
     std::optional<word> breakpoint;
     bool run = false;
     bool step = false;
     bool show_debug_window = true;
+    bool sleep = false;
     gui::Context context;
     context.run = &run;
     context.step = &step;
-    context.gameboy = &gb;
+    context.gameboy = gb.get();
     context.show_debug_window = &show_debug_window;
     context.breakpoint = &breakpoint;
+    context.video_buffer = &front_buffer;
+    context.sleep = &sleep;
+    context.limit_frames = &handler->limit_frames_;
 
     struct : VBlankListener
     {
         void OnVBlank() {
-            has_frame = true;
-            //static int frames = 0;
-            //// Some computation here
-            //++frames;
+            *sleep = true;
+            auto& buffer = gb->GetLCD().GetVideoBuffer();
+            std::copy(buffer.begin(), buffer.end(), back_buffer->begin());
+            auto temp = back_buffer;
+            back_buffer = front_buffer;
+            front_buffer = temp;
 
-            //using namespace std::chrono;
+            static int frames = 0;
+            // Some computation here
+            ++frames;
 
-            //static high_resolution_clock::time_point t1 = high_resolution_clock::now();;
+            using namespace std::chrono;
 
-            //high_resolution_clock::time_point t2 = high_resolution_clock::now();
+            static high_resolution_clock::time_point t1 = high_resolution_clock::now();;
 
-            //duration<double, std::milli> time_span = t2 - t1;
+            high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
-            //if (time_span.count() > 1000) {
-            //    t1 = t2;
-            //    std::cout << std::to_string(frames) << std::endl;
-            //    frames = 0;
-            //}
+            duration<double, std::milli> time_span = t2 - t1;
+
+            if (time_span.count() > 1000) {
+                t1 = t2;
+                std::cout << std::to_string(frames) << std::endl;
+                frames = 0;
+            }
         };
 
-        bool has_frame;
-    } fps_counter;
-    fps_counter.has_frame = false;
+        gandalf::Gameboy* gb;
+        gandalf::LCD::VideoBuffer* back_buffer;
+        gandalf::LCD::VideoBuffer* front_buffer;
+        bool* sleep;
 
-    gb.GetPPU().SetVBlankListener(&fps_counter);
+    } fps_counter;
+    fps_counter.gb = gb.get();
+    fps_counter.back_buffer = back_buffer;
+    fps_counter.front_buffer = front_buffer;
+    fps_counter.sleep = &sleep;
+
+    gb->GetPPU().SetVBlankListener(&fps_counter);
+
+    std::thread gb_thread(RunGameboy, std::ref(context));
+
+    using namespace std::chrono;
 
     while (true)
     {
+        std::chrono::high_resolution_clock::time_point t1 = high_resolution_clock::now();;
+
         if (gui::PollEvents(context))
             break;
-        gui::RenderGUI(context);
 
-        if (step) {
-            gb.Run();
-            step = false;
-        }
+        RenderGUI(context);
 
-        if (run) {
-            while (!fps_counter.has_frame) {
-                gb.Run();
+        std::chrono::high_resolution_clock::time_point t2 = high_resolution_clock::now();;
+        duration<double, std::nano> time_span = t2 - t1;
 
-                if (breakpoint && *breakpoint == gb.GetCPU().GetRegisters().program_counter) {
-                    run = false;
-                    break;
-                }
-            }
-            fps_counter.has_frame = false;
-        }
-
+        const auto duration = std::chrono::nanoseconds((long)((1000000000 / 60) - time_span.count()));
+        std::this_thread::sleep_for(duration);
     }
 
+    delete front_buffer;
+    delete back_buffer;
     gui::DestroyGUI();
-
-
-    // TODO check window and renderer null
-
-
-
-    // while (true) {
-    //     SDL_Rect rc;
-    //     rc.x = rc.y = 0;
-    //     rc.w = rc.h = 2048;
-
-    //     for (int y = 0; y < SCREEN_HEIGHT; y++) {
-    //         for (int x = 0; x < SCREEN_WIDTH; x++) {
-    //             rc.x = x * SCALE;
-    //             rc.y = y * SCALE;
-    //             rc.w = SCALE;
-    //             rc.h = SCALE;
-
-    //             SDL_FillRect(screen, &rc, 0xFFFFFF);
-    //         }
-    //     }
-
-    //     SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
-    //     SDL_RenderClear(renderer);
-    //     SDL_RenderCopy(renderer, texture, NULL, NULL);
-    //     SDL_RenderPresent(renderer);
-
-    //     SDL_Event event;
-    //     while (SDL_PollEvent(&event)) {
-    //         if (event.type == SDL_QUIT) {
-    //             return EXIT_SUCCESS;
-    //         }
-    //     }
-    // }
-// }
 
     return EXIT_SUCCESS;
 }

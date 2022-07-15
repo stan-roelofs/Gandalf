@@ -1,7 +1,9 @@
 #ifndef __GANDALF_IO_H
 #define __GANDALF_IO_H
 
+#include "apu.h"
 #include "bus.h"
+#include "dma.h"
 #include "joypad.h"
 #include "lcd.h"
 #include "ppu.h"
@@ -19,6 +21,7 @@ namespace gandalf {
         LCD& GetLCD() { return lcd_; }
         PPU& GetPPU() { return ppu_; }
         Joypad& GetJoypad() { return joypad_; }
+        APU& GetAPU() { return apu_; }
 
     private:
         Bus& bus_;
@@ -27,6 +30,8 @@ namespace gandalf {
         PPU ppu_;
         Serial serial_;
         Joypad joypad_;
+        APU apu_;
+        DMA dma_;
     };
 } // namespace gandalf
 

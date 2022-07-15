@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
  
-project(SpelJongen)
+project(Gandalf)
 
 enable_testing()
  

@@ -1,7 +1,8 @@
 #ifndef __GANDALF_PPU_H
 #define __GANDALF_PPU_H
 
-#include <queue>
+#include <deque>
+#include <map>
 
 #include "bus.h"
 #include "lcd.h"
@@ -31,6 +32,7 @@ namespace gandalf {
 
     private:
         void IncrementLY();
+
         Bus& bus_;
         LCD& lcd_;
         int line_ticks_;
@@ -39,19 +41,34 @@ namespace gandalf {
         VRAM vram_;
         std::array<byte, 0xA0> oam_;
         VBlankListener* vblank_listener_;
+        struct Sprite {
+            byte y;
+            byte x;
+            byte tile_index;
+            byte attributes;
+            byte tile_data_low;
+            byte tile_data_high;
+
+            bool operator<(const Sprite& other) { return x < other.x; }
+            bool operator<(int position) { return x < position; }
+        };
+        using FetchedSprites = std::map<byte, std::deque<Sprite>>;
+        FetchedSprites fetched_sprites_;
 
         class Pipeline {
         public:
-            Pipeline(LCD& lcd, VRAM& vram);
+            Pipeline(LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites);
             ~Pipeline();
 
-            void Process(int line_ticks);
+            void Process();
             void Reset();
             bool Done() const;
         private:
             void RenderPixel();
-            void StateMachine();
+            void TileStateMachine();
+            void SpriteStateMachine();
             void TryPush();
+            void PushSprite();
 
             enum class FetcherState
             {
@@ -61,9 +78,17 @@ namespace gandalf {
                 kFetchDataLow,
                 kFetchDataHighSleep,
                 kFetchDataHigh,
-                kSleep1,
-                kSleep2,
                 kPush
+            };
+
+            enum class SpriteState
+            {
+                kReadOAMSleep,
+                kReadOAM,
+                kReadDataLowSleep,
+                kReadDataLow,
+                kReadDataHighSleep,
+                kReadDataHigh,
             };
 
             struct Pixel
@@ -76,8 +101,8 @@ namespace gandalf {
 
             LCD& lcd_;
             const VRAM& vram_;
-            std::queue<Pixel> background_fifo_;
-            std::queue<Pixel> sprite_fifo_;
+            std::deque<Pixel> background_fifo_;
+            std::deque<Pixel> sprite_fifo_;
             FetcherState fetcher_state_;
             byte fetch_x_; // The X coordinate of the tile to fetch (0-31 because every tile has 8 pixels)
             byte fetch_y_; // The Y coordinate of the tile to fetch (0-255)
@@ -85,6 +110,11 @@ namespace gandalf {
             byte tile_number_; // The tile number that is fetched during the first state of the fetcher
             byte tile_data_low_; // The low byte of the tile data that is fetched during the second state of the fetcher
             byte tile_data_high_; // The high byte of the tile data that is fetched during the third state of the fetcher
+            bool sprite_in_progress_;
+            FetchedSprites& fetched_sprites_;
+            Sprite current_sprite_;
+            SpriteState sprite_state_;
+            int sprite_line_;
         };
 
         Pipeline pipeline_;
