@@ -12,6 +12,9 @@ namespace gui {
         gandalf::Gameboy* gameboy;
         bool* show_debug_window;
         std::optional<gandalf::word>* breakpoint;
+        gandalf::LCD::VideoBuffer** video_buffer;
+        bool* sleep;
+        bool* limit_frames;
     };
 
     bool SetupGUI();

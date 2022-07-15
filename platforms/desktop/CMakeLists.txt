@@ -36,11 +36,13 @@ target_link_libraries(imgui SDL2main SDL2-static)
 set(HEADERS
   src/imfilebrowser.h
   src/gui.h
+  src/audio_handler.h
 )
 
 set(SOURCES
     src/main.cpp
     src/gui.cpp
+    src/audio_handler.cpp
 )
 
 add_executable(gb_app ${HEADERS} ${SOURCES})

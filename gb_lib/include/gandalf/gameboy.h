@@ -77,6 +77,7 @@ namespace gandalf {
     LCD& GetLCD() { return io_.GetLCD(); }
     PPU& GetPPU() { return io_.GetPPU(); }
     Joypad& GetJoypad() { return io_.GetJoypad(); }
+    APU& GetAPU() { return io_.GetAPU(); }
 
   private:
     // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.

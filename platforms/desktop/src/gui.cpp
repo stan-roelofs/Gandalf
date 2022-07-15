@@ -34,6 +34,7 @@ namespace gui
 
         ImGui::Begin("CPU", nullptr, ImGuiWindowFlags_NoTitleBar);
         ImGui::Checkbox("Run", context.run);
+        ImGui::Checkbox("Limit FPS", context.limit_frames);
         ImGui::SameLine();
 
         if (*context.run)
@@ -231,7 +232,7 @@ namespace gui
 
     bool SetupGUI()
     {
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
         {
             std::cerr << "Error: " << SDL_GetError() << std::endl;
             return false;
@@ -432,7 +433,7 @@ namespace gui
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
 
-        SDL_UpdateTexture(texture, nullptr, context.gameboy->GetLCD().GetVideoBuffer().data(), screen->pitch);
+        SDL_UpdateTexture(texture, nullptr, *context.video_buffer, screen->pitch);
 
         ImGui::Begin("Gameboy");
         ImGui::SliderInt("Scale", &scale, 1, 5);

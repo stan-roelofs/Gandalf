@@ -7,6 +7,7 @@ namespace gandalf {
         bus.Register(&timer_);
         bus.Register(&serial_);
         bus.Register(&joypad_);
+        bus.Register(&apu_);
     }
 
     IO::~IO() {
@@ -15,6 +16,7 @@ namespace gandalf {
         bus_.Unregister(&timer_);
         bus_.Unregister(&serial_);
         bus_.Unregister(&joypad_);
+        bus_.Unregister(&apu_);
     }
 
     void IO::Tick(byte cycles)
@@ -23,6 +25,7 @@ namespace gandalf {
             timer_.Tick();
             ppu_.Tick();
             serial_.Tick();
+            apu_.Tick();
         }
     }
 

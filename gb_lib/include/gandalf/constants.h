@@ -97,6 +97,7 @@ namespace gandalf {
     //
     constexpr int kScreenHeight = 144;
     constexpr int kScreenWidth = 160;
+    constexpr int kCPUFrequency = 4194304; // MHz
 
 } // namespace gandalf
 
