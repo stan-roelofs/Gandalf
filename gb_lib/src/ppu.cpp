@@ -174,7 +174,7 @@ namespace gandalf {
         }
     }
 
-    PPU::Pipeline::Pipeline(LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) : lcd_(lcd), vram_(vram), sprite_in_progress_(false), fetched_sprites_(fetched_sprites), sprite_line_(0)
+    PPU::Pipeline::Pipeline(LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) : lcd_(lcd), vram_(vram), sprite_in_progress_(false), fetched_sprites_(fetched_sprites), sprite_line_(0), drop_pixels_(0), window_triggered_(false)
     {
         Reset();
     }
@@ -185,13 +185,14 @@ namespace gandalf {
     {
         fetcher_state_ = FetcherState::kFetchTileSleep;
         pixels_pushed_ = 0;
-        fetch_x_ = 0;
+        fetch_x_ = (lcd_.GetSCX() / 8) & 0x1F;
         fetch_y_ = lcd_.GetLY() + lcd_.GetSCY();
         sprite_in_progress_ = false;
 
-        std::deque<Pixel> empty_deque;
-        background_fifo_.swap(empty_deque);
-        sprite_fifo_.swap(empty_deque);
+        background_fifo_.clear();
+        sprite_fifo_.clear();
+        drop_pixels_ = lcd_.GetSCX() % 8;
+        window_triggered_ = false;
     }
 
     bool PPU::Pipeline::Done() const
@@ -214,6 +215,15 @@ namespace gandalf {
             }
         }
 
+        if (!window_triggered_ && lcd_.GetLCDControl() & 0x20 && lcd_.GetLY() >= lcd_.GetWY() && pixels_pushed_ == lcd_.GetWX() - 7)
+        {
+            window_triggered_ = true;
+            drop_pixels_ = (lcd_.GetWX() - 7) % 8;
+            fetch_x_ = 0;
+            fetch_y_ = lcd_.GetLY() - lcd_.GetWY();
+            fetcher_state_ = FetcherState::kFetchTile;
+        }
+
         if (!sprite_in_progress_ || fetcher_state_ != FetcherState::kPush || background_fifo_.empty())
             TileStateMachine();
         else {
@@ -233,7 +243,8 @@ namespace gandalf {
             break;
         case FetcherState::kFetchTile:
         {
-            const word tile_map_offset = (lcd_.GetLCDControl() & 0x8) ? 0x1C00 : 0x1800;
+            const bool tile_map = (window_triggered_) ? lcd_.GetLCDControl() & 0x20 : lcd_.GetLCDControl() & 0x8;
+            const word tile_map_offset = tile_map ? 0x1C00 : 0x1800;
             const word tile_address = tile_map_offset + (fetch_y_ / 8 * 32) + fetch_x_;
             tile_number_ = vram_.at(tile_address);
             fetcher_state_ = FetcherState::kFetchDataLowSleep;
@@ -360,6 +371,11 @@ namespace gandalf {
 
     void PPU::Pipeline::RenderPixel()
     {
+        if (drop_pixels_ > 0 && !background_fifo_.empty()) {
+            background_fifo_.pop_front();
+            --drop_pixels_;
+            return;
+        }
         // Pixels won’t be pushed to the LCD if there is nothing in the background FIFO or the current pixel is pixel 160 or greater.
         if (background_fifo_.size() <= 8 || pixels_pushed_ >= 160 || background_fifo_.empty())
             return;

@@ -115,6 +115,8 @@ namespace gandalf {
             Sprite current_sprite_;
             SpriteState sprite_state_;
             int sprite_line_;
+            int drop_pixels_;
+            bool window_triggered_;
         };
 
         Pipeline pipeline_;

@@ -15,6 +15,7 @@ namespace gui {
         gandalf::LCD::VideoBuffer** video_buffer;
         bool* sleep;
         bool* limit_frames;
+        bool* stop;
     };
 
     bool SetupGUI();

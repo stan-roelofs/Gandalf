@@ -28,6 +28,8 @@ namespace gandalf {
         byte& GetBGP() { return bgp_; }
         byte& GetOBP0() { return obp0_; }
         byte& GetOBP1() { return obp1_; }
+        byte& GetWY() { return wy_; }
+        byte& GetWX() { return wx_; }
 
         /**
          * Pushes a pixel onto the screen.

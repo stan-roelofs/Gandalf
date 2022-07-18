@@ -37,7 +37,7 @@ static bool ReadFile(std::string filename, std::vector<gandalf::byte>& buffer) {
 
 static void RunGameboy(gui::Context& context)
 {
-    while (true)
+    while (!*context.stop)
     {
         while (*context.run)
         {
@@ -92,6 +92,7 @@ int main(int argc, char* argv[]) {
     bool step = false;
     bool show_debug_window = true;
     bool sleep = false;
+    bool stop = false;
     gui::Context context;
     context.run = &run;
     context.step = &step;
@@ -101,6 +102,7 @@ int main(int argc, char* argv[]) {
     context.video_buffer = &front_buffer;
     context.sleep = &sleep;
     context.limit_frames = &handler->limit_frames_;
+    context.stop = &stop;
 
     struct : VBlankListener
     {
@@ -148,12 +150,12 @@ int main(int argc, char* argv[]) {
 
     using namespace std::chrono;
 
-    while (true)
+    while (!stop)
     {
         std::chrono::high_resolution_clock::time_point t1 = high_resolution_clock::now();;
 
         if (gui::PollEvents(context))
-            break;
+            stop = true;
 
         RenderGUI(context);
 
@@ -163,6 +165,10 @@ int main(int argc, char* argv[]) {
         const auto duration = std::chrono::nanoseconds((long)((1000000000 / 60) - time_span.count()));
         std::this_thread::sleep_for(duration);
     }
+
+    run = false;
+
+    gb_thread.join();
 
     delete front_buffer;
     delete back_buffer;
