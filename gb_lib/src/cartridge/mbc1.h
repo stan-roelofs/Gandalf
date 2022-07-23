@@ -7,7 +7,7 @@
 namespace gandalf {
     class MBC1 : public MBC {
     public:
-        MBC1(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks);
+        MBC1(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks, bool has_battery = false);
         virtual ~MBC1();
 
         byte Read(word address) const override;
@@ -18,6 +18,7 @@ namespace gandalf {
         byte rom_bank_number_;
         byte ram_bank_number_;
         bool advanced_banking_mode_;
+        bool has_battery_; // TODO: implement battery
     };
 }
 

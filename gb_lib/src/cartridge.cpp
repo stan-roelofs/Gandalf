@@ -20,8 +20,11 @@ namespace gandalf {
     };
 
     const std::map<byte, CartridgeBankProperties> kCartridgeBankProperties = {
-        {0x00, {{2}, {0, 1}}},
-        {0x01, {{2, 4, 8, 16, 32, 64, 128}, {0, 1, 4}}}
+        {0x00, {{2}, {}}},//
+        {0x01, {{2, 4, 8, 16, 32, 64, 128}, {}}},
+        {0x02, {{2, 4, 8, 16, 32, 64, 128}, {0, 1, 4}}},
+        {0x03, {{2, 4, 8, 16, 32, 64, 128}, {0, 1, 4}}},
+        {0x08, {{2}, {1}}},
     };
 
     std::string Cartridge::Header::GetTitle() const
@@ -398,7 +401,7 @@ namespace gandalf {
             std::cerr << "This cartridge type does not support " << rom_banks << " ROM banks." << std::endl;
             return false;
         }
-        if (std::find(bank_properties.ram_banks.begin(), bank_properties.ram_banks.end(), ram_banks) == bank_properties.ram_banks.end())
+        if (ram_banks != 0 && std::find(bank_properties.ram_banks.begin(), bank_properties.ram_banks.end(), ram_banks) == bank_properties.ram_banks.end())
         {
             std::cerr << "This cartridge type does not support " << ram_banks << " RAM banks." << std::endl;
             return false;
@@ -422,8 +425,12 @@ namespace gandalf {
 
         switch (result->cartridge_type)
         {
-        case 0x00: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, ram_banks)); break;
-        case 0x01: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks)); break;
+        case 0x00: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, 0)); break;
+        case 0x01: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, 0)); break;
+        case 0x02: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks)); break;
+        case 0x03: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks, true)); break;
+            //case 0x04: mbc_ = std::unique_ptr<MBC2>(new MBC2(bytes, rom_banks, ram_banks)); break;
+        case 0x08: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, ram_banks)); break;
         default: assert(false); break;
         }
 
