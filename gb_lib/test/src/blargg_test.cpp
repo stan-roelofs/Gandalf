@@ -71,7 +71,7 @@ TEST_P(BlarggTest, cpu_instructions)
     ASSERT_TRUE(ReadFileBytes("/bootrom/boot.bin", bootrom_bytes));
     Gameboy::BootROM bootrom;
     std::copy(bootrom_bytes.begin(), bootrom_bytes.end(), bootrom.begin());
-    std::unique_ptr<Gameboy> gb = std::unique_ptr<Gameboy>(new Gameboy());
+    std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>();
     gb->LoadBootROM(bootrom);
     gb->Load(rom_bytes);
 

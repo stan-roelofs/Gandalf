@@ -22,6 +22,8 @@ namespace gandalf {
         byte tima_;
         byte tac_;
         Bus& bus_;
+
+        bool enabled_;
     };
 }
 

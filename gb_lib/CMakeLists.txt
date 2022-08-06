@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 set(HEADERS
     include/gandalf/apu.h
@@ -19,13 +19,17 @@ set(HEADERS
     include/gandalf/model.h
     include/gandalf/ppu.h
     include/gandalf/serial.h
+    include/gandalf/sound/sound_channel.h
+    include/gandalf/sound/frequency_sweep_unit.h
+    include/gandalf/sound/length_counter.h
+    include/gandalf/sound/square_wave.h
     include/gandalf/timer.h
     include/gandalf/types.h
     include/gandalf/util.h
     include/gandalf/wram.h
     src/bootrom.h
     src/cartridge/mbc1.h
-    src/cartridge/rom_only.h    
+    src/cartridge/rom_only.h
 )
 
 set(SOURCES
@@ -45,6 +49,10 @@ set(SOURCES
     src/lcd.cpp
     src/ppu.cpp
     src/serial.cpp
+    src/sound/frequency_sweep_unit.cpp
+    src/sound/length_counter.cpp
+    src/sound/sound_channel.cpp
+    src/sound/square_wave.cpp
     src/timer.cpp
     src/wram.cpp
 )

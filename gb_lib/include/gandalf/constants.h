@@ -53,6 +53,7 @@ namespace gandalf {
     constexpr word kNR13 = 0xFF13;
     constexpr word kNR14 = 0xFF14;
 
+    constexpr word kNR20 = 0xFF15;
     constexpr word kNR21 = 0xFF16;
     constexpr word kNR22 = 0xFF17;
     constexpr word kNR23 = 0xFF18;
@@ -64,6 +65,7 @@ namespace gandalf {
     constexpr word kNR33 = 0xFF1D;
     constexpr word kNR34 = 0xFF1E;
 
+    constexpr word kNR40 = 0xFF1F;
     constexpr word kNR41 = 0xFF20;
     constexpr word kNR42 = 0xFF21;
     constexpr word kNR43 = 0xFF22;

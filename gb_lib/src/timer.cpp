@@ -6,14 +6,7 @@
 #include <gandalf/constants.h>
 
 namespace {
-    bool TimerEnabled(gandalf::byte tac) {
-        return tac & (1 << 2);
-    }
-
     bool ShouldIncreaseTimer(gandalf::byte tac, gandalf::word prev_div, gandalf::word div) {
-        if (!TimerEnabled(tac))
-            return false;
-
         const gandalf::byte mode = tac & 0x3;
         if (mode == 0)
             return (prev_div & (1 << 9)) && (!(div & (1 << 9)));
@@ -29,7 +22,7 @@ namespace {
 namespace gandalf
 {
     // TODO is initial value correct? verify using tests
-    Timer::Timer(Bus& bus) : Bus::AddressHandler("Timer"), div_(0xAC00), tma_(0), tima_(0), tac_(0), bus_(bus)
+    Timer::Timer(Bus& bus) : Bus::AddressHandler("Timer"), div_(0xAC00), tma_(0), tima_(0), tac_(0), bus_(bus), enabled_(false)
     {
     }
 
@@ -43,7 +36,7 @@ namespace gandalf
 
         div_++;
 
-        if (ShouldIncreaseTimer(tac_, prev_div, div_)) {
+        if (enabled_ && ShouldIncreaseTimer(tac_, prev_div, div_)) {
             tima_++;
 
             if (tima_ == 0) {
@@ -63,6 +56,7 @@ namespace gandalf
         case kTAC:
             // TODO disabling can cause TIMA increase, we'll ignore this for now and implement it later
             tac_ = value;
+            enabled_ = tac_ & (1 << 2);
             break;
         case kTIMA:
             tima_ = value;
@@ -74,8 +68,6 @@ namespace gandalf
             // TODO writing to DIV can cause TIMA increase, we'll ignore this for now and implement it later
             div_ = 0;
             break;
-            //default:
-                //throw Exception("Invalid timer address");
         }
     }
 

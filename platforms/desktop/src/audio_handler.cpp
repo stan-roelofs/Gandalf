@@ -9,7 +9,7 @@
 namespace
 {
     constexpr int kFrequency = 48000;
-    constexpr int kFormat = AUDIO_S8;
+    constexpr int kFormat = AUDIO_U8;
     constexpr int kNumberOfChannels = 2;
     constexpr int kBufferSizeSamples = 1024;
     constexpr int kBufferSizeBytes = kBufferSizeSamples * kNumberOfChannels;

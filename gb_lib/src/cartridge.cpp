@@ -425,12 +425,12 @@ namespace gandalf {
 
         switch (result->cartridge_type)
         {
-        case 0x00: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, 0)); break;
-        case 0x01: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, 0)); break;
-        case 0x02: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks)); break;
-        case 0x03: mbc_ = std::unique_ptr<MBC1>(new MBC1(bytes, rom_banks, ram_banks, true)); break;
+        case 0x00: mbc_ = std::make_unique<ROMOnly>(bytes, 0); break;
+        case 0x01: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, 0); break;
+        case 0x02: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, ram_banks); break;
+        case 0x03: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, ram_banks, true); break;
             //case 0x04: mbc_ = std::unique_ptr<MBC2>(new MBC2(bytes, rom_banks, ram_banks)); break;
-        case 0x08: mbc_ = std::unique_ptr<ROMOnly>(new ROMOnly(bytes, ram_banks)); break;
+        case 0x08: mbc_ = std::make_unique<ROMOnly>(bytes, ram_banks); break;
         default: assert(false); break;
         }
 

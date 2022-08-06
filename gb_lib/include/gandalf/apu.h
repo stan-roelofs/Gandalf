@@ -2,6 +2,9 @@
 #define __GANDALF_APU_H
 
 #include "bus.h"
+#include "sound/sound_channel.h"
+#include "sound/square_wave.h"
+
 
 namespace gandalf
 {
@@ -33,6 +36,23 @@ namespace gandalf
 
     private:
         std::shared_ptr<OutputHandler> output_handler_;
+        std::array<byte, 0x20> wave_ram_;
+
+        SquareWave square_wave1_;
+        SquareWave square_wave2_;
+        std::array<byte, 4> samples_;
+
+        // NR50
+        bool vin_left_;
+        bool vin_right_;
+        byte left_volume_;
+        byte right_volume_;
+        // NR51
+        std::array<bool, 4> channel_left_enabled_;
+        std::array<bool, 4> channel_right_enabled_;
+        // NR52
+        bool sound_enabled_;
+
     };
 } // namespace gandalf
 
