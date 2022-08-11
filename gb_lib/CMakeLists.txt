@@ -19,8 +19,9 @@ set(HEADERS
     include/gandalf/model.h
     include/gandalf/ppu.h
     include/gandalf/serial.h
-    include/gandalf/sound/sound_channel.h
+    include/gandalf/sound/frame_sequencer.h
     include/gandalf/sound/frequency_sweep_unit.h
+    include/gandalf/sound/sound_channel.h
     include/gandalf/sound/length_counter.h
     include/gandalf/sound/square_wave.h
     include/gandalf/timer.h
@@ -49,6 +50,7 @@ set(SOURCES
     src/lcd.cpp
     src/ppu.cpp
     src/serial.cpp
+    src/sound/frame_sequencer.cpp
     src/sound/frequency_sweep_unit.cpp
     src/sound/length_counter.cpp
     src/sound/sound_channel.cpp

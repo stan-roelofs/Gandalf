@@ -2,9 +2,9 @@
 #define __GANDALF_APU_H
 
 #include "bus.h"
+#include "sound/frame_sequencer.h"
 #include "sound/sound_channel.h"
 #include "sound/square_wave.h"
-
 
 namespace gandalf
 {
@@ -34,13 +34,22 @@ namespace gandalf
 
         void SetOutputHandler(std::shared_ptr<OutputHandler> handler);
 
+        /** Enables / disables sound of the given channel
+        * @param channel channel index (0-3)
+        * @param mute whether to enable or disable sound for the given channel
+        */
+        void MuteChannel(int channel, bool mute);
+
     private:
         std::shared_ptr<OutputHandler> output_handler_;
         std::array<byte, 0x20> wave_ram_;
 
+        FrameSequencer frame_sequencer_;
         SquareWave square_wave1_;
         SquareWave square_wave2_;
         std::array<byte, 4> samples_;
+
+        std::array<bool, 4> mute_channel_;
 
         // NR50
         bool vin_left_;
@@ -52,7 +61,6 @@ namespace gandalf
         std::array<bool, 4> channel_right_enabled_;
         // NR52
         bool sound_enabled_;
-
     };
 } // namespace gandalf
 

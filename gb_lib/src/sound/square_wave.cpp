@@ -9,15 +9,17 @@ namespace
 
 namespace gandalf
 {
-    SquareWave::SquareWave() : SoundChannel(),
+    SquareWave::SquareWave(FrameSequencer& frame_sequencer) : SoundChannel(),
         pattern_duty_(0),
         duty_counter_(0),
         frequency_low_(0),
         frequency_high_(0),
         //frequency_sweep_unit_(nr0_, nr3_, nr4_, channel_enabled_), 
-        length_counter_(64, channel_enabled_), timer_(0),
-        last_output_(0)
+        timer_(0),
+        last_output_(0),
+        length_counter_(std::make_shared<LengthCounter>((byte)64, channel_enabled_))
     {
+        frame_sequencer.AddListener(length_counter_);
     }
 
     SquareWave::~SquareWave() = default;
@@ -39,7 +41,7 @@ namespace gandalf
         case 4:
         {
             byte result = 0xBF;
-            if (length_counter_.GetEnabled())
+            if (length_counter_->GetEnabled())
                 result |= 1 << 6;
             return result;
         }
@@ -58,7 +60,7 @@ namespace gandalf
             break;
         case 1:
             pattern_duty_ = value >> 6;
-            length_counter_.SetLength(value & 0x3F);
+            length_counter_->SetLength(value & 0x3F);
             break;
         case 2:
             break;
@@ -69,7 +71,7 @@ namespace gandalf
             if (value & 0x80)
                 Trigger();
 
-            length_counter_.SetEnabled((value & 0x40) != 0);
+            length_counter_->SetEnabled((value & 0x40) != 0);
             frequency_high_ = value & 0b111;
             break;
         }
@@ -90,9 +92,6 @@ namespace gandalf
 
     gandalf::byte SquareWave::Tick()
     {
-        //volume_envelope_.Tick();
-        //length_counter_.Tick();
-
         --timer_;
         if (timer_ == 0)
         {

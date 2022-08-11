@@ -4,15 +4,9 @@
 
 #include <gandalf/constants.h>
 
-namespace
-{
-    constexpr gandalf::word kFrameSequencerTicks = gandalf::kCPUFrequency / 256;
-}
-
 namespace gandalf
 {
     LengthCounter::LengthCounter(byte full_length, bool& channel_enabled) :
-        frame_sequencer_counter_(0),
         counter_enabled_(false),
         channel_enabled_(channel_enabled),
         remaining_length_(0),
@@ -23,20 +17,23 @@ namespace gandalf
 
     LengthCounter::~LengthCounter() = default;
 
-    void LengthCounter::Tick()
+    void LengthCounter::OnFrameSequencerStep()
     {
-        if (frame_sequencer_counter_ == 0)
+        if (counter_enabled_ && remaining_length_ > 0)
         {
-            frame_sequencer_counter_ = kFrameSequencerTicks;
-            if (counter_enabled_ && remaining_length_ > 0)
-            {
-                --remaining_length_;
-                if (remaining_length_ == 0)
-                    channel_enabled_ = false;
-            }
+            --remaining_length_;
+            if (remaining_length_ == 0)
+                channel_enabled_ = false;
         }
+    }
 
-        --frame_sequencer_counter_;
+    std::array<bool, 8> LengthCounter::GetSteps() const
+    {
+        std::array<bool, 8> steps;
+        steps.fill(false);
+        for (int i = 0; i < 8; i += 2)
+            steps[i] = true;
+        return steps;
     }
 
     void LengthCounter::Trigger()

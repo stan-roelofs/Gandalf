@@ -13,11 +13,13 @@ namespace {
 namespace gandalf
 {
     APU::APU() : Bus::AddressHandler("APU"),
-        sound_enabled_(false),
+        square_wave1_(frame_sequencer_),
+        square_wave2_(frame_sequencer_),
         vin_left_(false),
         vin_right_(false),
         left_volume_(0),
-        right_volume_(0)
+        right_volume_(0),
+        sound_enabled_(false)
     {
         wave_ram_.fill((byte)std::rand());
         samples_.fill(0);
@@ -125,8 +127,16 @@ namespace gandalf
 
     void APU::Tick()
     {
-        //samples_[0] = square_wave1_.Tick();
+        frame_sequencer_.Tick();
+
+        samples_[0] = square_wave1_.Tick();
         samples_[1] = square_wave2_.Tick();
+
+        for (int i = 0; i < 4; ++i)
+        {
+            if (mute_channel_[i])
+                samples_[i] = 0;
+        }
 
         // Panning
         word left = 0, right = 0;
@@ -153,5 +163,13 @@ namespace gandalf
     void APU::SetOutputHandler(std::shared_ptr<APU::OutputHandler> handler)
     {
         output_handler_ = handler;
+    }
+
+    void APU::MuteChannel(int channel, bool mute)
+    {
+        if (channel >= 4)
+            return;
+
+        mute_channel_[channel] = mute;
     }
 } // namespace gandalf

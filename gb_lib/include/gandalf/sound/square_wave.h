@@ -11,7 +11,7 @@ namespace gandalf
     class SquareWave : public SoundChannel
     {
     public:
-        SquareWave();
+        SquareWave(FrameSequencer& frame_sequencer);
         virtual ~SquareWave();
 
         virtual byte GetRegister(int index) const override;
@@ -33,7 +33,7 @@ namespace gandalf
         word timer_;
         byte last_output_;
 
-        LengthCounter length_counter_;
+        std::shared_ptr<LengthCounter> length_counter_;
         //FrequencySweepUnit frequency_sweep_unit_;
     };
 
