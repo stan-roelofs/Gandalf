@@ -79,6 +79,12 @@ int main(int argc, char* argv[]) {
 
     gb->LoadBootROM(boot_rom_array);
 
+    if (argc >= 3)
+    {
+        std::filesystem::path path(argv[2]);
+        gui::LoadROM(*gb, path);
+    }
+
     if (!gui::SetupGUI()) {
         std::cerr << "Could not setup GUI" << std::endl;
         return EXIT_FAILURE;

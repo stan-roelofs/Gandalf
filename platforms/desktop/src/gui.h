@@ -2,6 +2,7 @@
 #define __GB_APP_GUI_H
 
 #include <optional>
+#include <filesystem>
 
 #include <gandalf/gameboy.h>
 
@@ -22,5 +23,6 @@ namespace gui {
     bool PollEvents(Context& context);
     void RenderGUI(Context& context);
     void DestroyGUI();
+    void LoadROM(gandalf::Gameboy& gb, const std::filesystem::path& path);
 }
 #endif

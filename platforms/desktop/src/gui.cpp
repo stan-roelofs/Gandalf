@@ -415,14 +415,7 @@ namespace gui
         file_dialog.Display();
         if (file_dialog.HasSelected())
         {
-            std::ifstream input(file_dialog.GetSelected(), std::ios::binary);
-            if (input.fail())
-                std::cout << "Failed to open file: " << file_dialog.GetSelected().string() << std::endl;
-            else {
-                std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
-                    std::istreambuf_iterator<char>());
-                context.gameboy->Load(file);
-            }
+            LoadROM(*context.gameboy, file_dialog.GetSelected());
 
             file_dialog.ClearSelected();
         }
@@ -446,6 +439,18 @@ namespace gui
         SDL_RenderClear(renderer);
         ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
         SDL_RenderPresent(renderer);
+    }
+
+    void LoadROM(gandalf::Gameboy& gb, const std::filesystem::path& path)
+    {
+        std::ifstream input(path, std::ios::binary);
+        if (input.fail())
+            std::cout << "Failed to open file: " << file_dialog.GetSelected().string() << std::endl;
+        else {
+            std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
+                std::istreambuf_iterator<char>());
+            gb.Load(file);
+        }
     }
 
     void DestroyGUI()
