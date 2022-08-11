@@ -215,6 +215,19 @@ namespace gui
         else
             ImGui::TextUnformatted("No ROM loaded");
         ImGui::End();
+
+        ImGui::Begin("Sound");
+        static bool channel_enabled[4] = { true, true, true, true };
+        if (ImGui::Checkbox("Square wave 1", &channel_enabled[0]))
+            context.gameboy->GetAPU().MuteChannel(0, !channel_enabled[0]);
+        if (ImGui::Checkbox("Square wave 2", &channel_enabled[1]))
+            context.gameboy->GetAPU().MuteChannel(1, !channel_enabled[1]);
+        if (ImGui::Checkbox("Wave", &channel_enabled[2]))
+            context.gameboy->GetAPU().MuteChannel(2, !channel_enabled[2]);
+        if (ImGui::Checkbox("Noise", &channel_enabled[3]))
+            context.gameboy->GetAPU().MuteChannel(3, !channel_enabled[3]);
+
+        ImGui::End();
     }
 
     void HelpMarker(const char* desc)
