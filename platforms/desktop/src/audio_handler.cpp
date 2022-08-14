@@ -50,7 +50,7 @@ void SDLAudioHandler::Play(gandalf::byte left, gandalf::byte right)
 {
     if (divider_++ < kDownSampling)
         return;
-    
+
     divider_ = 0;
 
     audio_buffer_[index_++] = left;

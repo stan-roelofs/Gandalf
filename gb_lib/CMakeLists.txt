@@ -23,7 +23,10 @@ set(HEADERS
     include/gandalf/sound/frequency_sweep_unit.h
     include/gandalf/sound/sound_channel.h
     include/gandalf/sound/length_counter.h
-    include/gandalf/sound/square_wave.h
+    include/gandalf/sound/noise_channel.h
+    include/gandalf/sound/square_wave_channel.h
+    include/gandalf/sound/volume_envelope.h
+    include/gandalf/sound/wave_channel.h
     include/gandalf/timer.h
     include/gandalf/types.h
     include/gandalf/util.h
@@ -53,8 +56,11 @@ set(SOURCES
     src/sound/frame_sequencer.cpp
     src/sound/frequency_sweep_unit.cpp
     src/sound/length_counter.cpp
+    src/sound/noise_channel.cpp
     src/sound/sound_channel.cpp
-    src/sound/square_wave.cpp
+    src/sound/square_wave_channel.cpp
+    src/sound/volume_envelope.cpp
+    src/sound/wave_channel.cpp
     src/timer.cpp
     src/wram.cpp
 )

@@ -4,7 +4,6 @@
 #include "bus.h"
 #include "sound/frame_sequencer.h"
 #include "sound/sound_channel.h"
-#include "sound/square_wave.h"
 
 namespace gandalf
 {
@@ -45,10 +44,8 @@ namespace gandalf
         std::array<byte, 0x20> wave_ram_;
 
         FrameSequencer frame_sequencer_;
-        SquareWave square_wave1_;
-        SquareWave square_wave2_;
+        std::array<std::unique_ptr<SoundChannel>, 4> sound_channels_;
         std::array<byte, 4> samples_;
-
         std::array<bool, 4> mute_channel_;
 
         // NR50

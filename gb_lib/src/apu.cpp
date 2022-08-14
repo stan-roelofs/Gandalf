@@ -3,18 +3,13 @@
 #include <cassert>
 
 #include <gandalf/constants.h>
-#include <gandalf/sound/square_wave.h>
+#include <gandalf/sound/square_wave_channel.h>
+#include <gandalf/sound/noise_channel.h>
 #include <gandalf/util.h>
-
-namespace {
-    constexpr gandalf::word kFrameSequencerTicks = gandalf::kCPUFrequency / 512;
-}
 
 namespace gandalf
 {
     APU::APU() : Bus::AddressHandler("APU"),
-        square_wave1_(frame_sequencer_),
-        square_wave2_(frame_sequencer_),
         vin_left_(false),
         vin_right_(false),
         left_volume_(0),
@@ -27,20 +22,21 @@ namespace gandalf
         channel_left_enabled_.fill(false);
         channel_right_enabled_.fill(false);
 
+
         //todo dac
 
-        //struct DummyChannel : SoundChannel
-        //{
-        //    DummyChannel() : SoundChannel() {}
-        //    byte Tick() override { return 0; }
-        //    void SetRegister(int, byte) override {}
-        //    byte GetRegister(int) const override { return 0; }
-        //};
+        struct DummyChannel : SoundChannel
+        {
+            DummyChannel() : SoundChannel() {}
+            byte Tick() override { return 0; }
+            void SetRegister(int, byte) override {}
+            byte GetRegister(int) const override { return 0; }
+        };
 
-        //sound_channels_[0] = std::make_unique<DummyChannel>();
-        //sound_channels_[1] = std::make_unique<SquareWave2>();
-        //sound_channels_[2] = std::make_unique<DummyChannel>();
-        //sound_channels_[3] = std::make_unique<DummyChannel>();
+        sound_channels_[0] = std::make_unique<SquareWaveChannel>(frame_sequencer_);
+        sound_channels_[1] = std::make_unique<SquareWaveChannel>(frame_sequencer_); // TODO sq1 sq2
+        sound_channels_[2] = std::make_unique<DummyChannel>();
+        sound_channels_[3] = std::make_unique<NoiseChannel>(frame_sequencer_);
     }
 
     APU::~APU() = default;
@@ -49,10 +45,12 @@ namespace gandalf
     {
         assert(BETWEEN(address, 0xFF10, 0xFF27) || BETWEEN(address, 0xFF30, 0xFF40));
 
-        if (address <= kNR14)
-            square_wave1_.SetRegister(address - kNR10, value);
-        else if (address <= kNR24)
-            square_wave2_.SetRegister(address - kNR20, value);
+        if (address <= kNR44)
+        {
+            const int channel = (address - kNR10) / 5;
+            const int reg = (address - kNR10) % 5;
+            sound_channels_[channel]->SetRegister(reg, value);
+        }
         else if (address == kNR50)
         {
             vin_left_ = (value & 0x80) != 0;
@@ -82,10 +80,12 @@ namespace gandalf
     byte APU::Read(word address) const
     {
         assert(BETWEEN(address, 0xFF10, 0xFF27) || BETWEEN(address, 0xFF30, 0xFF40));
-        if (address <= kNR14)
-            return square_wave1_.GetRegister(address - kNR10);
-        else if (address <= kNR24)
-            return square_wave2_.GetRegister(address - kNR20);
+        if (address <= kNR44)
+        {
+            const int channel = (address - kNR10) / 4;
+            const int reg = (address - kNR10) % 5;
+            return sound_channels_[channel]->GetRegister(reg);
+        }
         else if (address == kNR50)
             return 0xFF; //TODO
         else if (address == kNR51)
@@ -96,10 +96,10 @@ namespace gandalf
             if (sound_enabled_)
                 result |= 0x80; // Bit 7 - Sound on/off
 
-            if (square_wave1_.GetEnabled())
-                result |= 0x1;
-            if (square_wave2_.GetEnabled())
-                result |= 0x2;
+            for (int i = 0; i < 4; ++i) {
+                if (sound_channels_[i]->GetEnabled())
+                    result |= (1 << i);
+            }
 
             return result;
         }
@@ -129,8 +129,10 @@ namespace gandalf
     {
         frame_sequencer_.Tick();
 
-        samples_[0] = square_wave1_.Tick();
-        samples_[1] = square_wave2_.Tick();
+        for (int i = 0; i < 4; ++i) {
+            samples_[i] = sound_channels_[i]->Tick();
+            assert(samples_[i] <= 15);
+        }
 
         for (int i = 0; i < 4; ++i)
         {

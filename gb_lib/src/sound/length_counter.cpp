@@ -19,12 +19,12 @@ namespace gandalf
 
     void LengthCounter::OnFrameSequencerStep()
     {
-        if (counter_enabled_ && remaining_length_ > 0)
-        {
-            --remaining_length_;
-            if (remaining_length_ == 0)
-                channel_enabled_ = false;
-        }
+        if (!counter_enabled_ || remaining_length_ == 0)
+            return;
+
+        --remaining_length_;
+        if (remaining_length_ == 0)
+            channel_enabled_ = false;
     }
 
     std::array<bool, 8> LengthCounter::GetSteps() const

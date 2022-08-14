@@ -10,7 +10,14 @@ namespace
 namespace gandalf
 {
     FrequencySweepUnit::FrequencySweepUnit(byte& nr10, byte& nr13, byte& nr14, bool& sound_channel_enabled) :
-        nr10_(nr10), nr13_(nr13), nr14_(nr14), frame_sequencer_counter_(0), timer_(0), enabled_(false), frequency_shadow_register_(0), sound_channel_enabled_(sound_channel_enabled)
+        nr10_(nr10),
+        nr13_(nr13),
+        nr14_(nr14),
+        sound_channel_enabled_(sound_channel_enabled),
+        frame_sequencer_counter_(0),
+        timer_(0),
+        enabled_(false),
+        frequency_shadow_register_(0)
     {
 
     }
