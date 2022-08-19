@@ -1,45 +1,49 @@
 #ifndef __GANDALF_SOUND_FREQUENCY_SWEEP_UNIT_H__
 #define __GANDALF_SOUND_FREQUENCY_SWEEP_UNIT_H__
 
+#include "frame_sequencer.h"
 #include <gandalf/types.h>
 
 namespace gandalf
 {
-    class FrequencySweepUnit
+    /**
+     * A frequency sweep unit is used to change the frequency of a channel
+     * over time.
+     */
+    class FrequencySweepUnit : public FrameSequencer::Listener
     {
     public:
-        FrequencySweepUnit(byte& nr10, byte& nr13, byte& nr14, bool& sound_channel_enabled);
-        ~FrequencySweepUnit();
+        FrequencySweepUnit(byte& frequency_low, byte& frequency_high, bool& sound_channel_enabled);
+        virtual ~FrequencySweepUnit();
 
-        /**
-         * During a trigger event, several things occur:
-         *   Square 1's frequency is copied to the shadow register.
-         *   The sweep timer is reloaded.
-         *   The internal enabled flag is set if either the sweep period or shift are non-zero, cleared otherwise.
-         *   If the sweep shift is non-zero, frequency calculation and the overflow check are performed immediately.
-         */
+        virtual void OnFrameSequencerStep() override;
+        virtual std::array<bool, 8> GetSteps() const override;
+
         void Trigger();
-        void Tick();
 
+        void SetFrequency(word frequency);
+        word GetFrequency() const;
+
+        void SetShift(byte shift);
+        byte GetShift() const;
+        void SetNegate(bool negate);
+        bool GetNegate() const;
+        void SetPeriod(byte period);
+        byte GetPeriod() const;
     private:
         void ReloadTimer();
-        byte GetPeriod() const;
-        byte GetShift() const;
-        bool GetNegate() const;
-        byte GetFrequency() const;
-        void SetFrequency(word frequency);
-        word CalculateFrequency();
+        word FrequencyCalculation();
 
-        // TODO should these be references or can they be owned by this class? does squarewave need to own these?
-        byte& nr10_;
-        byte& nr13_;
-        byte& nr14_;
         bool& sound_channel_enabled_;
+        byte& frequency_low_;
+        byte& frequency_high_;
 
-        int frame_sequencer_counter_;
-        int timer_;
         bool enabled_;
         word frequency_shadow_register_;
+        byte period_;
+        byte shift_;
+        bool negate_;
+        byte timer_;
     };
 } // namespace gandalf
 

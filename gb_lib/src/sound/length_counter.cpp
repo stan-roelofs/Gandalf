@@ -6,7 +6,7 @@
 
 namespace gandalf
 {
-    LengthCounter::LengthCounter(byte full_length, bool& channel_enabled) :
+    LengthCounter::LengthCounter(int full_length, bool& channel_enabled) :
         counter_enabled_(false),
         channel_enabled_(channel_enabled),
         remaining_length_(0),

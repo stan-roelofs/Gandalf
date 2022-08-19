@@ -9,38 +9,21 @@ namespace
 
 namespace gandalf
 {
-    FrequencySweepUnit::FrequencySweepUnit(byte& nr10, byte& nr13, byte& nr14, bool& sound_channel_enabled) :
-        nr10_(nr10),
-        nr13_(nr13),
-        nr14_(nr14),
+    FrequencySweepUnit::FrequencySweepUnit(byte& frequency_low, byte& frequency_high, bool& sound_channel_enabled) :
         sound_channel_enabled_(sound_channel_enabled),
-        frame_sequencer_counter_(0),
-        timer_(0),
+        frequency_low_(frequency_low),
+        frequency_high_(frequency_high),
         enabled_(false),
-        frequency_shadow_register_(0)
+        frequency_shadow_register_(0),
+        period_(0),
+        shift_(0),
+        negate_(false),
+        timer_(0)
     {
 
     }
 
     FrequencySweepUnit::~FrequencySweepUnit() = default;
-
-    void FrequencySweepUnit::Tick()
-    {
-        ++frame_sequencer_counter_;
-        if (frame_sequencer_counter_ < kDivider)
-            return;
-
-        frame_sequencer_counter_ = 0;
-        if (!enabled_)
-            return;
-
-        --timer_;
-        if (timer_ > 0)
-            return;
-
-        ReloadTimer();
-
-    }
 
     void FrequencySweepUnit::Trigger()
     {
@@ -50,69 +33,108 @@ namespace gandalf
         // The sweep timer is reloaded.
         ReloadTimer();
 
-        const byte shift = GetShift();
         // The internal enabled flag is set if either the sweep period or shift are non-zero, cleared otherwise.
-        enabled_ = shift != 0 || GetPeriod() != 0;
+        enabled_ = shift_ != 0 || period_ != 0;
 
         // If the sweep shift is non-zero, frequency calculation and the overflow check are performed immediately.
-        if (shift != 0)
-            SetFrequency(CalculateFrequency());
-    }
-
-    void FrequencySweepUnit::ReloadTimer()
-    {
-        timer_ = GetPeriod();
-
-        // The volume envelope and sweep timers treat a period of 0 as 8.
-        if (timer_ == 0)
-            timer_ = 8;
-    }
-
-    word FrequencySweepUnit::CalculateFrequency()
-    {
-        /* Frequency calculation consists of taking the value in the frequency shadow register,
-        shifting it right by sweep shift, optionally negating the value,
-        and summing this with the frequency shadow register to produce a new frequency.
-
-        The overflow check simply calculates the new frequency and if this is greater than 2047, square 1 is disabled
-        */
-        word new_frequency_ = frequency_shadow_register_ >> GetShift();
-        if (GetNegate())
-            new_frequency_ = frequency_shadow_register_ - new_frequency_;
-        else
-            new_frequency_ = frequency_shadow_register_ + new_frequency_;
-
-        if (new_frequency_ > 2047) {
-            enabled_ = false;
-            sound_channel_enabled_ = false;
-        }
-
-        return new_frequency_;
-    }
-
-    byte FrequencySweepUnit::GetPeriod() const
-    {
-        return nr10_ >> 4;
-    }
-
-    byte FrequencySweepUnit::GetShift() const
-    {
-        return nr10_ & 0x7;
-    }
-
-    bool FrequencySweepUnit::GetNegate() const
-    {
-        return (nr10_ & 0x8) != 0;
-    }
-
-    byte FrequencySweepUnit::GetFrequency() const
-    {
-        return ((nr14_ & 0x7) << 8) | nr13_;
+        if (shift_ != 0)
+            SetFrequency(FrequencyCalculation());
     }
 
     void FrequencySweepUnit::SetFrequency(word frequency)
     {
-        nr13_ = frequency & 0xFF;
-        nr14_ |= (frequency >> 8) & 0x7;
+        frequency_low_ = frequency & 0xFF;
+        frequency_high_ = (frequency >> 8) & 0b111;
+    }
+
+    word FrequencySweepUnit::GetFrequency() const
+    {
+        return (2048 - (frequency_low_ | (frequency_high_ << 8))) * 4;
+    }
+
+    void FrequencySweepUnit::SetShift(byte shift)
+    {
+        shift_ = shift;
+    }
+
+    byte FrequencySweepUnit::GetShift() const
+    {
+        return shift_;
+    }
+
+    void FrequencySweepUnit::SetNegate(bool negate)
+    {
+        negate_ = negate;
+    }
+
+    bool FrequencySweepUnit::GetNegate() const
+    {
+        return negate_;
+    }
+
+    void FrequencySweepUnit::SetPeriod(byte period)
+    {
+        period_ = period;
+    }
+
+    byte FrequencySweepUnit::GetPeriod() const
+    {
+        return period_;
+    }
+
+    void FrequencySweepUnit::ReloadTimer()
+    {
+        timer_ = period_;
+        if (timer_ == 0)
+            timer_ = 8;
+    }
+
+    word FrequencySweepUnit::FrequencyCalculation()
+    {
+        /* Frequency calculation consists of taking the value in the frequency shadow register, shifting it right by sweep shift,
+        optionally negating the value, and summing this with the frequency shadow register to produce a new frequency. */
+        word result = frequency_shadow_register_ >> shift_;
+        if (negate_)
+            result = -result;
+
+        result = frequency_shadow_register_ + result;
+
+        if (result > 2047) {
+            sound_channel_enabled_ = false;
+            enabled_ = false;
+        }
+
+        return result;
+    }
+
+
+    void FrequencySweepUnit::OnFrameSequencerStep()
+    {
+        /*
+        The sweep timer is clocked at 128 Hz by the frame sequencer. When it generates a clock and the sweep's internal enabled flag is set and the sweep period is not zero,
+        a new frequency is calculated and the overflow check is performed. If the new frequency is 2047 or less and the sweep shift is not zero,
+        this new frequency is written back to the shadow frequency and square 1's frequency in NR13 and NR14,
+        then frequency calculation and overflow check are run AGAIN immediately using this new value, but this second new frequency is not written back.*/
+        if (!enabled_ || period_ == 0)
+            return;
+
+        timer_--;
+        if (timer_ == 0)
+        {
+            ReloadTimer();
+            const word freq = FrequencyCalculation();
+            if (freq <= 2047 && shift_ != 0)
+            {
+                frequency_shadow_register_ = freq;
+                SetFrequency(freq);
+
+                FrequencyCalculation();
+            }
+        }
+    }
+
+    std::array<bool, 8> FrequencySweepUnit::GetSteps() const
+    {
+        return { false, false, true, false, false, false, true, false };
     }
 } // namespace gandalf

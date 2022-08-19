@@ -13,16 +13,16 @@ namespace gandalf
     {
     public:
         SquareWaveChannel(FrameSequencer& frame_sequencer);
-        virtual ~SquareWaveChannel();
+        ~SquareWaveChannel();
 
         byte GetRegister(int index) const override;
         void SetRegister(int index, byte value) override;
 
-        gandalf::byte Tick();
+        gandalf::byte Tick() override;
 
-    private:
-        void Trigger();
-        word GetFrequency();
+    protected:
+        virtual void Trigger();
+        virtual word GetFrequency() const;
 
         byte pattern_duty_;
         byte duty_counter_;
@@ -39,8 +39,20 @@ namespace gandalf
 
     class SquareWave1Channel : public SquareWaveChannel
     {
+    public:
+        SquareWave1Channel(FrameSequencer& frame_sequencer);
 
+        byte GetRegister(int index) const override;
+        void SetRegister(int index, byte value) override;
+
+    protected:
+        word GetFrequency() const override;
+        void Trigger() override;
+
+    private:
+        std::shared_ptr<FrequencySweepUnit> frequency_sweep_unit_;
     };
+
 
     class SquareWave2Channel : public SquareWaveChannel
     {

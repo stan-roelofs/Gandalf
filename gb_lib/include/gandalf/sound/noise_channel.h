@@ -12,12 +12,12 @@ namespace gandalf
     {
     public:
         NoiseChannel(FrameSequencer& frame_sequencer);
-        virtual ~NoiseChannel();
+        ~NoiseChannel();
 
         byte GetRegister(int index) const override;
         void SetRegister(int index, byte value) override;
 
-        gandalf::byte Tick();
+        gandalf::byte Tick() override;
 
     private:
         void Trigger();

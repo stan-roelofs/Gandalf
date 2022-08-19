@@ -5,6 +5,7 @@
 #include <gandalf/constants.h>
 #include <gandalf/sound/square_wave_channel.h>
 #include <gandalf/sound/noise_channel.h>
+#include <gandalf/sound/wave_channel.h>
 #include <gandalf/util.h>
 
 namespace gandalf
@@ -25,17 +26,9 @@ namespace gandalf
 
         //todo dac
 
-        struct DummyChannel : SoundChannel
-        {
-            DummyChannel() : SoundChannel() {}
-            byte Tick() override { return 0; }
-            void SetRegister(int, byte) override {}
-            byte GetRegister(int) const override { return 0; }
-        };
-
-        sound_channels_[0] = std::make_unique<SquareWaveChannel>(frame_sequencer_);
+        sound_channels_[0] = std::make_unique<SquareWave1Channel>(frame_sequencer_);
         sound_channels_[1] = std::make_unique<SquareWaveChannel>(frame_sequencer_); // TODO sq1 sq2
-        sound_channels_[2] = std::make_unique<DummyChannel>();
+        sound_channels_[2] = std::make_unique<WaveChannel>(frame_sequencer_, wave_ram_);
         sound_channels_[3] = std::make_unique<NoiseChannel>(frame_sequencer_);
     }
 
@@ -73,7 +66,7 @@ namespace gandalf
         {
             sound_enabled_ = (value & 0x80) != 0;
         }
-        else if (address > 0xFF2F)
+        else if (address >= 0xFF30)
             wave_ram_[address - 0xFF30] = value;
     }
 
@@ -82,7 +75,7 @@ namespace gandalf
         assert(BETWEEN(address, 0xFF10, 0xFF27) || BETWEEN(address, 0xFF30, 0xFF40));
         if (address <= kNR44)
         {
-            const int channel = (address - kNR10) / 4;
+            const int channel = (address - kNR10) / 5;
             const int reg = (address - kNR10) % 5;
             return sound_channels_[channel]->GetRegister(reg);
         }
@@ -141,7 +134,7 @@ namespace gandalf
         }
 
         // Panning
-        word left = 0, right = 0;
+        byte left = 0, right = 0;
         for (int i = 0; i < 4; ++i)
         {
             if (channel_left_enabled_[i])
@@ -150,16 +143,16 @@ namespace gandalf
                 right += samples_[i];
         }
 
-        // Volume
-        left *= (left_volume_ + 1);
-        right *= (right_volume_ + 1);
-
         // Mixing
         left /= 4;
         right /= 4;
 
+        // Volume
+        left *= (left_volume_ + 1);
+        right *= (right_volume_ + 1);
+
         if (output_handler_)
-            output_handler_->Play((byte)left, (byte)right);
+            output_handler_->Play(left, right);
     }
 
     void APU::SetOutputHandler(std::shared_ptr<APU::OutputHandler> handler)

@@ -70,7 +70,7 @@ namespace gandalf
         case 2:
             volume_envelope_->SetPeriod(value & 0x7);
             volume_envelope_->SetAddMode((value & 0x8) != 0);
-            volume_envelope_->SetStartingVolume((value >> 4));
+            volume_envelope_->SetStartingVolume(value >> 4);
             break;
         case 3:
             clock_shift_ = value >> 4;
@@ -78,10 +78,11 @@ namespace gandalf
             divisor_code_ = value & 0x7;
             break;
         case 4:
+            length_counter_->SetEnabled((value & 0x40) != 0);
+
             if (value & 0x80)
                 Trigger();
 
-            length_counter_->SetEnabled((value & 0x40) != 0);
             break;
         }
     }
@@ -89,19 +90,19 @@ namespace gandalf
     byte NoiseChannel::Tick()
     {
         timer_--;
-        if (timer_ > 0)
-            return channel_enabled_ ? last_output_ * volume_envelope_->GetVolume() : 0;
+        if (timer_ == 0)
+        {
+            timer_ = GetFrequency();
 
-        timer_ = GetFrequency();
+            word shifted = lfsr_ >> 1;
+            byte xor_result = (lfsr_ ^ shifted) & 1;
+            lfsr_ = shifted | (xor_result << 14);
 
-        word shifted = lfsr_ >> 1;
-        byte xor_result = (lfsr_ ^ shifted) & 1;
-        lfsr_ = shifted | (xor_result << 14);
+            if (width_mode_bit_)
+                lfsr_ = (lfsr_ & ~0x40) | xor_result << 6;
 
-        if (width_mode_bit_)
-            lfsr_ = (lfsr_ & ~0x40) | xor_result << 6;
-
-        last_output_ = (lfsr_ & 1) ^ 1;
+            last_output_ = (lfsr_ & 1) ^ 1;
+        }
 
         return channel_enabled_ ? last_output_ * volume_envelope_->GetVolume() : 0;
     }

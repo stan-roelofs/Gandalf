@@ -12,7 +12,7 @@ namespace gandalf
     class LengthCounter : public FrameSequencer::Listener
     {
     public:
-        LengthCounter(byte full_length, bool& channel_enabled);
+        LengthCounter(int full_length, bool& channel_enabled);
         virtual ~LengthCounter();
 
         void OnFrameSequencerStep() override;
@@ -26,8 +26,8 @@ namespace gandalf
     private:
         bool counter_enabled_;
         bool& channel_enabled_;
-        byte remaining_length_;
-        byte full_length_;
+        int remaining_length_;
+        int full_length_;
     };
 }
 
