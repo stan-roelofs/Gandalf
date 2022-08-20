@@ -20,13 +20,7 @@ set(HEADERS
     include/gandalf/ppu.h
     include/gandalf/serial.h
     include/gandalf/sound/frame_sequencer.h
-    include/gandalf/sound/frequency_sweep_unit.h
     include/gandalf/sound/sound_channel.h
-    include/gandalf/sound/length_counter.h
-    include/gandalf/sound/noise_channel.h
-    include/gandalf/sound/square_wave_channel.h
-    include/gandalf/sound/volume_envelope.h
-    include/gandalf/sound/wave_channel.h
     include/gandalf/timer.h
     include/gandalf/types.h
     include/gandalf/util.h
@@ -34,6 +28,12 @@ set(HEADERS
     src/bootrom.h
     src/cartridge/mbc1.h
     src/cartridge/rom_only.h
+    src/sound/frequency_sweep_unit.h
+    src/sound/length_counter.h
+    src/sound/noise_channel.h
+    src/sound/square_wave_channel.h
+    src/sound/volume_envelope.h
+    src/sound/wave_channel.h
 )
 
 set(SOURCES

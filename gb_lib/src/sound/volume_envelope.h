@@ -2,8 +2,7 @@
 #define __GANDALF_SOUND_VOLUME_ENVELOPE_H
 
 #include <gandalf/types.h>
-
-#include "frame_sequencer.h"
+#include <gandalf/sound/frame_sequencer.h> 
 
 namespace gandalf
 {

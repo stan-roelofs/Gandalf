@@ -1,4 +1,4 @@
-#include <gandalf/sound/length_counter.h>
+#include "length_counter.h"
 
 #include <cassert>
 

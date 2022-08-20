@@ -3,9 +3,9 @@
 #include <cassert>
 
 #include <gandalf/constants.h>
-#include <gandalf/sound/square_wave_channel.h>
-#include <gandalf/sound/noise_channel.h>
-#include <gandalf/sound/wave_channel.h>
+#include "sound/square_wave_channel.h"
+#include "sound/noise_channel.h"
+#include "sound/wave_channel.h"
 #include <gandalf/util.h>
 
 namespace gandalf
@@ -80,9 +80,24 @@ namespace gandalf
             return sound_channels_[channel]->GetRegister(reg);
         }
         else if (address == kNR50)
-            return 0xFF; //TODO
+        {
+            byte result = 0;
+            result |= vin_left_ ? 0x80 : 0;
+            result |= vin_right_ ? 0x08 : 0;
+            result |= left_volume_;
+            result |= right_volume_ << 4;
+            return result;
+        }
         else if (address == kNR51)
-            return 0xFF; //TODO
+        {
+            byte result = 0;
+            for (int i = 0; i < 4; ++i)
+                result |= channel_right_enabled_[i] ? (1 << i) : 0;
+
+            for (int i = 0; i < 4; ++i)
+                result |= channel_left_enabled_[i] ? (1 << (i + 4)) : 0;
+            return result;
+        }
         else if (address == kNR52)
         {
             byte result = 0x70; // Unused bits are 1

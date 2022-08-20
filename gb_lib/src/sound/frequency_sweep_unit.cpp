@@ -1,4 +1,4 @@
-#include <gandalf/sound/frequency_sweep_unit.h>
+#include "frequency_sweep_unit.h"
 
 #include <gandalf/constants.h>
 

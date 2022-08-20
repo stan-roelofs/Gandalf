@@ -1,4 +1,4 @@
-#include <gandalf/sound/wave_channel.h>
+#include "wave_channel.h"
 
 #include <cassert>
 
@@ -35,7 +35,7 @@ namespace gandalf
         case 1:
             return 0xFF;
         case 2:
-            return (volume_code_ << 5) | 0x9F;        
+            return (volume_code_ << 5) | 0x9F;
         case 3:
             return 0xFF;
         case 4:

@@ -1,4 +1,4 @@
-#include <gandalf/sound/volume_envelope.h>
+#include "volume_envelope.h"
 
 namespace gandalf
 {

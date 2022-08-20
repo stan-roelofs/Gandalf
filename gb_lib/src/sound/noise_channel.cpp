@@ -1,4 +1,4 @@
-#include <gandalf/sound/noise_channel.h>
+#include "noise_channel.h"
 
 #include <cassert>
 

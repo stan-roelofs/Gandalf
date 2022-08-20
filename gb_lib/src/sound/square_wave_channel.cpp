@@ -1,4 +1,4 @@
-#include <gandalf/sound/square_wave_channel.h>
+#include "square_wave_channel.h"
 
 #include <cassert>
 

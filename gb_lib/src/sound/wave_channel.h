@@ -1,8 +1,7 @@
 #ifndef __GANDALF_SOUND_WAVE_CHANNEL_H
 #define __GANDALF_SOUND_WAVE_CHANNEL_H
 
-#include "sound_channel.h"
-
+#include <gandalf/sound/sound_channel.h> 
 #include "length_counter.h"
 
 namespace gandalf

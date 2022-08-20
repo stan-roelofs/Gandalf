@@ -1,7 +1,7 @@
 #ifndef __GANDALF_SOUND_FREQUENCY_SWEEP_UNIT_H__
 #define __GANDALF_SOUND_FREQUENCY_SWEEP_UNIT_H__
 
-#include "frame_sequencer.h"
+#include <gandalf/sound/frame_sequencer.h> 
 #include <gandalf/types.h>
 
 namespace gandalf

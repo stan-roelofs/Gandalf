@@ -1,7 +1,7 @@
 #ifndef __GANDALF_SOUND_LENGTH_COUNTER_H
 #define __GANDALF_SOUND_LENGTH_COUNTER_H
 
-#include "frame_sequencer.h"
+#include <gandalf/sound/frame_sequencer.h> 
 #include <gandalf/types.h>
 
 namespace gandalf
