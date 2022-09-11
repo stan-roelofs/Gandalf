@@ -56,129 +56,140 @@ static void RunGameboy(gui::Context& context)
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <boot_rom_file> " << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <boot_rom_file> " << " <rom_file> " << std::endl;
         return EXIT_FAILURE;
     }
 
-    using namespace gandalf;
-    std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>();
-    auto back_buffer = new LCD::VideoBuffer();
-    auto front_buffer = new LCD::VideoBuffer();
-
-    std::vector<byte> boot_rom;
-    if (!ReadFile(argv[1], boot_rom))
+    gui::MainWindow* main_window = new gui::MainWindow(argv[1]);
+    if (!main_window->Initialize())
         return EXIT_FAILURE;
 
-    if (boot_rom.size() != 0x100) {
-        std::cerr << "Invalid boot rom size %d, expected 0x100 bytes" << std::endl;
-        return EXIT_FAILURE;
-    }
+    while (main_window->Running()) // TODO this is updating way too often, limit it to 60 times per second
+        main_window->Update();
 
-    std::array<byte, 0x100> boot_rom_array;
-    std::copy(boot_rom.begin(), boot_rom.end(), boot_rom_array.begin());
+    main_window->Shutdown();
+    delete main_window;
+    main_window = nullptr;
 
-    gb->LoadBootROM(boot_rom_array);
+    //using namespace gandalf;
+    //std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>();
+    //auto back_buffer = new LCD::VideoBuffer();
+    //auto front_buffer = new LCD::VideoBuffer();
 
-    if (argc >= 3)
-    {
-        std::filesystem::path path(argv[2]);
-        gui::LoadROM(*gb, path);
-    }
+    //std::vector<byte> boot_rom;
+    //if (!ReadFile(argv[1], boot_rom))
+    //    return EXIT_FAILURE;
 
-    if (!gui::SetupGUI()) {
-        std::cerr << "Could not setup GUI" << std::endl;
-        return EXIT_FAILURE;
-    }
+    //if (boot_rom.size() != 0x100) {
+    //    std::cerr << "Invalid boot rom size %d, expected 0x100 bytes" << std::endl;
+    //    return EXIT_FAILURE;
+    //}
 
-    std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>();
-    gb->GetAPU().SetOutputHandler(handler);
+    //std::array<byte, 0x100> boot_rom_array;
+    //std::copy(boot_rom.begin(), boot_rom.end(), boot_rom_array.begin());
 
-    std::optional<word> breakpoint;
-    bool run = false;
-    bool step = false;
-    bool show_debug_window = true;
-    bool sleep = false;
-    bool stop = false;
-    gui::Context context;
-    context.run = &run;
-    context.step = &step;
-    context.gameboy = gb.get();
-    context.show_debug_window = &show_debug_window;
-    context.breakpoint = &breakpoint;
-    context.video_buffer = &front_buffer;
-    context.sleep = &sleep;
-    context.limit_frames = &handler->limit_frames_;
-    context.stop = &stop;
+    //gb->LoadBootROM(boot_rom_array);
 
-    struct : VBlankListener
-    {
-        void OnVBlank() {
-            *sleep = true;
-            auto& buffer = gb->GetLCD().GetVideoBuffer();
-            std::copy(buffer.begin(), buffer.end(), back_buffer->begin());
-            auto temp = back_buffer;
-            back_buffer = front_buffer;
-            front_buffer = temp;
+    //if (argc >= 3)
+    //{
+    //    std::filesystem::path path(argv[2]);
+    //    gui::LoadROM(*gb, path);
+    //}
 
-            static int frames = 0;
-            // Some computation here
-            ++frames;
+    //if (!gui::SetupGUI()) {
+    //    std::cerr << "Could not setup GUI" << std::endl;
+    //    return EXIT_FAILURE;
+    //}
 
-            using namespace std::chrono;
+    //std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>();
+    //gb->GetAPU().SetOutputHandler(handler);
 
-            static high_resolution_clock::time_point t1 = high_resolution_clock::now();;
+    //std::optional<word> breakpoint;
+    //bool run = false;
+    //bool step = false;
+    //bool show_debug_window = true;
+    //bool sleep = false;
+    //bool stop = false;
+    //gui::Context context;
+    //context.run = &run;
+    //context.step = &step;
+    //context.gameboy = gb.get();
+    //context.show_debug_window = &show_debug_window;
+    //context.breakpoint = &breakpoint;
+    //context.video_buffer = &front_buffer;
+    //context.sleep = &sleep;
+    //context.limit_frames = &handler->limit_frames_;
+    //context.stop = &stop;
 
-            high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    //struct : VBlankListener
+    //{
+    //    void OnVBlank() {
+    //        *sleep = true;
+    //        auto& buffer = gb->GetLCD().GetVideoBuffer();
+    //        std::copy(buffer.begin(), buffer.end(), back_buffer->begin());
+    //        auto temp = back_buffer;
+    //        back_buffer = front_buffer;
+    //        front_buffer = temp;
 
-            duration<double, std::milli> time_span = t2 - t1;
+    //        static int frames = 0;
+    //        // Some computation here
+    //        ++frames;
 
-            if (time_span.count() > 1000) {
-                t1 = t2;
-                std::cout << std::to_string(frames) << std::endl;
-                frames = 0;
-            }
-        };
+    //        using namespace std::chrono;
 
-        gandalf::Gameboy* gb;
-        gandalf::LCD::VideoBuffer* back_buffer;
-        gandalf::LCD::VideoBuffer* front_buffer;
-        bool* sleep;
+    //        static high_resolution_clock::time_point t1 = high_resolution_clock::now();;
 
-    } fps_counter;
-    fps_counter.gb = gb.get();
-    fps_counter.back_buffer = back_buffer;
-    fps_counter.front_buffer = front_buffer;
-    fps_counter.sleep = &sleep;
+    //        high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
-    gb->GetPPU().SetVBlankListener(&fps_counter);
+    //        duration<double, std::milli> time_span = t2 - t1;
 
-    std::thread gb_thread(RunGameboy, std::ref(context));
+    //        if (time_span.count() > 1000) {
+    //            t1 = t2;
+    //            std::cout << std::to_string(frames) << std::endl;
+    //            frames = 0;
+    //        }
+    //    };
 
-    using namespace std::chrono;
+    //    gandalf::Gameboy* gb;
+    //    gandalf::LCD::VideoBuffer* back_buffer;
+    //    gandalf::LCD::VideoBuffer* front_buffer;
+    //    bool* sleep;
 
-    while (!stop)
-    {
-        std::chrono::high_resolution_clock::time_point t1 = high_resolution_clock::now();;
+    //} fps_counter;
+    //fps_counter.gb = gb.get();
+    //fps_counter.back_buffer = back_buffer;
+    //fps_counter.front_buffer = front_buffer;
+    //fps_counter.sleep = &sleep;
 
-        if (gui::PollEvents(context))
-            stop = true;
+    //gb->GetPPU().SetVBlankListener(&fps_counter);
 
-        RenderGUI(context);
+    //std::thread gb_thread(RunGameboy, std::ref(context));
 
-        std::chrono::high_resolution_clock::time_point t2 = high_resolution_clock::now();;
-        duration<double, std::nano> time_span = t2 - t1;
+    //using namespace std::chrono;
 
-        const auto duration = std::chrono::nanoseconds((long)((1000000000 / 60) - time_span.count()));
-        std::this_thread::sleep_for(duration);
-    }
+    //while (!stop)
+    //{
+    //    std::chrono::high_resolution_clock::time_point t1 = high_resolution_clock::now();;
 
-    run = false;
+    //    if (gui::PollEvents(context))
+    //        stop = true;
 
-    gb_thread.join();
+    //    RenderGUI(context);
 
-    delete front_buffer;
-    delete back_buffer;
-    gui::DestroyGUI();
+    //    std::chrono::high_resolution_clock::time_point t2 = high_resolution_clock::now();;
+    //    duration<double, std::nano> time_span = t2 - t1;
+
+    //    const auto duration = std::chrono::nanoseconds((long)((1000000000 / 60) - time_span.count()));
+    //    std::this_thread::sleep_for(duration);
+    //}
+
+    //run = false;
+
+    //gb_thread.join();
+
+    //delete front_buffer;
+    //delete back_buffer;
+    //gui::DestroyGUI();
 
     return EXIT_SUCCESS;
 }

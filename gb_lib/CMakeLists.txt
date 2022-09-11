@@ -27,6 +27,7 @@ set(HEADERS
     include/gandalf/wram.h
     src/bootrom.h
     src/cartridge/mbc1.h
+    src/cartridge/mbc3.h
     src/cartridge/rom_only.h
     src/sound/frequency_sweep_unit.h
     src/sound/length_counter.h
@@ -43,6 +44,7 @@ set(SOURCES
     src/cartridge.cpp
     src/cartridge/mbc.cpp
     src/cartridge/mbc1.cpp
+    src/cartridge/mbc3.cpp
     src/cartridge/rom_only.cpp
     src/cpu.cpp
     src/dma.cpp

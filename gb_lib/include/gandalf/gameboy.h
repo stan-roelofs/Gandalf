@@ -55,7 +55,7 @@ namespace gandalf {
 
   private:
     bool should_unregister_;
-    const std::array<byte, 0x100>& boot_rom_;
+    const std::array<byte, 0x100> boot_rom_;
   };
 
   class Gameboy {

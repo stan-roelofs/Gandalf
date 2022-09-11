@@ -34,9 +34,10 @@ target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/
 target_link_libraries(imgui SDL2main SDL2-static)
 
 set(HEADERS
+  src/audio_handler.h
   src/imfilebrowser.h
   src/gui.h
-  src/audio_handler.h
+  src/settings.h
 )
 
 set(SOURCES

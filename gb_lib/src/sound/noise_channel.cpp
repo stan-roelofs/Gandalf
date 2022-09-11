@@ -14,7 +14,10 @@ namespace gandalf
         volume_envelope_(std::make_shared<VolumeEnvelope>()),
         last_output_(0),
         timer_(0),
-        lfsr_(0)
+        lfsr_(0),
+        clock_shift_(0),
+        width_mode_bit_(false),
+        divisor_code_(0)
     {
         frame_sequencer.AddListener(length_counter_);
         frame_sequencer.AddListener(volume_envelope_);

@@ -8,14 +8,14 @@
 #include "lcd.h"
 
 namespace gandalf {
-    class VBlankListener
-    {
-    public:
-        virtual void OnVBlank() = 0;
-    };
-
     class PPU : public Bus::AddressHandler {
     public:
+        class VBlankListener
+        {
+        public:
+            virtual void OnVBlank() = 0;
+        };
+
         PPU(Bus& bus, LCD& lcd);
         virtual ~PPU();
 
