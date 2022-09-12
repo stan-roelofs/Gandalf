@@ -9,7 +9,6 @@ namespace gandalf {
         ram_enabled_(false),
         rom_bank_number_(0),
         ram_bank_number_(0),
-        advanced_banking_mode_(false),
         has_battery_(has_battery),
         has_timer_(has_timer)
     {

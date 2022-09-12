@@ -17,7 +17,6 @@ namespace gandalf {
         bool ram_enabled_;
         byte rom_bank_number_;
         byte ram_bank_number_;
-        bool advanced_banking_mode_;
         bool has_battery_; // TODO: implement battery
         bool has_timer_;
     };
