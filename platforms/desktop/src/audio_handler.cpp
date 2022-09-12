@@ -16,7 +16,7 @@ namespace
     constexpr int kDownSampling = gandalf::kCPUFrequency / kFrequency; // TODO how to call this constant...
 }
 
-SDLAudioHandler::SDLAudioHandler() : device_id_(0), index_(0), divider_(0), limit_frames_(true)
+SDLAudioHandler::SDLAudioHandler(const bool& wait) : device_id_(0), index_(0), divider_(0), wait_(wait)
 {
     audio_buffer_.resize(kBufferSizeBytes);
 
@@ -58,8 +58,8 @@ void SDLAudioHandler::Play(gandalf::byte left, gandalf::byte right)
 
     if (index_ == kBufferSizeBytes / 2)
     {
-        if (limit_frames_) {
-            while (limit_frames_ && SDL_GetQueuedAudioSize(device_id_) > kBufferSizeBytes / 2) {}
+        if (wait_) {
+            while (wait_ && SDL_GetQueuedAudioSize(device_id_) > kBufferSizeBytes / 2) {}
 
             SDL_QueueAudio(device_id_, audio_buffer_.data(), kBufferSizeBytes / 2);
         }

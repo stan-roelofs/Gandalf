@@ -41,13 +41,10 @@ namespace gui {
     class MainWindow : gandalf::PPU::VBlankListener {
     public:
         MainWindow(std::filesystem::path boot_rom_path);
-        ~MainWindow() = default;
+        ~MainWindow();
 
         bool Initialize();
-        void Update();
-        void Shutdown();
-
-        bool Running() { return running_; }
+        void Run();
 
     private:
         void HandleEvents();
@@ -75,6 +72,7 @@ namespace gui {
         int scale_;
         bool gb_pause_;
         bool gb_thread_run_;
+        bool block_audio_;
         std::filesystem::path boot_rom_path_;
         std::thread gb_thread_;
 
