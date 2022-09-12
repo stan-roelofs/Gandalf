@@ -2,11 +2,6 @@
 
 #include <gandalf/constants.h>
 
-namespace
-{
-    constexpr int kDivider = gandalf::kCPUFrequency / 128;
-}
-
 namespace gandalf
 {
     FrequencySweepUnit::FrequencySweepUnit(byte& frequency_low, byte& frequency_high, bool& sound_channel_enabled) :
