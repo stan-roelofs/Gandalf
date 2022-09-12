@@ -6,9 +6,12 @@
 
 namespace gandalf {
     MBC1::MBC1(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks, bool has_battery) : MBC(rom, rom_banks, ram_banks),
-        ram_enabled_(false), rom_bank_number_(0), ram_bank_number_(0), advanced_banking_mode_(false), has_battery_(has_battery) {
+        ram_enabled_(false), rom_bank_number_(0), ram_bank_number_(0), advanced_banking_mode_(false), has_battery_(has_battery)
+    {
         assert(rom_banks % 2 == 0 && rom_banks <= 128);
         assert(ram_banks == 0 || ram_banks == 1 || ram_banks == 4);
+
+        (void)has_battery_;
     }
 
     MBC1::~MBC1() = default;

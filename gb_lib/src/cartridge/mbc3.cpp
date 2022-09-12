@@ -15,6 +15,9 @@ namespace gandalf {
     {
         assert(rom_banks % 2 == 0 && rom_banks <= 128);
         assert(ram_banks == 0 || ram_banks == 1 || ram_banks == 4);
+
+        (void)has_battery_;
+        (void)has_timer_;
     }
 
     MBC3::~MBC3() = default;
