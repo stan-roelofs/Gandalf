@@ -72,6 +72,7 @@ namespace gui {
         int scale_;
         bool gb_pause_;
         bool gb_thread_run_;
+        unsigned int gb_fps_;
         bool block_audio_;
         std::filesystem::path boot_rom_path_;
         std::thread gb_thread_;

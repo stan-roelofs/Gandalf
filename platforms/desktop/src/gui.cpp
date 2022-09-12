@@ -24,26 +24,6 @@ namespace {
 
 namespace gui
 {
-    void DebugWindow(Context& context)
-    {
-        
-    }
-
-    void HelpMarker(const char* desc)
-    {
-        ImGui::TextDisabled("(?)");
-        if (ImGui::IsItemHovered())
-        {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(desc);
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-    }
-
-
-
     //void RenderGUI(Context& context)
     //{
     //    // Start the Dear ImGui frame
@@ -193,6 +173,7 @@ namespace gui
         block_audio_(true),
         boot_rom_path_(boot_rom_path),
         gb_thread_run_(false),
+        gb_fps_(0),
         back_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
         front_buffer_(std::make_unique < gandalf::LCD::VideoBuffer>())
     {
@@ -437,12 +418,205 @@ namespace gui
 
     void MainWindow::DebugView()
     {
-        ImGui::Begin("debug");
+        if (!gameboy_ || !show_debug_window_)
+            return;
 
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-
+        ImGui::Begin("CPU", nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Checkbox("Run", &gb_thread_run_);
         ImGui::Checkbox("Limit FPS", &block_audio_);
+        ImGui::SameLine();
 
+        if (gb_thread_run_)
+            ImGui::BeginDisabled();
+
+        if (ImGui::Button("Step")) {
+          //  *context.step = true; // TODO
+        }
+
+        if (gb_thread_run_)
+            ImGui::EndDisabled();
+
+        if (ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            gandalf::Registers registers = gameboy_->GetCPU().GetRegisters();
+            ImGui::TableNextColumn();
+            ImGui::Text("A : %02X", registers.a());
+            ImGui::TableNextColumn();
+            ImGui::Text("F : %02X", registers.f());
+            ImGui::TableNextColumn();
+            ImGui::Text("B : %02X", registers.b());
+            ImGui::TableNextColumn();
+            ImGui::Text("C : %02X", registers.c());
+            ImGui::TableNextColumn();
+            ImGui::Text("D : %02X", registers.d());
+            ImGui::TableNextColumn();
+            ImGui::Text("E : %02X", registers.e());
+            ImGui::TableNextColumn();
+            ImGui::Text("H : %02X", registers.h());
+            ImGui::TableNextColumn();
+            ImGui::Text("L : %02X", registers.l());
+
+            ImGui::TableNextColumn();
+            ImGui::Text("SP : %04X", registers.stack_pointer);
+            ImGui::TableNextColumn();
+            ImGui::Text("PC : %04X", registers.program_counter);
+
+            ImGui::TableNextColumn();
+
+            ImGui::EndTable();
+        }
+
+        ImGui::BeginDisabled();
+        ImGui::Checkbox("IME", &gameboy_->GetCPU().GetRegisters().interrupt_master_enable);
+        ImGui::EndDisabled();
+        ImGui::End();
+
+        ImGui::Begin("Memory", nullptr, ImGuiWindowFlags_NoTitleBar);
+
+        // static bool follow_pc = false;
+        // ImGui::Checkbox("Follow PC", &follow_pc);
+
+        // if (*context.run)
+        //     follow_pc = false;
+
+        static char address[5];
+        address[4] = '\0';
+        ImGui::InputText("address", address, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+        ImGui::SameLine();
+
+        std::optional<gandalf::word> scroll_target;
+        bool should_scroll = false;
+        if (ImGui::Button("Scroll to")) {
+            auto address_value = std::strtoul(address, nullptr, 16);
+            if (address_value < 0)
+                address_value = 0;
+            if (address_value > 0xFFFF)
+                address_value = 0xFFFF;
+
+            scroll_target = static_cast<gandalf::word>(address_value);
+        }
+
+        if (ImGui::BeginTable("Memory viewer", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
+            static float memory_item_height = 0.f;
+
+            if (scroll_target)
+                ImGui::SetScrollY((*scroll_target / 16) * memory_item_height);
+
+            gandalf::Bus& bus = gameboy_->GetBus();
+            ImGuiListClipper clipper;
+            clipper.Begin(0x10000 / 16);
+            while (clipper.Step())
+            {
+                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                {
+                    gandalf::word address_start = line_no * 16;
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%04X", address_start);
+                    for (int column = 0; column < 16; column++)
+                    {
+                        const gandalf::word address = address_start + column;
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%02X", gameboy_->GetBus().DebugRead(address));
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::BeginTooltip();
+                            ImGui::Text("%04X", address);
+                            ImGui::EndTooltip();
+                        }
+                    }
+                }
+
+                if (clipper.ItemsHeight > 0) memory_item_height = clipper.ItemsHeight;
+            }
+            clipper.End();
+
+            ImGui::EndTable();
+        }
+
+        ImGui::End();
+
+        ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_NoTitleBar);
+        gandalf::Bus& bus = gameboy_->GetBus();
+        gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
+
+        /*
+        if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
+            static gandalf::word last_pc = registers.program_counter;
+            static float debugger_item_height = 0.f;
+            if (last_pc != registers.program_counter && debugger_item_height > 0) {
+                ImGui::SetScrollY(registers.program_counter * debugger_item_height);
+                last_pc = registers.program_counter;
+            }
+
+            ImGuiListClipper clipper;
+            clipper.Begin(0x10000);
+            while (clipper.Step())
+            {
+                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                {
+                    // TODO: decode instructions, show name with operand values, group them (e.g. LD_RR_NN should combine into one line)
+                    ImGui::TableNextRow();
+
+                    if (line_no == registers.program_counter)
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
+
+                    ImGui::TableSetColumnIndex(0);
+
+                    bool dummy = false;
+                    std::string label = "##b" + std::to_string(line_no);
+                    if (ImGui::Selectable(label.c_str(), *context.breakpoint && **context.breakpoint == line_no)) {
+                        if (context.breakpoint && *context.breakpoint == line_no)
+                            *context.breakpoint = std::nullopt;
+                        else
+                            *context.breakpoint = line_no;
+                    }
+
+                    ImGui::TableSetColumnIndex(1);
+
+                    ImGui::Text("%04X", line_no);
+
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::Text("%02X", bus.DebugRead(line_no));
+                }
+
+                if (clipper.ItemsHeight > 0) debugger_item_height = clipper.ItemsHeight;
+            }
+            clipper.End();
+
+            ImGui::EndTable();
+        }
+        ImGui::End();
+        */ // TODO
+
+        ImGui::Begin("Cartridge");
+        std::shared_ptr<const gandalf::Cartridge::Header> header = std::move(gameboy_->GetCartridge().GetHeader());
+        if (header)
+        {
+            ImGui::Text("ROM loaded");
+            ImGui::Text("Title: %s", header->GetTitle().c_str());
+            ImGui::Text("Manufacturer code: %s", header->GetManufacturerCode().c_str());
+            ImGui::Text("Licensee: %s", header->GetLicensee().c_str());
+            ImGui::Text("ROM Size: %s", header->GetROMSize().c_str());
+            ImGui::Text("RAM Size: %s", header->GetRAMSize().c_str());
+            ImGui::Text("CGB flag: %s", header->GetCGBFlag().c_str());
+            ImGui::Text("SGB flag: %s", header->GetSGBFlag().c_str());
+            ImGui::Text("Cartridge type: %s", header->GetType().c_str());
+            ImGui::Text("Destination: %s", header->GetDestination().c_str());
+        }
+        else
+            ImGui::TextUnformatted("No ROM loaded");
+        ImGui::End();
+
+        ImGui::Begin("Sound");
+        static bool channel_enabled[4] = { true, true, true, true };
+        if (ImGui::Checkbox("Square wave 1", &channel_enabled[0]))
+            gameboy_->GetAPU().MuteChannel(0, !channel_enabled[0]);
+        if (ImGui::Checkbox("Square wave 2", &channel_enabled[1]))
+            gameboy_->GetAPU().MuteChannel(1, !channel_enabled[1]);
+        if (ImGui::Checkbox("Wave", &channel_enabled[2]))
+            gameboy_->GetAPU().MuteChannel(2, !channel_enabled[2]);
+        if (ImGui::Checkbox("Noise", &channel_enabled[3]))
+            gameboy_->GetAPU().MuteChannel(3, !channel_enabled[3]);
 
         ImGui::End();
     }
@@ -520,9 +694,7 @@ namespace gui
         std::swap(front_buffer_, back_buffer_);
         std::copy(gameboy_->GetLCD().GetVideoBuffer().begin(), gameboy_->GetLCD().GetVideoBuffer().end(), back_buffer_->begin());
 
-        static int frames = 0;
-        // Some computation here
-        ++frames;
+        ++gb_fps_;
 
         using namespace std::chrono;
 
@@ -534,8 +706,8 @@ namespace gui
 
         if (time_span.count() > 1000) {
             t1 = t2;
-            std::cout << std::to_string(frames) << std::endl;
-            frames = 0;
+            std::cout << std::to_string(gb_fps_) << std::endl;
+            gb_fps_ = 0;
         }
     }
 }
