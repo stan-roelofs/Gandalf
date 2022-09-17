@@ -2,6 +2,7 @@
 #define __GANDALF_CPU_H
 
 #include "bus.h"
+#include "constants.h"
 #include "cpu_registers.h"
 #include "io.h"
 
@@ -19,6 +20,7 @@ namespace gandalf {
     std::set<word> GetAddresses() const override;
 
     Registers& GetRegisters() { return registers_; }
+    void SetGameboyMode(GameboyMode mode) { gameboy_mode_ = mode; }
 
   private:
     void CheckInterrupts();
@@ -33,6 +35,9 @@ namespace gandalf {
     bool stop_;
     bool halt_bug_;
     bool ei_pending_;
+    bool double_speed_;
+    bool prepare_speed_switch_;
+    GameboyMode gameboy_mode_;
   };
 
 } // namespace gandalf

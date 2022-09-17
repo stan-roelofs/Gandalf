@@ -16,7 +16,7 @@ namespace gandalf {
         IO(Bus& bus);
         ~IO();
 
-        void Tick(byte cycles);
+        void Tick(unsigned int cycles, bool double_speed);
 
         LCD& GetLCD() { return lcd_; }
         PPU& GetPPU() { return ppu_; }

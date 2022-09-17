@@ -21,14 +21,17 @@ namespace gandalf {
         bus_.Unregister(&dma_);
     }
 
-    void IO::Tick(byte cycles)
+    void IO::Tick(unsigned int cycles, bool double_speed)
     {
-        for (byte i = 0; i < cycles; ++i) {
+        for (unsigned int i = 0; i < (double_speed ? cycles * 2 : cycles); ++i) {
             timer_.Tick();
-            ppu_.Tick();
             serial_.Tick();
-            apu_.Tick();
             dma_.Tick();
+        }
+
+        for (unsigned int i = 0; i < cycles; ++i) {
+            ppu_.Tick();
+            apu_.Tick();
         }
     }
 

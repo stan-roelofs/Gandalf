@@ -8,6 +8,10 @@
 
 namespace gandalf {
 
+  const int kSpeedSwitchClocks = 8200;
+
+#define ADVANCE_IO(cycles) io_.Tick(cycles, double_speed_);
+
 #define SET_ZFLAG() registers_.f() |= kZFlagMask;
 #define SET_NFLAG() registers_.f() |= kNFlagMask;
 #define SET_HFLAG() registers_.f() |= kHFlagMask;
@@ -19,11 +23,11 @@ namespace gandalf {
 #define CLEAR_CFLAG() registers_.f() &= ~kCFlagMask;
 
 #define READ(address, destination)                                             \
-  io_.Tick(4);                                                  \
+  ADVANCE_IO(4);                                                  \
   (destination) = bus_.Read(address);
 
 #define WRITE(address, value)                                                  \
-  io_.Tick(4);                                                  \
+  ADVANCE_IO(4);                                                  \
   bus_.Write(address, value);
 
 #define READ_PC(destination) READ(registers_.program_counter++, destination)
@@ -40,12 +44,12 @@ namespace gandalf {
 
 #define INC_RR(r)                                                              \
   {                                                                            \
-    io_.Tick(4);                                                \
+    ADVANCE_IO(4);                                                \
     ++(r);                                                                     \
   }
 
 #define DEC_RR(r)                                                              \
-  io_.Tick(4);                                                  \
+  ADVANCE_IO(4);                                                  \
   --(r);
 
 #define INC_R(r)                                                               \
@@ -169,7 +173,7 @@ namespace gandalf {
 #define ADD_HL_RR(r)                                                           \
   {                                                                            \
     word hl = registers_.hl();                                                 \
-    io_.Tick(4);                                                               \
+    ADVANCE_IO(4);                                                               \
     registers_.hl() += (r);                                                    \
     registers_.f() &= ~(kNFlagMask | kCFlagMask | kHFlagMask);                 \
     if (((hl & 0xFFF) + ((r)&0xFFF)) > 0xFFF)                                  \
@@ -183,7 +187,7 @@ namespace gandalf {
     signed_byte value;                                                         \
     READ_PC(value);                                                            \
     registers_.program_counter += value;                                       \
-    io_.Tick(4);                                                \
+    ADVANCE_IO(4);                                                \
   }
 
 #define JR_CC_N(condition)                                                     \
@@ -413,11 +417,11 @@ namespace gandalf {
     READ_SP(low);                                                              \
     READ_SP(high);                                                             \
     registers_.program_counter = low | (high << 8);                            \
-    io_.Tick(4);                                                               \
+    ADVANCE_IO(4);                                                               \
   }
 
 #define RET_CC(condition)                                                      \
-  io_.Tick(4);                                                                 \
+  ADVANCE_IO(4);                                                                 \
   if (condition) {                                                             \
     RET();                                                                     \
   }
@@ -436,7 +440,7 @@ namespace gandalf {
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     if (condition) {                                                           \
-      io_.Tick(4);                                              \
+      ADVANCE_IO(4);                                              \
       registers_.program_counter = low | (high << 8);                          \
     }                                                                          \
   }
@@ -446,12 +450,12 @@ namespace gandalf {
     byte low, high;                                                            \
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
-    io_.Tick(4);                                                \
+    ADVANCE_IO(4);                                                \
     registers_.program_counter = low | (high << 8);                            \
   }
 
 #define PUSH_RR(rr)                                                            \
-  io_.Tick(4);                                                  \
+  ADVANCE_IO(4);                                                  \
   WRITE_SP((rr) >> 8)                                                          \
   WRITE_SP((rr)&0xFF);
 
@@ -547,7 +551,7 @@ namespace gandalf {
       SET_CFLAG();                                                             \
     if ((sp & 0xF) + (value & 0xF) > 0xF)                                      \
       SET_HFLAG();                                                             \
-    io_.Tick(8);                                                               \
+    ADVANCE_IO(8);                                                               \
   }
 
 #define LD_NN_A()                                                              \
@@ -685,31 +689,48 @@ namespace gandalf {
   }
 
   CPU::CPU(IO& io, Bus& bus) : Bus::AddressHandler("CPU"),
-    bus_(bus), io_(io), opcode_(0), halt_(false), stop_(false), halt_bug_(false), ei_pending_(false) {}
+    bus_(bus),
+    io_(io),
+    opcode_(0),
+    halt_(false),
+    stop_(false),
+    halt_bug_(false),
+    ei_pending_(false),
+    double_speed_(false),
+    prepare_speed_switch_(false)
+  {}
 
   CPU::~CPU() = default;
 
   byte CPU::Read(word address) const
   {
+    assert(address == kIE || address == kIF || address == kKEY1);
+
     if (address == kIE)
       return registers_.interrupt_enable;
     else if (address == kIF)
       return registers_.interrupt_flags | 0xE0;
-    return 0xFF; // TODO
-
-    //throw Exception("Invalid read from address " +
-      //std::to_string(address));
+    else if (address == kKEY1)
+    {
+      byte result = static_cast<byte>(prepare_speed_switch_);
+      result |= static_cast<byte>(double_speed_) << 7;
+      return result;
+    }
+    return 0xFF;
   }
 
   void CPU::Write(word address, byte value)
   {
+    assert(address == kIE || address == kIF || address == kKEY1);
+
     if (address == kIE)
       registers_.interrupt_enable = value;
     else if (address == kIF)
       registers_.interrupt_flags = value;
-    //else
-      //throw Exception("Invalid write to address " +
-       // std::to_string(address));
+    else if (address == kKEY1)
+    {
+      prepare_speed_switch_ = (value & 0x1) != 0;
+    }
   }
 
   std::set<word> CPU::GetAddresses() const
@@ -743,19 +764,19 @@ namespace gandalf {
       }
     }
     else
-      io_.Tick(4);
+      ADVANCE_IO(4);
   }
 
   void CPU::InterruptServiceRoutine()
   {
     // The interrupt service routine should take 5 cycles to execute.
-    io_.Tick(8); // 2 cycles
+    ADVANCE_IO(8); // 2 cycles
     WRITE_SP(registers_.program_counter >> 8); // push the high byte of the program counter - 1 cycle
     byte interrupt_queue = registers_.interrupt_flags & registers_.interrupt_enable & 0x1F;
     // The push of the high byte may cancel the interrupt if it overwrites IE, if this happens the program counter is set to 0.
     if (interrupt_queue == 0) {
       registers_.program_counter = 0;
-      io_.Tick(4);
+      ADVANCE_IO(4);
       return;
     }
     WRITE_SP(registers_.program_counter & 0xFF); // push the low byte of the program counter - 1 cycle
@@ -812,7 +833,12 @@ namespace gandalf {
     case 0x0F:
       RRCA() break;
     case 0x10:
-      stop_ = true;
+      if (gameboy_mode_ == GameboyMode::CGB && prepare_speed_switch_) {
+        double_speed_ = !double_speed_;
+        ADVANCE_IO(kSpeedSwitchClocks);
+      }
+      else
+        stop_ = true;
       break;
     case 0x11:
       LD_RR_NN(registers_.de()) break;

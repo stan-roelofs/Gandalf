@@ -101,6 +101,12 @@ namespace gandalf {
     constexpr int kScreenWidth = 160;
     constexpr int kCPUFrequency = 4194304; // MHz
 
+    enum class GameboyMode
+    {
+        DMG,
+        CGB
+    };
+
 } // namespace gandalf
 
 #endif
