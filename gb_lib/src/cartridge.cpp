@@ -33,22 +33,32 @@ namespace gandalf {
         {0x13, {{2, 4, 8, 16, 32, 64, 128}, {0, 1, 4}}},
     };
 
-    std::string Cartridge::Header::GetTitle() const
+    Cartridge::CGBFunctionality Cartridge::Header::GetCGBFlag() const
+    {
+        if (cgb_flag == 0x80)
+            return Cartridge::CGBFunctionality::kSupported;
+        else if (cgb_flag == 0xC0)
+            return Cartridge::CGBFunctionality::kOnly;
+        else
+            return Cartridge::CGBFunctionality::kNotSupported;
+    }
+
+    std::string Cartridge::Header::GetTitleString() const
     {
         return std::string(reinterpret_cast<const char*>(title), 0x10);
     }
 
-    std::string Cartridge::Header::GetManufacturerCode() const
+    std::string Cartridge::Header::GetManufacturerCodeString() const
     {
         return std::string(reinterpret_cast<const char*>(manufacturer_code), 4);
     }
 
-    std::string Cartridge::Header::GetDestination() const
+    std::string Cartridge::Header::GetDestinationString() const
     {
         return destination_code == 0x00 ? "Japan" : "Non-Japanese";
     }
 
-    std::string Cartridge::Header::GetLicensee() const
+    std::string Cartridge::Header::GetLicenseeString() const
     {
         if (old_licensee_code == 0x33) {
             std::string result = std::string(reinterpret_cast<const char*>(new_licensee_code), 2) + " - ";
@@ -273,7 +283,7 @@ namespace gandalf {
         return "Unknown";
     }
 
-    std::string Cartridge::Header::GetType() const
+    std::string Cartridge::Header::GetTypeString() const
     {
         switch (cartridge_type)
         {
@@ -312,7 +322,7 @@ namespace gandalf {
         return "Unknown";
     }
 
-    std::string Cartridge::Header::GetRAMSize() const
+    std::string Cartridge::Header::GetRAMSizeString() const
     {
         switch (ram_size)
         {
@@ -326,7 +336,7 @@ namespace gandalf {
         return "Unknown";
     }
 
-    std::string Cartridge::Header::GetROMSize() const
+    std::string Cartridge::Header::GetROMSizeString() const
     {
         switch (ram_size)
         {
@@ -346,7 +356,7 @@ namespace gandalf {
         return "Unknown";
     }
 
-    std::string Cartridge::Header::GetCGBFlag() const
+    std::string Cartridge::Header::GetCGBFlagString() const
     {
         if (cgb_flag == 0x80)
             return "CGB + GB";
@@ -356,7 +366,7 @@ namespace gandalf {
             return "None";
     }
 
-    std::string Cartridge::Header::GetSGBFlag() const
+    std::string Cartridge::Header::GetSGBFlagString() const
     {
         if (sgb_flag == 0x03)
             return "SGB supported";
@@ -397,7 +407,7 @@ namespace gandalf {
         ram_banks = std::size_t(0) << (result->ram_size + 1);
 
         if (kCartridgeBankProperties.find(result->cartridge_type) == kCartridgeBankProperties.end()) {
-            std::cerr << "Unsupported cartridge type: " << std::hex << (int)result->cartridge_type << " " << result->GetType() << std::endl;
+            std::cerr << "Unsupported cartridge type: " << std::hex << (int)result->cartridge_type << " " << result->GetTypeString() << std::endl;
             return false;
         }
 
@@ -447,6 +457,11 @@ namespace gandalf {
 
         header_ = std::move(result);
         return true;
+    }
+
+    bool Cartridge::Loaded() const
+    {
+        return mbc_ != nullptr;
     }
 
     std::shared_ptr<const Cartridge::Header> Cartridge::GetHeader() const

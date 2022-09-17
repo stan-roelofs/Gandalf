@@ -1,12 +1,13 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy() : io_(bus_), cpu_(io_, bus_)
+    Gameboy::Gameboy(const BootROM& boot_rom, const ROM& rom) : io_(bus_), cpu_(io_, bus_), executed_boot_rom_(false)
     {
+        LoadROM(rom);
+        LoadBootROM(boot_rom);
         bus_.Register(&cpu_);
         bus_.Register(&wram_);
         bus_.Register(&hram_);
-        bus_.Register(&cartridge_);
     }
 
     Gameboy::~Gameboy()
@@ -14,12 +15,23 @@ namespace gandalf {
         bus_.Unregister(&cpu_);
         bus_.Unregister(&wram_);
         bus_.Unregister(&hram_);
-        bus_.Unregister(&cartridge_);
+        if (cartridge_)
+            bus_.Unregister(cartridge_.get());
     }
 
-    bool Gameboy::Load(const ROM& rom)
+    void Gameboy::LoadROM(const ROM& rom)
     {
-        return cartridge_.Load(rom);
+        {
+            std::unique_ptr<Cartridge> cartridge = std::make_unique<Cartridge>();
+            if (!cartridge->Load(rom))
+                return;
+            cartridge_ = std::move(cartridge);
+        }
+
+        bus_.Register(cartridge_.get());
+        std::shared_ptr<const Cartridge::Header> header = std::move(cartridge_->GetHeader());
+        const auto cgb_flag = header->GetCGBFlag();
+        cpu_.SetGameboyMode(cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB);
     }
 
     void Gameboy::LoadBootROM(const BootROM& boot_rom)
@@ -28,13 +40,22 @@ namespace gandalf {
         bus_.Register(boot_rom_handler_.get());
     }
 
+    bool Gameboy::Ready() const
+    {
+        return cartridge_ && (boot_rom_handler_ || executed_boot_rom_);
+    }
+
     // TODO this is all a mess
     void Gameboy::Run()
     {
+        if (!Ready())
+            return;
+
         if (boot_rom_handler_ && boot_rom_handler_->Done()) {
             bus_.Unregister(boot_rom_handler_.get());
-            bus_.Register(&cartridge_);
+            bus_.Register(cartridge_.get());
             boot_rom_handler_.release();
+            executed_boot_rom_ = true;
         }
 
         cpu_.Tick();

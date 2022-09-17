@@ -12,7 +12,7 @@ public:
     virtual ~BlarggTest() = default;
 
 protected:
-    gandalf::Gameboy gameboy_;
+    std::unique_ptr<gandalf::Gameboy> gameboy_;
 };
 
 namespace gandalf {
@@ -71,9 +71,9 @@ TEST_P(BlarggTest, cpu_instructions)
     ASSERT_TRUE(ReadFileBytes("/bootrom/boot.bin", bootrom_bytes));
     Gameboy::BootROM bootrom;
     std::copy(bootrom_bytes.begin(), bootrom_bytes.end(), bootrom.begin());
-    std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>();
-    gb->LoadBootROM(bootrom);
-    gb->Load(rom_bytes);
+    std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(bootrom, rom_bytes);
+
+    ASSERT_TRUE(gb->Ready());
 
     Bus& bus = gb->GetBus();
 

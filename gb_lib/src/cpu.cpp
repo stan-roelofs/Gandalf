@@ -697,7 +697,8 @@ namespace gandalf {
     halt_bug_(false),
     ei_pending_(false),
     double_speed_(false),
-    prepare_speed_switch_(false)
+    prepare_speed_switch_(false),
+    gameboy_mode_(GameboyMode::DMG)
   {}
 
   CPU::~CPU() = default;

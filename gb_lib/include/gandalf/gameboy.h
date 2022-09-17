@@ -62,15 +62,15 @@ namespace gandalf {
   public:
     using BootROM = std::array<byte, 0x100>;
 
-    Gameboy();
+    Gameboy(const BootROM& boot_rom, const ROM& rom);
     ~Gameboy();
 
-    bool Load(const ROM& rom);
-    void LoadBootROM(const BootROM& boot_rom);
+    /// @returns Whether the Gameboy is ready to run (ROM is loaded and Boot ROM is loaded)
+    bool Ready() const;
 
     void Run();
 
-    const Cartridge& GetCartridge() const { return cartridge_; }
+    const std::unique_ptr<Cartridge>& GetCartridge() const { return cartridge_; }
 
     CPU& GetCPU() { return cpu_; }
     Bus& GetBus() { return bus_; }
@@ -80,15 +80,19 @@ namespace gandalf {
     APU& GetAPU() { return io_.GetAPU(); }
 
   private:
+    void LoadROM(const ROM& rom);
+    void LoadBootROM(const BootROM& boot_rom);
+
     // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.
     Bus bus_;
     IO io_;
     CPU cpu_;
     WRAM wram_;
     HRAM hram_;
-    Cartridge cartridge_;
+    std::unique_ptr<Cartridge> cartridge_;
 
     std::unique_ptr<BootROMHandler> boot_rom_handler_;
+    bool executed_boot_rom_;
   };
 } // namespace gandalf
 #endif

@@ -16,6 +16,13 @@ namespace gandalf {
     Cartridge();
     virtual ~Cartridge();
 
+    enum class CGBFunctionality
+    {
+        kOnly,
+        kSupported,
+        kNotSupported
+    };
+
     struct Header {
       byte logo[0x30];            // 0x104-0x133 - Logo
       byte title[0x10];           // 0x134-0x143 - Title
@@ -32,15 +39,17 @@ namespace gandalf {
       byte header_checksum;       // 0x14D - Header checksum
       byte global_checksum[2];    // 0x14E-0x14F - Global checksum
 
-      std::string GetTitle() const;
-      std::string GetManufacturerCode() const;
-      std::string GetDestination() const;
-      std::string GetLicensee() const;
-      std::string GetType() const;
-      std::string GetROMSize() const;
-      std::string GetRAMSize() const;
-      std::string GetCGBFlag() const;
-      std::string GetSGBFlag() const;
+      CGBFunctionality GetCGBFlag() const;
+
+      std::string GetTitleString() const;
+      std::string GetManufacturerCodeString() const;
+      std::string GetDestinationString() const;
+      std::string GetLicenseeString() const;
+      std::string GetTypeString() const;
+      std::string GetROMSizeString() const;
+      std::string GetRAMSizeString() const;
+      std::string GetCGBFlagString() const;
+      std::string GetSGBFlagString() const;
     };
 
     /**

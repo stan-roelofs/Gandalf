@@ -456,23 +456,26 @@ namespace gui
 
             ImGui::EndTable();
         }
-        ImGui::End();
         */ // TODO
 
+        ImGui::End();
+
         ImGui::Begin("Cartridge");
-        std::shared_ptr<const gandalf::Cartridge::Header> header = std::move(gameboy_->GetCartridge().GetHeader());
-        if (header)
+        if (const auto& cartridge_ptr = gameboy_->GetCartridge())
         {
-            ImGui::Text("ROM loaded");
-            ImGui::Text("Title: %s", header->GetTitle().c_str());
-            ImGui::Text("Manufacturer code: %s", header->GetManufacturerCode().c_str());
-            ImGui::Text("Licensee: %s", header->GetLicensee().c_str());
-            ImGui::Text("ROM Size: %s", header->GetROMSize().c_str());
-            ImGui::Text("RAM Size: %s", header->GetRAMSize().c_str());
-            ImGui::Text("CGB flag: %s", header->GetCGBFlag().c_str());
-            ImGui::Text("SGB flag: %s", header->GetSGBFlag().c_str());
-            ImGui::Text("Cartridge type: %s", header->GetType().c_str());
-            ImGui::Text("Destination: %s", header->GetDestination().c_str());
+            if (cartridge_ptr->Loaded()) {
+                const auto& header = cartridge_ptr->GetHeader();
+                ImGui::Text("ROM loaded");
+                ImGui::Text("Title: %s", header->GetTitleString().c_str());
+                ImGui::Text("Manufacturer code: %s", header->GetManufacturerCodeString().c_str());
+                ImGui::Text("Licensee: %s", header->GetLicenseeString().c_str());
+                ImGui::Text("ROM Size: %s", header->GetROMSizeString().c_str());
+                ImGui::Text("RAM Size: %s", header->GetRAMSizeString().c_str());
+                ImGui::Text("CGB flag: %s", header->GetCGBFlagString().c_str());
+                ImGui::Text("SGB flag: %s", header->GetSGBFlagString().c_str());
+                ImGui::Text("Cartridge type: %s", header->GetTypeString().c_str());
+                ImGui::Text("Destination: %s", header->GetDestinationString().c_str());
+            }
         }
         else
             ImGui::TextUnformatted("No ROM loaded");
@@ -515,11 +518,6 @@ namespace gui
             std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
                 std::istreambuf_iterator<char>());
 
-            gameboy_ = std::make_unique<gandalf::Gameboy>();
-            std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_);
-            gameboy_->GetAPU().SetOutputHandler(handler);
-            gameboy_->GetPPU().SetVBlankListener(this);
-
             auto boot_rom = LoadBootROM(boot_rom_path_);
             if (!boot_rom && ImGui::BeginPopupModal("Error"))
             {
@@ -528,16 +526,20 @@ namespace gui
                 return;
             }
 
-            gameboy_->LoadBootROM(*boot_rom);
-            if (!gameboy_->Load(file)) {
-                if (ImGui::BeginPopupModal("Error")) {
-                    ImGui::TextUnformatted("Could not load ROM!");
-                    ImGui::EndPopup();
-                }
-            }
+            std::unique_ptr<gandalf::Gameboy> gameboy = std::make_unique<gandalf::Gameboy>(*boot_rom, file);
+            std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_);
+            gameboy->GetAPU().SetOutputHandler(handler);
+            gameboy->GetPPU().SetVBlankListener(this);
 
-            gb_thread_run_ = true;
-            gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_);
+            if (gameboy->Ready()) {
+                gameboy_ = std::move(gameboy);
+                gb_thread_run_ = true;
+                gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_);
+            }
+            else if (ImGui::BeginPopupModal("Error")) {
+                ImGui::TextUnformatted("Could not load ROM!");
+                ImGui::EndPopup();                                
+            }
         }
     }
 
