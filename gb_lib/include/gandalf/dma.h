@@ -24,8 +24,11 @@ namespace gandalf
         byte dma_;
 
         bool in_progress_;
-        word current_byte_;
+        word current_byte_read_;
+        word current_byte_write_;
         word source_address_;
+        byte read_value_;
+        int cycle_counter_;
     };
 }
 

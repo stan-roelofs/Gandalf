@@ -6,23 +6,42 @@
 
 namespace gandalf
 {
-    DMA::DMA(Bus& bus) : Bus::AddressHandler("DMA"), bus_(bus), in_progress_(false), current_byte_(0), source_address_(0)
+    DMA::DMA(Bus& bus) : Bus::AddressHandler("DMA"),
+        bus_(bus),
+        in_progress_(false),
+        current_byte_read_(0),
+        current_byte_write_(0),
+        source_address_(0),
+        read_value_(0),
+        cycle_counter_(0),
+        dma_(0)
     {
     }
 
     DMA::~DMA() = default;
 
+    /* Requires 160 * 4 + 4 cycles
+    * - First cycle we read byte 0
+    * - Every cycle after that, we read byte n + 1 and write byte n
+    */
     void DMA::Tick()
     {
-        if (!in_progress_)
+        if (!in_progress_ || cycle_counter_++ < 4)
             return;
 
-        const byte source_byte = bus_.Read(source_address_ + current_byte_);
-        bus_.Write(0xFE00 + current_byte_, source_byte);
+        cycle_counter_ = 0;
 
-        ++current_byte_;
+        if (current_byte_read_ > 0) {
+            bus_.Write(0xFE00 + current_byte_write_, read_value_);
+            ++current_byte_write_;
+        }
 
-        if (current_byte_ == 0x100)
+        if (current_byte_read_ < 0x100) {
+            read_value_ = bus_.Read(source_address_ + current_byte_read_);
+            ++current_byte_read_;
+        }
+
+        if (current_byte_write_ == 0x100)
             in_progress_ = false;
     }
 
@@ -39,7 +58,10 @@ namespace gandalf
         (void)address;
         dma_ = value;
 
-        current_byte_ = 0;
+        cycle_counter_ = 0;
+        current_byte_read_ = 0;
+        current_byte_write_ = 0;
+        read_value_ = 0;
         in_progress_ = true;
         source_address_ = dma_ << 8;
     }
