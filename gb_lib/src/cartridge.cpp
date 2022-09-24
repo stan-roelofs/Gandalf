@@ -10,6 +10,7 @@
 
 #include "cartridge/mbc1.h"
 #include "cartridge/mbc3.h"
+#include "cartridge/mbc5.h"
 #include "cartridge/rom_only.h"
 
 namespace gandalf {
@@ -31,6 +32,12 @@ namespace gandalf {
         {0x11, {{2, 4, 8, 16, 32, 64, 128}, {0}}},
         {0x12, {{2, 4, 8, 16, 32, 64, 128}, {0, 1, 4}}},
         {0x13, {{2, 4, 8, 16, 32, 64, 128}, {0, 1, 4}}},
+        {0x19, {{2, 4, 8, 16, 32, 64, 128, 256, 512}, {0}}},
+        {0x1A, {{2, 4, 8, 16, 32, 64, 128, 256, 512}, {0, 1, 4, 8, 16}}},
+        {0x1B, {{2, 4, 8, 16, 32, 64, 128, 256, 512}, {0, 1, 4, 8, 16}}},
+        {0x1C, {{2, 4, 8, 16, 32, 64, 128, 256, 512}, {0}}},
+        {0x1D, {{2, 4, 8, 16, 32, 64, 128, 256, 512}, {0, 1, 4, 8, 16}}},
+        {0x1E, {{2, 4, 8, 16, 32, 64, 128, 256, 512}, {0, 1, 4, 8, 16}}}
     };
 
     Cartridge::CGBFunctionality Cartridge::Header::GetCGBFlag() const
@@ -442,16 +449,22 @@ namespace gandalf {
         switch (result->cartridge_type)
         {
         case 0x00: mbc_ = std::make_unique<ROMOnly>(bytes, 0); break;
-        case 0x01: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, ram_banks); break;
-        case 0x02: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, ram_banks); break;
+        case 0x01: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, 0, false); break;
+        case 0x02: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, ram_banks, false); break;
         case 0x03: mbc_ = std::make_unique<MBC1>(bytes, rom_banks, ram_banks, true); break;
             //case 0x04: mbc_ = std::unique_ptr<MBC2>(new MBC2(bytes, rom_banks, ram_banks)); break;
         case 0x08: mbc_ = std::make_unique<ROMOnly>(bytes, ram_banks); break;
         case 0x0F:
         case 0x10: mbc_ = std::make_unique<MBC3>(bytes, rom_banks, ram_banks, true, true); break;
-        case 0x11: mbc_ = std::make_unique<MBC3>(bytes, rom_banks, ram_banks, false, false); break;
+        case 0x11: mbc_ = std::make_unique<MBC3>(bytes, rom_banks, 0, false, false); break;
         case 0x12: mbc_ = std::make_unique<MBC3>(bytes, rom_banks, ram_banks, false, false); break;
         case 0x13: mbc_ = std::make_unique<MBC3>(bytes, rom_banks, ram_banks, true, false); break;
+        case 0x19: mbc_ = std::make_unique<MBC5>(bytes, rom_banks, 0, false, false); break;
+        case 0x1A: mbc_ = std::make_unique<MBC5>(bytes, rom_banks, ram_banks, false, false); break;
+        case 0x1B: mbc_ = std::make_unique<MBC5>(bytes, rom_banks, ram_banks, true, false); break;
+        case 0x1C: mbc_ = std::make_unique<MBC5>(bytes, rom_banks, 0, false, true); break;
+        case 0x1D: mbc_ = std::make_unique<MBC5>(bytes, rom_banks, ram_banks, false, true); break;
+        case 0x1E: mbc_ = std::make_unique<MBC5>(bytes, rom_banks, ram_banks, true, true); break;
         default: assert(false); break;
         }
 

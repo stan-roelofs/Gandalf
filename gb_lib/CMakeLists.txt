@@ -11,6 +11,7 @@ set(HEADERS
     include/gandalf/constants.h
     include/gandalf/dma.h
     include/gandalf/gameboy.h
+    include/gandalf/hdma.h
     include/gandalf/hram.h
     include/gandalf/io.h
     include/gandalf/joypad.h
@@ -28,6 +29,7 @@ set(HEADERS
     src/bootrom.h
     src/cartridge/mbc1.h
     src/cartridge/mbc3.h
+    src/cartridge/mbc5.h
     src/cartridge/rom_only.h
     src/sound/frequency_sweep_unit.h
     src/sound/length_counter.h
@@ -45,10 +47,12 @@ set(SOURCES
     src/cartridge/mbc.cpp
     src/cartridge/mbc1.cpp
     src/cartridge/mbc3.cpp
+    src/cartridge/mbc5.cpp
     src/cartridge/rom_only.cpp
     src/cpu.cpp
     src/dma.cpp
     src/gameboy.cpp
+    src/hdma.cpp
     src/hram.cpp
     src/io.cpp
     src/joypad.cpp

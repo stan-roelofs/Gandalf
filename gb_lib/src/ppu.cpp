@@ -28,9 +28,16 @@ namespace {
 }
 
 namespace gandalf {
-    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"), bus_(bus), lcd_(lcd), line_ticks_(0), vblank_listener_(nullptr), pipeline_(lcd_, vram_, fetched_sprites_)
+    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"),
+        bus_(bus),
+        lcd_(lcd),
+        line_ticks_(0),
+        current_vram_bank_(0),
+        vblank_listener_(nullptr),
+        pipeline_(lcd_, vram_, fetched_sprites_)
     {
-        vram_.fill((byte)std::rand());
+        for (auto& bank : vram_)
+            bank.fill((byte)std::rand());
         oam_.fill((byte)std::rand());
     }
 
@@ -120,25 +127,31 @@ namespace gandalf {
 
     byte PPU::Read(word address) const
     {
-        assert(BETWEEN(address, 0x8000, 0xA000) || BETWEEN(address, 0xFE00, 0xFEA0));
+        assert(BETWEEN(address, 0x8000, 0xA000) || BETWEEN(address, 0xFE00, 0xFEA0) || address == kVBK);
 
         // TODO only accessible during certain modes
         if (address >= 0x8000 && address < 0xA000)
-            return vram_[address - 0x8000];
+            return vram_[current_vram_bank_][address - 0x8000];
         else if (address >= 0xFE00 && address < 0xFEA0)
             return oam_[address - 0xFE00];
+        else if (mode_ == GameboyMode::CGB && address == kVBK)
+            return current_vram_bank_ == 0 ? 0xFE : 0xFF;
         return 0xFF;
     }
 
     void PPU::Write(word address, byte value)
     {
-        assert(BETWEEN(address, 0x8000, 0xA000) || BETWEEN(address, 0xFE00, 0xFEA0));
+        assert(BETWEEN(address, 0x8000, 0xA000) || BETWEEN(address, 0xFE00, 0xFEA0) || address == kVBK);
 
         // TODO only accessible during certain modes
         if (address >= 0x8000 && address < 0xA000)
-            vram_[address - 0x8000] = value;
+            vram_[current_vram_bank_][address - 0x8000] = value;
         else if (address >= 0xFE00 && address < 0xFEA0)
             oam_[address - 0xFE00] = value;
+        else if (mode_ == GameboyMode::CGB && address == kVBK) {
+            current_vram_bank_ = value & 0x1;
+            pipeline_.SetVRamBank(current_vram_bank_);
+        }
     }
 
     std::set<word> PPU::GetAddresses() const
@@ -150,6 +163,7 @@ namespace gandalf {
         for (word i = 0xFE00; i < 0xFEA0; ++i)
             result.insert(i);
 
+        result.insert(kVBK);
         return result;
     }
 
@@ -174,7 +188,14 @@ namespace gandalf {
         }
     }
 
-    PPU::Pipeline::Pipeline(LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) : lcd_(lcd), vram_(vram), sprite_in_progress_(false), fetched_sprites_(fetched_sprites), sprite_line_(0), drop_pixels_(0), window_triggered_(false)
+    PPU::Pipeline::Pipeline(LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) : 
+        lcd_(lcd), 
+        vram_(vram), 
+        current_vram_bank_(0),
+        sprite_in_progress_(false), 
+        fetched_sprites_(fetched_sprites),
+        sprite_line_(0), drop_pixels_(0), 
+        window_triggered_(false)
     {
         Reset();
     }
@@ -246,7 +267,7 @@ namespace gandalf {
             const bool tile_map = (window_triggered_) ? lcd_.GetLCDControl() & 0x20 : lcd_.GetLCDControl() & 0x8;
             const word tile_map_offset = tile_map ? 0x1C00 : 0x1800;
             const word tile_address = tile_map_offset + (fetch_y_ / 8 * 32) + fetch_x_;
-            tile_number_ = vram_.at(tile_address);
+            tile_number_ = vram_[current_vram_bank_].at(tile_address);
             fetcher_state_ = FetcherState::kFetchDataLowSleep;
             break;
         }
@@ -261,7 +282,7 @@ namespace gandalf {
             int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_));
             tile_offset *= 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2);
-            tile_data_low_ = vram_.at(total_offset);
+            tile_data_low_ = vram_[current_vram_bank_].at(total_offset);
             fetcher_state_ = FetcherState::kFetchDataHighSleep;
         }
         break;
@@ -274,7 +295,7 @@ namespace gandalf {
             const word tile_base_address = tile_data_select ? 0 : 0x1000;
             const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2 + 1);
-            tile_data_high_ = vram_.at(total_offset);
+            tile_data_high_ = vram_[current_vram_bank_].at(total_offset);
             fetcher_state_ = FetcherState::kPush;
 
             TryPush();
@@ -311,7 +332,7 @@ namespace gandalf {
             const bool flip_y = current_sprite_.attributes & 0x40;
             sprite_line_ = flip_y ? sprite_height - 1 - (lcd_.GetLY() + 16 - current_sprite_.y) : lcd_.GetLY() + 16 - current_sprite_.y;
 
-            current_sprite_.tile_data_low = vram_[current_sprite_.tile_index * 16 + sprite_line_ * 2];
+            current_sprite_.tile_data_low = vram_[current_vram_bank_][current_sprite_.tile_index * 16 + sprite_line_ * 2];
             sprite_state_ = SpriteState::kReadDataHighSleep;
             break;
         }
@@ -319,7 +340,7 @@ namespace gandalf {
             sprite_state_ = SpriteState::kReadDataHigh;
             break;
         case SpriteState::kReadDataHigh:
-            current_sprite_.tile_data_high = vram_[current_sprite_.tile_index * 16 + sprite_line_ * 2 + 1];
+            current_sprite_.tile_data_high = vram_[current_vram_bank_][current_sprite_.tile_index * 16 + sprite_line_ * 2 + 1];
             PushSprite();
             sprite_in_progress_ = false;
             break;

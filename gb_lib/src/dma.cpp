@@ -8,13 +8,13 @@ namespace gandalf
 {
     DMA::DMA(Bus& bus) : Bus::AddressHandler("DMA"),
         bus_(bus),
+        dma_(0),
         in_progress_(false),
         current_byte_read_(0),
         current_byte_write_(0),
         source_address_(0),
         read_value_(0),
-        cycle_counter_(0),
-        dma_(0)
+        cycle_counter_(0)
     {
     }
 

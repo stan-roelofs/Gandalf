@@ -9,6 +9,7 @@
 #include "ppu.h"
 #include "serial.h"
 #include "timer.h"
+#include "hdma.h"
 
 namespace gandalf {
     class IO {
@@ -23,6 +24,8 @@ namespace gandalf {
         Joypad& GetJoypad() { return joypad_; }
         APU& GetAPU() { return apu_; }
 
+        void SetGameboyMode(GameboyMode mode);
+
     private:
         Bus& bus_;
         Timer timer_;
@@ -32,6 +35,9 @@ namespace gandalf {
         Joypad joypad_;
         APU apu_;
         DMA dma_;
+        HDMA hdma_;
+
+        GameboyMode mode_;
     };
 } // namespace gandalf
 

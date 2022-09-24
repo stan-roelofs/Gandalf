@@ -1,24 +1,24 @@
-#ifndef __GANDALF_CARTRIDGE_MBC1_H
-#define __GANDALF_CARTRIDGE_MBC1_H
+#ifndef __GANDALF_CARTRIDGE_MBC5_H
+#define __GANDALF_CARTRIDGE_MBC5_H
 
 #include <gandalf/types.h>
 #include <gandalf/mbc.h>
 
 namespace gandalf {
-    class MBC1 : public MBC {
+    class MBC5 : public MBC {
     public:
-        MBC1(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks, bool has_battery);
-        virtual ~MBC1();
+        MBC5(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks, bool has_battery, bool has_rumble);
+        virtual ~MBC5();
 
         byte Read(word address) const override;
         void Write(word address, byte value) override;
 
     private:
         bool ram_enabled_;
-        byte rom_bank_number_;
+        word rom_bank_number_;
         byte ram_bank_number_;
-        bool advanced_banking_mode_;
         bool has_battery_; // TODO: implement battery
+        bool has_rumble_;
     };
 }
 

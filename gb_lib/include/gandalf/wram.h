@@ -2,6 +2,7 @@
 #define __GANDALF_WRAM_H
 
 #include "bus.h"
+#include "constants.h"
 
 namespace gandalf {
     class WRAM : public Bus::AddressHandler {
@@ -13,8 +14,12 @@ namespace gandalf {
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
+        void SetGameboyMode(GameboyMode mode) { mode_ = mode; }
+
     private:
-        std::array<byte, 0x2000> data_;
+        std::array<std::array<byte, 0x1000>, 8> data_;
+        int wram_bank_;
+        GameboyMode mode_;
     };
 } // namespace gandalf
 

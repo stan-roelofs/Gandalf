@@ -2,6 +2,7 @@
 #define __GANDALF_GAMEBOY_H
 
 #include <memory>
+#include <cassert>
 
 #include "bus.h"
 #include "cpu.h"
@@ -13,54 +14,9 @@
 #include "wram.h"
 
 namespace gandalf {
-  // TODO move this somewhere else
-  class BootROMHandler : public Bus::AddressHandler
-  {
-  public:
-    BootROMHandler(const std::array<byte, 0x100>& boot_rom) : Bus::AddressHandler("Boot ROM"), should_unregister_(false), boot_rom_(boot_rom)
-    {
-    }
-    virtual ~BootROMHandler() = default;
-
-    void Write(word address, byte value) override
-    {
-      if (address != kBANK)
-        return;
-
-      if (value != 0)
-        should_unregister_ = true;
-    }
-
-    byte Read(word address) const override
-    {
-      if (address < 0x100)
-        return boot_rom_[address];
-
-      if (address == kBANK)
-        return 0xFF;
-
-      return 0xFF; // TODO
-    }
-
-    std::set<word> GetAddresses() const override
-    {
-      std::set<word> addresses;
-      for (word i = 0; i < 0x100; ++i)
-        addresses.insert(i);
-      addresses.insert(kBANK);
-      return addresses;
-    }
-
-    bool Done() const { return should_unregister_; }
-
-  private:
-    bool should_unregister_;
-    const std::array<byte, 0x100> boot_rom_;
-  };
-
   class Gameboy {
   public:
-    using BootROM = std::array<byte, 0x100>;
+    using BootROM = std::vector<byte>;
 
     Gameboy(const BootROM& boot_rom, const ROM& rom);
     ~Gameboy();
@@ -91,6 +47,47 @@ namespace gandalf {
     HRAM hram_;
     std::unique_ptr<Cartridge> cartridge_;
 
+    class BootROMHandler : public Bus::AddressHandler
+    {
+    public:
+      BootROMHandler(const std::vector<byte> boot_rom) : Bus::AddressHandler("Boot ROM"), should_unregister_(false), boot_rom_(boot_rom)
+      {
+      }
+      virtual ~BootROMHandler() = default;
+
+      void Write(word address, byte value) override
+      {
+        if (address != kBANK)
+          return;
+
+        if (value != 0)
+          should_unregister_ = true;
+      }
+
+      byte Read(word address) const override
+      {
+        assert(address < boot_rom_.size() || address == kBANK);
+        if (address < boot_rom_.size())
+          return boot_rom_[address];
+
+        return 0xFF;
+      }
+
+      std::set<word> GetAddresses() const override
+      {
+        std::set<word> addresses;
+        for (word i = 0; i < boot_rom_.size(); ++i)
+          addresses.insert(i);
+        addresses.insert(kBANK);
+        return addresses;
+      }
+
+      bool Done() const { return should_unregister_; }
+
+    private:
+      bool should_unregister_;
+      const std::vector<byte> boot_rom_;
+    };
     std::unique_ptr<BootROMHandler> boot_rom_handler_;
     bool executed_boot_rom_;
   };

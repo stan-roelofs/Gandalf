@@ -552,14 +552,7 @@ namespace gui
         std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
             std::istreambuf_iterator<char>());
 
-        auto boot_rom = std::make_unique<gandalf::Gameboy::BootROM>();
-        if (file.size() < boot_rom->size())
-            return {};
-        else if (file.size() > boot_rom->size())
-            std::cout << "Warning: unexpected boot ROM size (" << file.size() << " bytes)" << std::endl;
-
-        std::copy(file.begin(), file.end(), boot_rom->begin());
-        return boot_rom;
+        return std::make_unique<gandalf::Gameboy::BootROM>(file);
     }
 
     void MainWindow::OnVBlank()

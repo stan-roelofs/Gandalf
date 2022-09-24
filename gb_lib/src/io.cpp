@@ -1,7 +1,7 @@
 #include <gandalf/io.h>
 
 namespace gandalf {
-    IO::IO(Bus& bus) : bus_(bus), timer_(bus), ppu_(bus, lcd_), dma_(bus) {
+    IO::IO(Bus& bus) : bus_(bus), timer_(bus), ppu_(bus, lcd_), dma_(bus), hdma_(bus) {
         bus_.Register(&ppu_);
         bus_.Register(&lcd_);
         bus_.Register(&timer_);
@@ -9,6 +9,7 @@ namespace gandalf {
         bus_.Register(&joypad_);
         bus_.Register(&apu_);
         bus_.Register(&dma_);
+        bus_.Register(&hdma_);
     }
 
     IO::~IO() {
@@ -19,10 +20,12 @@ namespace gandalf {
         bus_.Unregister(&joypad_);
         bus_.Unregister(&apu_);
         bus_.Unregister(&dma_);
+        bus_.Unregister(&hdma_);
     }
 
     void IO::Tick(unsigned int cycles, bool double_speed)
     {
+        // TODO pass cycles to each component instead of looping here
         for (unsigned int i = 0; i < (double_speed ? cycles * 2 : cycles); ++i) {
             timer_.Tick();
             serial_.Tick();
@@ -32,7 +35,19 @@ namespace gandalf {
         for (unsigned int i = 0; i < cycles; ++i) {
             ppu_.Tick();
             apu_.Tick();
+
+            if (mode_ == GameboyMode::CGB)
+                hdma_.Tick();
         }
+
+        if (mode_ == GameboyMode::CGB && hdma_.GetRemainingGDMACycles() > 0)
+            Tick(hdma_.GetRemainingGDMACycles(), double_speed);
+    }
+
+    void IO::SetGameboyMode(GameboyMode mode)
+    {
+        mode_ = mode;
+        ppu_.SetGameboyMode(mode);
     }
 
 } // namespace gandalf

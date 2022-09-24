@@ -29,9 +29,12 @@ namespace gandalf {
         }
 
         bus_.Register(cartridge_.get());
-        std::shared_ptr<const Cartridge::Header> header = std::move(cartridge_->GetHeader());
+        std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
         const auto cgb_flag = header->GetCGBFlag();
-        cpu_.SetGameboyMode(cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB);
+        const auto mode = cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB;
+        cpu_.SetGameboyMode(mode);
+        wram_.SetGameboyMode(mode);
+        io_.SetGameboyMode(mode);
     }
 
     void Gameboy::LoadBootROM(const BootROM& boot_rom)

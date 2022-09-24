@@ -25,10 +25,8 @@ namespace gandalf {
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
-        void SetVBlankListener(VBlankListener* listener)
-        {
-            vblank_listener_ = listener;
-        }
+        void SetVBlankListener(VBlankListener* listener) { vblank_listener_ = listener; }
+        void SetGameboyMode(GameboyMode mode) { mode_ = mode; }
 
     private:
         void IncrementLY();
@@ -37,8 +35,12 @@ namespace gandalf {
         LCD& lcd_;
         int line_ticks_;
 
-        using VRAM = std::array<byte, 0x2000>;
+        GameboyMode mode_;
+
+        using VRAMBank = std::array<byte, 0x2000>;
+        using VRAM = std::array<VRAMBank, 2>;
         VRAM vram_;
+        int current_vram_bank_;
         std::array<byte, 0xA0> oam_;
         VBlankListener* vblank_listener_;
         struct Sprite {
@@ -63,6 +65,7 @@ namespace gandalf {
             void Process();
             void Reset();
             bool Done() const;
+            void SetVRamBank(int bank) { current_vram_bank_ = bank; }
         private:
             void RenderPixel();
             void TileStateMachine();
@@ -101,6 +104,7 @@ namespace gandalf {
 
             LCD& lcd_;
             const VRAM& vram_;
+            int current_vram_bank_;
             std::deque<Pixel> background_fifo_;
             std::deque<Pixel> sprite_fifo_;
             FetcherState fetcher_state_;
