@@ -25,19 +25,24 @@ namespace gandalf {
 
     void IO::Tick(unsigned int cycles, bool double_speed)
     {
-        // TODO pass cycles to each component instead of looping here
-        for (unsigned int i = 0; i < (double_speed ? cycles * 2 : cycles); ++i) {
+        for (unsigned int i = 0; i < cycles; ++i) {
             timer_.Tick();
             serial_.Tick();
             dma_.Tick();
-        }
 
-        for (unsigned int i = 0; i < cycles; ++i) {
             ppu_.Tick();
             apu_.Tick();
 
             if (mode_ == GameboyMode::CGB)
                 hdma_.Tick();
+
+            if (double_speed)
+            {
+                timer_.Tick();
+                serial_.Tick();
+                dma_.Tick();
+            }
+
         }
 
         if (mode_ == GameboyMode::CGB && hdma_.GetRemainingGDMACycles() > 0)

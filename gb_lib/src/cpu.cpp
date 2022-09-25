@@ -736,7 +736,7 @@ namespace gandalf {
 
   std::set<word> CPU::GetAddresses() const
   {
-    return { kIE, kIF };
+    return { kIE, kIF, kKEY1 };
   }
 
   void CPU::Tick() {

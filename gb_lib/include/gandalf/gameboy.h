@@ -76,8 +76,12 @@ namespace gandalf {
       std::set<word> GetAddresses() const override
       {
         std::set<word> addresses;
-        for (word i = 0; i < boot_rom_.size(); ++i)
+        for (word i = 0; i < boot_rom_.size() && i < 0x100; ++i)
           addresses.insert(i);
+
+        for (word i = 0x200; i < boot_rom_.size(); ++i)
+            addresses.insert(i);
+
         addresses.insert(kBANK);
         return addresses;
       }

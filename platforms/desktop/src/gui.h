@@ -68,7 +68,9 @@ namespace gui {
         std::unique_ptr<gandalf::Gameboy> gameboy_;
         settings::Settings settings_;
         bool running_;
+        std::optional<gandalf::word> breakpoint_;
         bool show_debug_window_;
+        bool step_;
         int scale_;
         bool gb_pause_;
         bool gb_thread_run_;

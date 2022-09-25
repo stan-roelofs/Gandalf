@@ -23,12 +23,20 @@ namespace {
 
 namespace gui
 {
-    void GameboyThread(gandalf::Gameboy* gb, const bool* thread_run, const bool* gb_paused)
+    void GameboyThread(gandalf::Gameboy* gb, const bool* thread_run, bool* gb_paused, bool* step, std::optional<gandalf::word>* breakpoint)
     {
         while (*thread_run)
         {
+            if (*breakpoint && *breakpoint == gb->GetCPU().GetRegisters().program_counter)
+                *gb_paused = true;
+
             if (!*gb_paused)
                 gb->Run();
+            else if (*step)
+            {
+                gb->Run();
+                *step = false;
+            }
         }
     }
 
@@ -39,6 +47,7 @@ namespace gui
         sdl_texture_(nullptr),
         running_(false),
         show_debug_window_(true),
+        step_(false),
         scale_(4),
         gb_pause_(false),
         block_audio_(true),
@@ -293,18 +302,18 @@ namespace gui
             return;
 
         ImGui::Begin("CPU", nullptr, ImGuiWindowFlags_NoTitleBar);
-        ImGui::Checkbox("Run", &gb_thread_run_);
+        ImGui::Checkbox("Pause", &gb_pause_);
         ImGui::Checkbox("Limit FPS", &block_audio_);
         ImGui::SameLine();
 
-        if (gb_thread_run_)
+        if (!gb_pause_)
             ImGui::BeginDisabled();
 
         if (ImGui::Button("Step")) {
-          //  *context.step = true; // TODO
+            step_ = true;
         }
 
-        if (gb_thread_run_)
+        if (!gb_pause_)
             ImGui::EndDisabled();
 
         if (ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
@@ -410,7 +419,7 @@ namespace gui
         gandalf::Bus& bus = gameboy_->GetBus();
         gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
 
-        /*
+
         if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
             static gandalf::word last_pc = registers.program_counter;
             static float debugger_item_height = 0.f;
@@ -435,11 +444,11 @@ namespace gui
 
                     bool dummy = false;
                     std::string label = "##b" + std::to_string(line_no);
-                    if (ImGui::Selectable(label.c_str(), *context.breakpoint && **context.breakpoint == line_no)) {
-                        if (context.breakpoint && *context.breakpoint == line_no)
-                            *context.breakpoint = std::nullopt;
+                    if (ImGui::Selectable(label.c_str(), breakpoint_ && *breakpoint_ == line_no)) {
+                        if (breakpoint_ && *breakpoint_ == line_no)
+                            breakpoint_ = std::nullopt;
                         else
-                            *context.breakpoint = line_no;
+                            breakpoint_ = line_no;
                     }
 
                     ImGui::TableSetColumnIndex(1);
@@ -456,7 +465,6 @@ namespace gui
 
             ImGui::EndTable();
         }
-        */ // TODO
 
         ImGui::End();
 
@@ -527,18 +535,18 @@ namespace gui
             }
 
             std::unique_ptr<gandalf::Gameboy> gameboy = std::make_unique<gandalf::Gameboy>(*boot_rom, file);
-            std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_);
+            std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_, gb_thread_run_);
             gameboy->GetAPU().SetOutputHandler(handler);
             gameboy->GetPPU().SetVBlankListener(this);
 
             if (gameboy->Ready()) {
                 gameboy_ = std::move(gameboy);
                 gb_thread_run_ = true;
-                gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_);
+                gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_, &step_, &breakpoint_);
             }
             else if (ImGui::BeginPopupModal("Error")) {
                 ImGui::TextUnformatted("Could not load ROM!");
-                ImGui::EndPopup();                                
+                ImGui::EndPopup();
             }
         }
     }

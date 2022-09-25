@@ -39,8 +39,9 @@ namespace gandalf
             state_ = State::kWrite;
             break;
         case State::kWrite:
+            assert(remaining_length_ > 0);
             bus_.Write(++destination_, current_byte_);
-            if (remaining_length_-- == 0)
+            if (--remaining_length_ == 0)
                 state_ = State::kIdle;
             else
                 state_ = State::kRead;

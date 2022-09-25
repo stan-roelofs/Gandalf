@@ -39,6 +39,9 @@ namespace gandalf {
 
     void Gameboy::LoadBootROM(const BootROM& boot_rom)
     {
+        if (boot_rom.size() < 0x100)
+            return;
+
         boot_rom_handler_ = std::make_unique<BootROMHandler>(boot_rom);
         bus_.Register(boot_rom_handler_.get());
     }
