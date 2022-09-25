@@ -28,12 +28,12 @@ namespace gandalf {
 
     const std::unique_ptr<Cartridge>& GetCartridge() const { return cartridge_; }
 
-    CPU& GetCPU() { return cpu_; }
+    CPU& GetCPU() { return *cpu_; }
     Bus& GetBus() { return bus_; }
-    LCD& GetLCD() { return io_.GetLCD(); }
-    PPU& GetPPU() { return io_.GetPPU(); }
-    Joypad& GetJoypad() { return io_.GetJoypad(); }
-    APU& GetAPU() { return io_.GetAPU(); }
+    LCD& GetLCD() { return io_->GetLCD(); }
+    PPU& GetPPU() { return io_->GetPPU(); }
+    Joypad& GetJoypad() { return io_->GetJoypad(); }
+    APU& GetAPU() { return io_->GetAPU(); }
 
   private:
     void LoadROM(const ROM& rom);
@@ -41,10 +41,10 @@ namespace gandalf {
 
     // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.
     Bus bus_;
-    IO io_;
-    CPU cpu_;
-    WRAM wram_;
-    HRAM hram_;
+    std::unique_ptr<IO> io_;
+    std::unique_ptr<CPU> cpu_;
+    std::unique_ptr<WRAM> wram_;
+    std::unique_ptr<HRAM> hram_;
     std::unique_ptr<Cartridge> cartridge_;
 
     class BootROMHandler : public Bus::AddressHandler
@@ -80,7 +80,7 @@ namespace gandalf {
           addresses.insert(i);
 
         for (word i = 0x200; i < boot_rom_.size(); ++i)
-            addresses.insert(i);
+          addresses.insert(i);
 
         addresses.insert(kBANK);
         return addresses;

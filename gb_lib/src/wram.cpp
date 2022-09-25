@@ -6,11 +6,10 @@
 #include <gandalf/util.h>
 
 namespace gandalf {
-    WRAM::WRAM() : Bus::AddressHandler("WRAM"),
-        wram_bank_(1)
+    WRAM::WRAM(GameboyMode mode) : Bus::AddressHandler("WRAM"),
+        wram_bank_(1),
+        mode_(mode)
     {
-        for (auto& bank : data_)
-            bank.fill((byte)std::rand());
     }
 
     WRAM::~WRAM() = default;

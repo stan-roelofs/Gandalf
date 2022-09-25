@@ -46,9 +46,9 @@ namespace gandalf {
         if (address < 0x2000)
             ram_enabled_ = (value & 0x0F) == 0x0A;
         else if (address < 0x3000)
-            rom_bank_number_ = (value & 0x7F) % rom_.size();
+            rom_bank_number_ = ((rom_bank_number_ & 0x100) | value) % rom_.size();
         else if (address < 0x4000)
-            rom_bank_number_ = rom_bank_number_ | ((value & 0x1) << 8);
+            rom_bank_number_ = ((rom_bank_number_ & 0xFF) | ((value & 0x1) << 8)) % rom_.size();
         else if (address < 0x6000 && ram_.size() > 0)
             ram_bank_number_ = (value & 0x0F) % ram_.size();
         else if (BETWEEN(address, 0xA000, 0xC000)) {

@@ -10,7 +10,7 @@ namespace gandalf {
 
   class CPU : public Bus::AddressHandler {
   public:
-    CPU(IO& io, Bus& bus);
+    CPU(GameboyMode mode, IO& io, Bus& bus);
     ~CPU();
 
     void Tick();
@@ -20,7 +20,6 @@ namespace gandalf {
     std::set<word> GetAddresses() const override;
 
     Registers& GetRegisters() { return registers_; }
-    void SetGameboyMode(GameboyMode mode) { gameboy_mode_ = mode; }
 
   private:
     void CheckInterrupts();

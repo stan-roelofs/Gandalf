@@ -28,13 +28,14 @@ namespace {
 }
 
 namespace gandalf {
-    PPU::PPU(Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"),
+    PPU::PPU(GameboyMode mode, Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"),
         bus_(bus),
         lcd_(lcd),
         line_ticks_(0),
+        mode_(mode),
         current_vram_bank_(0),
         vblank_listener_(nullptr),
-        pipeline_(lcd_, vram_, fetched_sprites_)
+        pipeline_(mode, lcd_, vram_, fetched_sprites_)
     {
         for (auto& bank : vram_)
             bank.fill((byte)std::rand());
@@ -66,6 +67,7 @@ namespace gandalf {
                     sprite.x = Read(address + 1);
                     sprite.tile_index = Read(address + 2);
                     sprite.attributes = Read(address + 3);
+                    //sprite.oam_index = (byte)(address - 0xFE00);//TODO
                     fetched_sprites_[sprite.x].push_back(std::move(sprite));
                 }
             }
@@ -188,14 +190,17 @@ namespace gandalf {
         }
     }
 
-    PPU::Pipeline::Pipeline(LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) : 
-        lcd_(lcd), 
-        vram_(vram), 
+    PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) :
+        lcd_(lcd),
+        vram_(vram),
         current_vram_bank_(0),
-        sprite_in_progress_(false), 
+        sprite_in_progress_(false),
         fetched_sprites_(fetched_sprites),
-        sprite_line_(0), drop_pixels_(0), 
-        window_triggered_(false)
+        sprite_line_(0),
+        drop_pixels_(0),
+        window_triggered_(false),
+        mode_(mode),
+        tile_attributes_(0)
     {
         Reset();
     }
@@ -267,7 +272,10 @@ namespace gandalf {
             const bool tile_map = (window_triggered_) ? lcd_.GetLCDControl() & 0x20 : lcd_.GetLCDControl() & 0x8;
             const word tile_map_offset = tile_map ? 0x1C00 : 0x1800;
             const word tile_address = tile_map_offset + (fetch_y_ / 8 * 32) + fetch_x_;
-            tile_number_ = vram_[current_vram_bank_].at(tile_address);
+            tile_number_ = vram_[0].at(tile_address);
+
+            if (mode_ == GameboyMode::CGB)
+                tile_attributes_ = vram_[1].at(tile_address);
             fetcher_state_ = FetcherState::kFetchDataLowSleep;
             break;
         }
@@ -282,7 +290,7 @@ namespace gandalf {
             int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_));
             tile_offset *= 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2);
-            tile_data_low_ = vram_[current_vram_bank_].at(total_offset);
+            tile_data_low_ = vram_[mode_ == GameboyMode::CGB ? (tile_attributes_ >> 3) & 0x1 : 0].at(total_offset);
             fetcher_state_ = FetcherState::kFetchDataHighSleep;
         }
         break;
@@ -295,7 +303,7 @@ namespace gandalf {
             const word tile_base_address = tile_data_select ? 0 : 0x1000;
             const int tile_offset = (tile_data_select ? tile_number_ : (signed_byte)(tile_number_)) * 16;
             const int total_offset = tile_base_address + tile_offset + ((fetch_y_ % 8) * 2 + 1);
-            tile_data_high_ = vram_[current_vram_bank_].at(total_offset);
+            tile_data_high_ = vram_[mode_ == GameboyMode::CGB ? (tile_attributes_ >> 3) & 0x1 : 0].at(total_offset);
             fetcher_state_ = FetcherState::kPush;
 
             TryPush();
@@ -332,7 +340,7 @@ namespace gandalf {
             const bool flip_y = current_sprite_.attributes & 0x40;
             sprite_line_ = flip_y ? sprite_height - 1 - (lcd_.GetLY() + 16 - current_sprite_.y) : lcd_.GetLY() + 16 - current_sprite_.y;
 
-            current_sprite_.tile_data_low = vram_[current_vram_bank_][current_sprite_.tile_index * 16 + sprite_line_ * 2];
+            current_sprite_.tile_data_low = vram_[mode_ == GameboyMode::CGB ? (current_sprite_.attributes >> 3) & 0x1 : 0][current_sprite_.tile_index * 16 + sprite_line_ * 2];
             sprite_state_ = SpriteState::kReadDataHighSleep;
             break;
         }
@@ -340,7 +348,7 @@ namespace gandalf {
             sprite_state_ = SpriteState::kReadDataHigh;
             break;
         case SpriteState::kReadDataHigh:
-            current_sprite_.tile_data_high = vram_[current_vram_bank_][current_sprite_.tile_index * 16 + sprite_line_ * 2 + 1];
+            current_sprite_.tile_data_high = vram_[mode_ == GameboyMode::CGB ? (current_sprite_.attributes >> 3) & 0x1 : 0][current_sprite_.tile_index * 16 + sprite_line_ * 2 + 1];
             PushSprite();
             sprite_in_progress_ = false;
             break;
@@ -365,15 +373,22 @@ namespace gandalf {
             byte color_bit_1 = flip_x ? !!((current_sprite_.tile_data_high) & (1 << i)) : !!(current_sprite_.tile_data_high & (1 << (7 - i)));
             byte color = color_bit_0 | (color_bit_1 << 1);
 
-
             Pixel& pixel = sprite_fifo_.at(i);
             if (pixel.color == 0) {
                 pixel.color = color;
-                pixel.palette = !!(current_sprite_.attributes & 0x10);
+
+                if (mode_ == GameboyMode::DMG)
+                    pixel.palette = !!(current_sprite_.attributes & 0x10);
+                else if (mode_ == GameboyMode::CGB)
+                    pixel.palette = current_sprite_.attributes & 0x7;
                 pixel.background_priority = !!(current_sprite_.attributes & 0x80);
+
+                if (mode_ == GameboyMode::CGB)
+                    pixel.sprite_priority = current_sprite_.oam_index;
             }
         }
     }
+
 
     void PPU::Pipeline::TryPush()
     {
@@ -383,7 +398,11 @@ namespace gandalf {
                 byte color_bit_0 = !!(tile_data_low_ & (1 << (7 - i)));
                 byte color_bit_1 = !!(tile_data_high_ & (1 << (7 - i))) << 1;
                 byte color = color_bit_0 | color_bit_1;
-                background_fifo_.push_back({ color, 0, 0, 0 });
+                byte palette = 0;
+                if (mode_ == GameboyMode::CGB)
+                    palette = tile_attributes_ & 0x7;
+
+                background_fifo_.push_back({ color, palette, 0, 0 });
             }
             fetch_x_ = (fetch_x_ + 1) & 0x1F;
             fetcher_state_ = FetcherState::kFetchTile;
@@ -421,8 +440,8 @@ namespace gandalf {
          * 1. There is no sprite pixel
          * 2. The sprite pixel is transparent (color 0)
          * 3. The background pixel is not transparent and the sprite pixel gives the background pixel priority (bit 7 of sprite attributes is set) */
-        if (sprite_pixel.color == 0 || (sprite_pixel.background_priority && background_pixel.color != 0))
-            lcd_.RenderPixel(pixels_pushed_, background_pixel.color, false, 0);
+        if (sprite_pixel.color == 0 || (sprite_pixel.background_priority && background_pixel.color != 0)) // TODO CGB priority
+            lcd_.RenderPixel(pixels_pushed_, background_pixel.color, false, mode_ == GameboyMode::CGB ? background_pixel.palette : 0);
         else
             lcd_.RenderPixel(pixels_pushed_, sprite_pixel.color, true, sprite_pixel.palette);
 

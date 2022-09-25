@@ -1,20 +1,33 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy(const BootROM& boot_rom, const ROM& rom) : io_(bus_), cpu_(io_, bus_), executed_boot_rom_(false)
+    Gameboy::Gameboy(const BootROM& boot_rom, const ROM& rom) : executed_boot_rom_(false)
     {
         LoadROM(rom);
         LoadBootROM(boot_rom);
-        bus_.Register(&cpu_);
-        bus_.Register(&wram_);
-        bus_.Register(&hram_);
+
+        GameboyMode mode = GameboyMode::DMG;
+        if (cartridge_)
+        {
+            std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
+            const auto cgb_flag = header->GetCGBFlag();
+            mode = cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB;
+        }
+
+        io_ = std::make_unique<IO>(mode, bus_);
+        cpu_ = std::make_unique<CPU>(mode, *io_, bus_);
+        wram_ = std::make_unique<WRAM>(mode);
+        hram_ = std::make_unique<HRAM>();
+        bus_.Register(cpu_.get());
+        bus_.Register(wram_.get());
+        bus_.Register(hram_.get());
     }
 
     Gameboy::~Gameboy()
     {
-        bus_.Unregister(&cpu_);
-        bus_.Unregister(&wram_);
-        bus_.Unregister(&hram_);
+        bus_.Unregister(cpu_.get());
+        bus_.Unregister(wram_.get());
+        bus_.Unregister(hram_.get());
         if (cartridge_)
             bus_.Unregister(cartridge_.get());
     }
@@ -29,12 +42,6 @@ namespace gandalf {
         }
 
         bus_.Register(cartridge_.get());
-        std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
-        const auto cgb_flag = header->GetCGBFlag();
-        const auto mode = cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB;
-        cpu_.SetGameboyMode(mode);
-        wram_.SetGameboyMode(mode);
-        io_.SetGameboyMode(mode);
     }
 
     void Gameboy::LoadBootROM(const BootROM& boot_rom)
@@ -64,7 +71,7 @@ namespace gandalf {
             executed_boot_rom_ = true;
         }
 
-        cpu_.Tick();
+        cpu_->Tick();
     }
 
 

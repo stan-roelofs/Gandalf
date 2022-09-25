@@ -6,12 +6,26 @@
 #include <gandalf/util.h>
 
 namespace {
-    constexpr gandalf::LCD::BGR565 kColorsDMG[4] = { 0xE7DA, 0x8E0E, 0x334A, 0x08C4 };
+    constexpr gandalf::LCD::BGR555 kColorsDMG[4] = { 0x6BFC, 0x3B11, 0x29A6, 0x1061 };
 }
 
 namespace gandalf
 {
-    LCD::LCD() : Bus::AddressHandler("LCD"), lcdc_(0), ly_(0), lyc_(0), stat_(0), scy_(0), scx_(0), wy_(0), wx_(0), bgp_(0), obp0_(0), obp1_(0)
+    LCD::LCD(GameboyMode mode) : Bus::AddressHandler("LCD"),
+        lcdc_(0),
+        ly_(0),
+        lyc_(0),
+        stat_(0),
+        scy_(0),
+        scx_(0),
+        wy_(0),
+        wx_(0),
+        bgp_(0),
+        obp0_(0),
+        obp1_(0),
+        bcps_(0),
+        ocps_(0),
+        mode_(mode)
     {
         video_buffer_.fill((byte)std::rand());
     }
@@ -48,7 +62,15 @@ namespace gandalf
         case kOBP0:
             return obp0_;
         case kOBP1:
-            return obp1_;;
+            return obp1_;
+        case kBCPS:
+            return bcps_;
+        case kOCPS:
+            return ocps_;
+        case kBCPD:
+            return static_cast<byte>(bcpd_[(bcps_ & 0x3F) / 2] & 0xFF);
+        case kOCPD:
+            return static_cast<byte>(ocpd_[(ocps_ & 0x3F) / 2] & 0xFF);
         default:
             return 0xFF;
         }
@@ -59,7 +81,8 @@ namespace gandalf
         assert(address == kLCDC || address == kSTAT || address == kSCY ||
             address == kSCX || address == kLY || address == kLYC ||
             address == kBGP || address == kOBP0 || address == kOBP1 || address == kWY ||
-            address == kWX);
+            address == kWX || address == kOCPS || address == kBCPS || address == kOCPD ||
+            address == kBCPD);
 
         switch (address)
         {
@@ -96,23 +119,68 @@ namespace gandalf
         case kOBP1:
             obp1_ = value;
             break;
+        case kBCPS:
+            if (mode_ == GameboyMode::CGB)
+                bcps_ = value;
+            break;
+        case kBCPD:
+            if (mode_ == GameboyMode::CGB)
+            {
+                const byte index = bcps_ & 0x3F;
+                if (index % 2 == 0)
+                    bcpd_[index / 2] = (bcpd_[index / 2] & 0xFF00) | value;
+                else
+                    bcpd_[index / 2] = (bcpd_[index / 2] & 0x00FF) | (value << 8);
+
+                if ((bcps_ & 0x80) != 0)
+                    bcps_ = 0x80 | ((index + 1) & 0x3F);
+            }
+            break;
+        case kOCPS:
+            if (mode_ == GameboyMode::CGB)
+                ocps_ = value;
+            break;
+        case kOCPD:
+            if (mode_ == GameboyMode::CGB) {
+                const byte index = ocps_ & 0x3F;
+                if (index % 2 == 0)
+                    ocpd_[index / 2] = (ocpd_[index / 2] & 0xFF00) | value;
+                else
+                    ocpd_[index / 2] = (ocpd_[index / 2] & 0x00FF) | (value << 8);
+
+                if ((ocps_ & 0x80) != 0)
+                    ocps_ = 0x80 | ((index + 1) & 0x3F);
+            }
+            break;
         }
     }
 
     std::set<word> LCD::GetAddresses() const
     {
-        return { kLCDC, kSTAT, kSCY, kSCX, kLY, kLYC, kWY, kWX, kBGP, kOBP0, kOBP1 };
+        return { kLCDC, kSTAT, kSCY, kSCX, kLY, kLYC, kWY, kWX, kBGP, kOBP0, kOBP1, kBCPS, kBCPD, kOCPS, kOCPD };
     }
 
     void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)
     {
-        byte palette = 0;
-        if (is_sprite)
-            palette = palette_index == 0 ? obp0_ : obp1_;
-        else
-            palette = bgp_;
+        if (mode_ == GameboyMode::DMG)
+        {
+            byte palette = 0;
+            if (is_sprite)
+                palette = palette_index == 0 ? obp0_ : obp1_;
+            else
+                palette = bgp_;
 
-        byte color = palette >> (2 * (color_index)) & 0x3;
-        video_buffer_[kScreenWidth * ly_ + x] = kColorsDMG[color];
+            byte color = palette >> (2 * (color_index)) & 0x3;
+            video_buffer_[kScreenWidth * ly_ + x] = kColorsDMG[color];
+        }
+        else if (mode_ == GameboyMode::CGB)
+        {
+            BGR555 color;
+            if (is_sprite)
+                color = ocpd_[palette_index * 4 + color_index];
+            else
+                color = bcpd_[palette_index * 4 + color_index];
+            video_buffer_[kScreenWidth * ly_ + x] = color;
+        }
     }
 }

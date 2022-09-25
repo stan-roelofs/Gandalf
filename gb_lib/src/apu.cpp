@@ -23,6 +23,8 @@ namespace gandalf
         channel_left_enabled_.fill(false);
         channel_right_enabled_.fill(false);
 
+        mute_channel_.fill(false);
+
 
         //todo dac
 

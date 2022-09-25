@@ -688,7 +688,7 @@ namespace gandalf {
     WRITE(registers_.hl(), value);                                             \
   }
 
-  CPU::CPU(IO& io, Bus& bus) : Bus::AddressHandler("CPU"),
+  CPU::CPU(GameboyMode mode, IO& io, Bus& bus) : Bus::AddressHandler("CPU"),
     bus_(bus),
     io_(io),
     opcode_(0),
@@ -698,7 +698,7 @@ namespace gandalf {
     ei_pending_(false),
     double_speed_(false),
     prepare_speed_switch_(false),
-    gameboy_mode_(GameboyMode::DMG)
+    gameboy_mode_(mode)
   {}
 
   CPU::~CPU() = default;

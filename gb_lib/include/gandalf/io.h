@@ -14,7 +14,7 @@
 namespace gandalf {
     class IO {
     public:
-        IO(Bus& bus);
+        IO(GameboyMode mode, Bus& bus);
         ~IO();
 
         void Tick(unsigned int cycles, bool double_speed);
@@ -23,8 +23,6 @@ namespace gandalf {
         PPU& GetPPU() { return ppu_; }
         Joypad& GetJoypad() { return joypad_; }
         APU& GetAPU() { return apu_; }
-
-        void SetGameboyMode(GameboyMode mode);
 
     private:
         Bus& bus_;

@@ -9,10 +9,10 @@
 namespace gandalf {
     class LCD : public Bus::AddressHandler {
     public:
-        using BGR565 = word;
-        using VideoBuffer = std::array<BGR565, kScreenWidth* kScreenHeight>;
+        using BGR555 = word;
+        using VideoBuffer = std::array<BGR555, kScreenWidth* kScreenHeight>;
 
-        LCD();
+        LCD(GameboyMode mode);
         virtual ~LCD();
 
         byte Read(word address) const override;
@@ -55,6 +55,13 @@ namespace gandalf {
         byte bgp_;
         byte obp0_;
         byte obp1_;
+        byte bcps_;
+        byte ocps_;
+
+        std::array<word, 32> bcpd_;
+        std::array<word, 32> ocpd_;
+
+        GameboyMode mode_;
     };
 } // namespace gandalf
 

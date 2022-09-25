@@ -1,7 +1,15 @@
 #include <gandalf/io.h>
 
 namespace gandalf {
-    IO::IO(Bus& bus) : bus_(bus), timer_(bus), ppu_(bus, lcd_), dma_(bus), hdma_(bus) {
+    IO::IO(GameboyMode mode, Bus& bus) :
+        bus_(bus),
+        timer_(bus),
+        lcd_(mode),
+        ppu_(mode, bus, lcd_),
+        dma_(bus),
+        hdma_(bus),
+        mode_(mode)
+    {
         bus_.Register(&ppu_);
         bus_.Register(&lcd_);
         bus_.Register(&timer_);
@@ -47,12 +55,6 @@ namespace gandalf {
 
         if (mode_ == GameboyMode::CGB && hdma_.GetRemainingGDMACycles() > 0)
             Tick(hdma_.GetRemainingGDMACycles(), double_speed);
-    }
-
-    void IO::SetGameboyMode(GameboyMode mode)
-    {
-        mode_ = mode;
-        ppu_.SetGameboyMode(mode);
     }
 
 } // namespace gandalf

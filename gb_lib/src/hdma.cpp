@@ -47,7 +47,7 @@ namespace gandalf
                 state_ = State::kRead;
             break;
         case State::kWaitHBlank:
-            assert(false); // TODO
+            throw std::runtime_error("a");
             break;
         }
     }

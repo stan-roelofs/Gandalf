@@ -16,7 +16,7 @@ namespace gandalf {
             virtual void OnVBlank() = 0;
         };
 
-        PPU(Bus& bus, LCD& lcd);
+        PPU(GameboyMode mode, Bus& bus, LCD& lcd);
         virtual ~PPU();
 
         void Tick();
@@ -26,7 +26,6 @@ namespace gandalf {
         std::set<word> GetAddresses() const override;
 
         void SetVBlankListener(VBlankListener* listener) { vblank_listener_ = listener; }
-        void SetGameboyMode(GameboyMode mode) { mode_ = mode; }
 
     private:
         void IncrementLY();
@@ -50,6 +49,7 @@ namespace gandalf {
             byte attributes;
             byte tile_data_low;
             byte tile_data_high;
+            byte oam_index;
 
             bool operator<(const Sprite& other) { return x < other.x; }
             bool operator<(int position) { return x < position; }
@@ -59,7 +59,7 @@ namespace gandalf {
 
         class Pipeline {
         public:
-            Pipeline(LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites);
+            Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites);
             ~Pipeline();
 
             void Process();
@@ -121,6 +121,8 @@ namespace gandalf {
             int sprite_line_;
             int drop_pixels_;
             bool window_triggered_;
+            GameboyMode mode_;
+            byte tile_attributes_; // Tile attributes (CGB only)
         };
 
         Pipeline pipeline_;

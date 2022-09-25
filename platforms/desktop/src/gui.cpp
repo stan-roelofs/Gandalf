@@ -103,14 +103,14 @@ namespace gui
         SDL_GetRendererInfo(sdl_renderer_, &info);
         SDL_Log("Current SDL_Renderer: %s", info.name);
 
-        sdl_surface_ = SDL_CreateRGBSurfaceWithFormat(0, gandalf::kScreenWidth, gandalf::kScreenHeight, 16, SDL_PIXELFORMAT_BGR565);
+        sdl_surface_ = SDL_CreateRGBSurfaceWithFormat(0, gandalf::kScreenWidth, gandalf::kScreenHeight, 16, SDL_PIXELFORMAT_BGR555);
         if (!sdl_surface_)
         {
             std::cerr << "Error creating SDL_Surface!" << std::endl;
             return false;
         }
 
-        sdl_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_BGR565,
+        sdl_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_BGR555,
             SDL_TEXTUREACCESS_STREAMING,
             gandalf::kScreenWidth, gandalf::kScreenHeight);
 

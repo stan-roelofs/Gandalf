@@ -345,7 +345,7 @@ namespace gandalf {
 
     std::string Cartridge::Header::GetROMSizeString() const
     {
-        switch (ram_size)
+        switch (rom_size)
         {
         case 0x00: return "32 KB, no banking";
         case 0x01: return "64 KB, 4 banks";
