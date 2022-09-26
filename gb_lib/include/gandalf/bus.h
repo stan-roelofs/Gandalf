@@ -75,14 +75,14 @@ namespace gandalf {
      * Registers an address handler to the bus.
      * @param handler the handler
      */
-    void Register(AddressHandler* handler);
+    void Register(AddressHandler& handler);
 
     /**
      * Removes the specified address handler from the bus.
      *
      * @param handler the handler
     */
-    void Unregister(AddressHandler* handler);
+    void Unregister(AddressHandler& handler);
 
   private:
     std::array<AddressHandler*, 0x10000> address_space_;

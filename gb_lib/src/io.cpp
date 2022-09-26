@@ -10,25 +10,25 @@ namespace gandalf {
         hdma_(bus),
         mode_(mode)
     {
-        bus_.Register(&ppu_);
-        bus_.Register(&lcd_);
-        bus_.Register(&timer_);
-        bus_.Register(&serial_);
-        bus_.Register(&joypad_);
-        bus_.Register(&apu_);
-        bus_.Register(&dma_);
-        bus_.Register(&hdma_);
+        bus_.Register(ppu_);
+        bus_.Register(lcd_);
+        bus_.Register(timer_);
+        bus_.Register(serial_);
+        bus_.Register(joypad_);
+        bus_.Register(apu_);
+        bus_.Register(dma_);
+        bus_.Register(hdma_);
     }
 
     IO::~IO() {
-        bus_.Unregister(&ppu_);
-        bus_.Unregister(&lcd_);
-        bus_.Unregister(&timer_);
-        bus_.Unregister(&serial_);
-        bus_.Unregister(&joypad_);
-        bus_.Unregister(&apu_);
-        bus_.Unregister(&dma_);
-        bus_.Unregister(&hdma_);
+        bus_.Unregister(ppu_);
+        bus_.Unregister(lcd_);
+        bus_.Unregister(timer_);
+        bus_.Unregister(serial_);
+        bus_.Unregister(joypad_);
+        bus_.Unregister(apu_);
+        bus_.Unregister(dma_);
+        bus_.Unregister(hdma_);
     }
 
     void IO::Tick(unsigned int cycles, bool double_speed)

@@ -34,21 +34,15 @@ namespace gandalf {
     return 0xFF;
   }
 
-  void Bus::Register(AddressHandler* handler) {
-    if (handler == nullptr)
-      return;
-
-    for (const word address : handler->GetAddresses()) {
-      address_space_[address] = handler;
+  void Bus::Register(AddressHandler& handler) {
+    for (const word address : handler.GetAddresses()) {
+      address_space_[address] = &handler;
     }
   }
 
-  void Bus::Unregister(AddressHandler* handler)
+  void Bus::Unregister(AddressHandler& handler)
   {
-    if (handler == nullptr)
-      return;
-
-    for (const word address : handler->GetAddresses()) {
+    for (const word address : handler.GetAddresses()) {
       address_space_[address] = nullptr;
     }
   }

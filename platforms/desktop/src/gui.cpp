@@ -19,6 +19,8 @@ namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     const std::string kAppName = "Gandalf";
     const std::string kSettingsFileName = "settings.txt";
+
+    const std::filesystem::path GetSettingsPath() { return std::filesystem::current_path() / kSettingsFileName; }
 }
 
 namespace gui
@@ -65,7 +67,7 @@ namespace gui
         if (gb_thread_.joinable())
             gb_thread_.join();
 
-        settings::Write(std::filesystem::current_path() / kSettingsFileName, settings_);
+        settings::Write(GetSettingsPath(), settings_);
 
         ImGui_ImplSDLRenderer_Shutdown();
         ImGui_ImplSDL2_Shutdown();
@@ -135,7 +137,7 @@ namespace gui
         file_dialog_.SetTitle("Choose ROM");
         file_dialog_.SetTypeFilters({ ".gb", ".gbc" });
 
-        settings_ = settings::Read(std::filesystem::current_path() / kSettingsFileName);
+        settings_ = settings::Read(GetSettingsPath());
 
         running_ = true;
         return true;
@@ -514,6 +516,7 @@ namespace gui
             std::swap(*settings_.recent_roms.begin(), *it);
         else
             settings_.recent_roms.push_front(path.string());
+        settings::Write(GetSettingsPath(), settings_);
 
         std::ifstream input(path, std::ios::binary);
         if (input.fail()) {

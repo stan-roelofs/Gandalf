@@ -50,8 +50,9 @@ namespace gandalf {
     class BootROMHandler : public Bus::AddressHandler
     {
     public:
-      BootROMHandler(const std::vector<byte> boot_rom) : Bus::AddressHandler("Boot ROM"), should_unregister_(false), boot_rom_(boot_rom)
+      BootROMHandler(const std::vector<byte> boot_rom, Cartridge& cartridge, Bus& bus) : Bus::AddressHandler("Boot ROM"), boot_rom_(boot_rom), cartridge_(cartridge), bus_(bus)
       {
+          bus_.Register(*this);
       }
       virtual ~BootROMHandler() = default;
 
@@ -61,7 +62,10 @@ namespace gandalf {
           return;
 
         if (value != 0)
-          should_unregister_ = true;
+        {
+            bus_.Unregister(*this);
+            bus_.Register(cartridge_);
+        }
       }
 
       byte Read(word address) const override
@@ -86,11 +90,10 @@ namespace gandalf {
         return addresses;
       }
 
-      bool Done() const { return should_unregister_; }
-
     private:
-      bool should_unregister_;
       const std::vector<byte> boot_rom_;
+      Cartridge& cartridge_;
+      Bus& bus_;
     };
     std::unique_ptr<BootROMHandler> boot_rom_handler_;
     bool executed_boot_rom_;
