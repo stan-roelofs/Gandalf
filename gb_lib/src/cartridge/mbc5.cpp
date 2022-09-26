@@ -7,7 +7,7 @@
 namespace gandalf {
     MBC5::MBC5(const ROM& rom, std::size_t rom_banks, std::size_t ram_banks, bool has_battery, bool has_rumble) : MBC(rom, rom_banks, ram_banks),
         ram_enabled_(false),
-        rom_bank_number_(0),
+        rom_bank_number_(1),
         ram_bank_number_(0),
         has_battery_(has_battery),
         has_rumble_(has_rumble)
