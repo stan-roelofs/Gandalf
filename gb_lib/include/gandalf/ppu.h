@@ -40,6 +40,7 @@ namespace gandalf {
         using VRAM = std::array<VRAMBank, 2>;
         VRAM vram_;
         int current_vram_bank_;
+        byte opri_;
         std::array<byte, 0xA0> oam_;
         VBlankListener* vblank_listener_;
         struct Sprite {
@@ -59,13 +60,12 @@ namespace gandalf {
 
         class Pipeline {
         public:
-            Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites);
+            Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites, const byte& opri);
             ~Pipeline();
 
             void Process();
             void Reset();
             bool Done() const;
-            void SetVRamBank(int bank) { current_vram_bank_ = bank; }
         private:
             void RenderPixel();
             void TileStateMachine();
@@ -104,7 +104,7 @@ namespace gandalf {
 
             LCD& lcd_;
             const VRAM& vram_;
-            int current_vram_bank_;
+            const int& current_vram_bank_;
             std::deque<Pixel> background_fifo_;
             std::deque<Pixel> sprite_fifo_;
             FetcherState fetcher_state_;
@@ -123,6 +123,7 @@ namespace gandalf {
             bool window_triggered_;
             GameboyMode mode_;
             byte tile_attributes_; // Tile attributes (CGB only)
+            const byte& opri_;
         };
 
         Pipeline pipeline_;

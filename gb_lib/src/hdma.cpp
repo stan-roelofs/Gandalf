@@ -35,13 +35,16 @@ namespace gandalf
         case State::kTerminated:
             break;
         case State::kRead:
-            current_byte_ = bus_.Read(++source_);
+            current_byte_ = bus_.Read(source_);
+            ++source_;
             state_ = State::kWrite;
             break;
         case State::kWrite:
             assert(remaining_length_ > 0);
-            bus_.Write(++destination_, current_byte_);
-            if (--remaining_length_ == 0)
+            bus_.Write(destination_, current_byte_);
+            ++destination_;
+            --remaining_length_;
+            if (remaining_length_ == 0)
                 state_ = State::kIdle;
             else
                 state_ = State::kRead;
@@ -118,7 +121,7 @@ namespace gandalf
         remaining_length_ = ((value & 0x7F) + 1) * 0x10;
         hblank_ = (value & 0x80) != 0;
         source_ = ((hdma1_ << 8) | hdma2_) & 0xFFF0; // The four lower bits of this address will be ignored and treated as 0.
-        destination_ = ((hdma3_ << 8) | hdma4_) & 0x1FF0; // Only bits 12-4 are respected; others are ignored
+        destination_ = 0x8000 + (((hdma3_ << 8) | hdma4_) & 0x1FF0); // Only bits 12-4 are respected; others are ignored
 
         if (hblank_)
             state_ = State::kWaitHBlank;
