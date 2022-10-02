@@ -1,7 +1,7 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy(const BootROM& boot_rom, const ROM& rom) : executed_boot_rom_(false)
+    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom) : executed_boot_rom_(false)
     {
         LoadROM(rom);
         LoadBootROM(boot_rom);
@@ -44,7 +44,7 @@ namespace gandalf {
         bus_.Register(*cartridge_);
     }
 
-    void Gameboy::LoadBootROM(const BootROM& boot_rom)
+    void Gameboy::LoadBootROM(const ROM& boot_rom)
     {
         if (boot_rom.size() < 0x100 || !cartridge_)
             return;

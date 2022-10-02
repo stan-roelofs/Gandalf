@@ -16,9 +16,7 @@
 namespace gandalf {
   class Gameboy {
   public:
-    using BootROM = std::vector<byte>;
-
-    Gameboy(const BootROM& boot_rom, const ROM& rom);
+    Gameboy(const ROM& boot_rom, const ROM& rom);
     ~Gameboy();
 
     /// @returns Whether the Gameboy is ready to run (ROM is loaded and Boot ROM is loaded)
@@ -37,7 +35,7 @@ namespace gandalf {
 
   private:
     void LoadROM(const ROM& rom);
-    void LoadBootROM(const BootROM& boot_rom);
+    void LoadBootROM(const ROM& boot_rom);
 
     // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.
     Bus bus_;
