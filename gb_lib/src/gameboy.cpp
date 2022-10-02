@@ -10,8 +10,8 @@ namespace gandalf {
         if (cartridge_)
         {
             std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
-            const auto cgb_flag = header->GetCGBFlag();
-            mode =  GameboyMode::CGB;
+            //const auto cgb_flag = header->GetCGBFlag();
+            mode = GameboyMode::CGB;
         }
 
         io_ = std::make_unique<IO>(mode, bus_);

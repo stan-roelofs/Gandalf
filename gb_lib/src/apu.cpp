@@ -28,8 +28,8 @@ namespace gandalf
 
         //todo dac
 
-        sound_channels_[0] = std::make_unique<SquareWave1Channel>(frame_sequencer_);
-        sound_channels_[1] = std::make_unique<SquareWaveChannel>(frame_sequencer_); // TODO sq1 sq2
+        sound_channels_[0] = std::make_unique<SquareWaveChannel>(frame_sequencer_, true);
+        sound_channels_[1] = std::make_unique<SquareWaveChannel>(frame_sequencer_, false);
         sound_channels_[2] = std::make_unique<WaveChannel>(frame_sequencer_, wave_ram_);
         sound_channels_[3] = std::make_unique<NoiseChannel>(frame_sequencer_);
     }
@@ -161,8 +161,8 @@ namespace gandalf
         }
 
         // Mixing
-        left /= 4;
-        right /= 4;
+        //left /= 4; // TODO
+       // right /= 4;
 
         // Volume
         left *= (left_volume_ + 1);

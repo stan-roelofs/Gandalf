@@ -41,7 +41,6 @@ namespace gandalf {
             dma_.Tick();
         }
 
-        assert(cycles > 2);
         const unsigned int speed_cycles = double_speed ? (cycles / 2) : cycles;
         for (unsigned int i = 0; i < speed_cycles; ++i) {
             ppu_.Tick();

@@ -12,7 +12,7 @@ namespace gandalf
     class SquareWaveChannel : public SoundChannel
     {
     public:
-        SquareWaveChannel(FrameSequencer& frame_sequencer);
+        SquareWaveChannel(FrameSequencer& frame_sequencer, bool has_frequency_sweep_unit);
         ~SquareWaveChannel();
 
         byte GetRegister(int index) const override;
@@ -35,28 +35,7 @@ namespace gandalf
 
         std::shared_ptr<LengthCounter> length_counter_;
         std::shared_ptr<VolumeEnvelope> volume_envelope_;
-    };
-
-    class SquareWave1Channel : public SquareWaveChannel
-    {
-    public:
-        SquareWave1Channel(FrameSequencer& frame_sequencer);
-
-        byte GetRegister(int index) const override;
-        void SetRegister(int index, byte value) override;
-
-    protected:
-        word GetFrequency() const override;
-        void Trigger() override;
-
-    private:
         std::shared_ptr<FrequencySweepUnit> frequency_sweep_unit_;
-    };
-
-
-    class SquareWave2Channel : public SquareWaveChannel
-    {
-
     };
 } // namespace gandalf
 

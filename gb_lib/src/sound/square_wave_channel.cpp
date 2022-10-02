@@ -9,7 +9,7 @@ namespace
 
 namespace gandalf
 {
-    SquareWaveChannel::SquareWaveChannel(FrameSequencer& frame_sequencer) : SoundChannel(),
+    SquareWaveChannel::SquareWaveChannel(FrameSequencer& frame_sequencer, bool has_frequency_sweep_unit) : SoundChannel(),
         pattern_duty_(0),
         duty_counter_(0),
         frequency_low_(0),
@@ -21,6 +21,12 @@ namespace gandalf
     {
         frame_sequencer.AddListener(length_counter_);
         frame_sequencer.AddListener(volume_envelope_);
+
+        if (has_frequency_sweep_unit)
+        {
+            frequency_sweep_unit_ = std::make_shared<FrequencySweepUnit>(frequency_low_, frequency_high_, channel_enabled_);
+            frame_sequencer.AddListener(frequency_sweep_unit_);
+        }
     }
 
     SquareWaveChannel::~SquareWaveChannel() = default;
@@ -32,7 +38,15 @@ namespace gandalf
         switch (index)
         {
         case 0:
-            return 0xFF;
+        {
+            if (!frequency_sweep_unit_)
+                return 0xFF;
+            byte result = frequency_sweep_unit_->GetShift();
+            if (frequency_sweep_unit_->GetNegate())
+                result |= 0x8;
+            result |= (frequency_sweep_unit_->GetPeriod() << 4);
+            return result;
+        }
         case 1:
             return (pattern_duty_ << 6) | 0x3F;
         case 2:
@@ -64,6 +78,12 @@ namespace gandalf
         switch (index)
         {
         case 0:
+            if (frequency_sweep_unit_)
+            {
+                frequency_sweep_unit_->SetShift(value & 0x7);
+                frequency_sweep_unit_->SetNegate((value & 0x8) != 0);
+                frequency_sweep_unit_->SetPeriod((value >> 4) & 0x7);
+            }
             break;
         case 1:
             pattern_duty_ = value >> 6;
@@ -93,6 +113,9 @@ namespace gandalf
         length_counter_->Trigger();
         volume_envelope_->Trigger();
 
+        if (frequency_sweep_unit_)
+            frequency_sweep_unit_->Trigger();
+
         timer_ = GetFrequency();
     }
 
@@ -112,46 +135,5 @@ namespace gandalf
         }
 
         return channel_enabled_ ? last_output_ * volume_envelope_->GetVolume() : 0;
-    }
-
-    SquareWave1Channel::SquareWave1Channel(FrameSequencer& frame_sequencer) : SquareWaveChannel(frame_sequencer), frequency_sweep_unit_(std::make_shared<FrequencySweepUnit>(frequency_low_, frequency_high_, channel_enabled_))
-    {
-        frame_sequencer.AddListener(frequency_sweep_unit_);
-    }
-
-    byte SquareWave1Channel::GetRegister(int index) const
-    {
-        if (index != 0)
-            return SquareWaveChannel::GetRegister(index);
-
-        byte result = frequency_sweep_unit_->GetShift();
-        if (frequency_sweep_unit_->GetNegate())
-            result |= 0x8;
-        result |= (frequency_sweep_unit_->GetPeriod() << 4);
-        return result;
-    }
-
-    void SquareWave1Channel::SetRegister(int index, byte value)
-    {
-        if (index != 0)
-        {
-            SquareWaveChannel::SetRegister(index, value);
-            return;
-        }
-
-        frequency_sweep_unit_->SetShift(value & 0x7);
-        frequency_sweep_unit_->SetNegate((value & 0x8) != 0);
-        frequency_sweep_unit_->SetPeriod((value >> 4) & 0x7);
-    }
-
-    gandalf::word SquareWave1Channel::GetFrequency() const
-    {
-        return frequency_sweep_unit_->GetFrequency();
-    }
-
-    void SquareWave1Channel::Trigger()
-    {
-        frequency_sweep_unit_->Trigger();
-        SquareWaveChannel::Trigger();
     }
 } // namespace gandalf
