@@ -159,6 +159,7 @@ namespace gui
             MenuBar();
             GameboyView();
             DebugView();
+            VRAMViewer();
             //ImGui::ShowDemoWindow();
 
             // Now render everything
@@ -503,6 +504,11 @@ namespace gui
             gameboy_->GetAPU().MuteChannel(3, !channel_enabled[3]);
 
         ImGui::End();
+    }
+
+    void MainWindow::VRAMViewer()
+    {
+        ImGui::ShowDemoWindow();
     }
 
     void MainWindow::LoadROM(const std::filesystem::path& path)

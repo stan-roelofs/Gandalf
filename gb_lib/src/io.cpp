@@ -1,5 +1,7 @@
 #include <gandalf/io.h>
 
+#include <cassert>
+
 namespace gandalf {
     IO::IO(GameboyMode mode, Bus& bus) :
         bus_(bus),
@@ -7,7 +9,7 @@ namespace gandalf {
         lcd_(mode),
         ppu_(mode, bus, lcd_),
         dma_(bus),
-        hdma_(bus),
+        hdma_(bus, lcd_),
         mode_(mode)
     {
         bus_.Register(ppu_);
@@ -37,20 +39,16 @@ namespace gandalf {
             timer_.Tick();
             serial_.Tick();
             dma_.Tick();
+        }
 
+        assert(cycles > 2);
+        const unsigned int speed_cycles = double_speed ? (cycles / 2) : cycles;
+        for (unsigned int i = 0; i < speed_cycles; ++i) {
             ppu_.Tick();
             apu_.Tick();
 
             if (mode_ == GameboyMode::CGB)
                 hdma_.Tick();
-
-            if (double_speed)
-            {
-                timer_.Tick();
-                serial_.Tick();
-                dma_.Tick();
-            }
-
         }
 
         if (mode_ == GameboyMode::CGB && hdma_.GetRemainingGDMACycles() > 0)

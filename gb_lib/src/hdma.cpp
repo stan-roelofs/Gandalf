@@ -11,14 +11,16 @@ namespace
 
 namespace gandalf
 {
-    HDMA::HDMA(Bus& bus) : Bus::AddressHandler("HDMA"),
+    HDMA::HDMA(Bus& bus, const LCD& lcd) : Bus::AddressHandler("HDMA"),
         bus_(bus),
+        lcd_(lcd),
         hdma1_(0),
         hdma2_(0),
         hdma3_(0),
         hdma4_(0),
         remaining_length_(0),
         hblank_(false),
+        remaining_bytes_hblank_(0),
         current_byte_(0),
         state_(State::kIdle),
         source_(0),
@@ -44,13 +46,31 @@ namespace gandalf
             bus_.Write(destination_, current_byte_);
             ++destination_;
             --remaining_length_;
+
+            if (hblank_)
+            {
+                --remaining_bytes_hblank_;
+                if (remaining_bytes_hblank_ == 0 && remaining_length_ > 0)
+                {
+                    state_ = State::kWaitNotHBlank;
+                    break;
+                }
+            }
+                        
             if (remaining_length_ == 0)
                 state_ = State::kIdle;
             else
                 state_ = State::kRead;
             break;
         case State::kWaitHBlank:
-            throw std::runtime_error("a");
+            if (lcd_.GetMode() == LCD::Mode::HBlank) {
+                state_ = State::kRead;
+                remaining_bytes_hblank_ = 0x10;
+            }
+            break;
+        case State::kWaitNotHBlank:
+            if (lcd_.GetMode() != LCD::Mode::HBlank)
+                state_ = State::kWaitHBlank;
             break;
         }
     }

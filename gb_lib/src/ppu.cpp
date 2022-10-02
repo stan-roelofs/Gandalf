@@ -8,23 +8,6 @@
 namespace {
     const int kTicksPerLine = 456;
     const int kLinesPerFrame = 154;
-
-    enum class PPUMode {
-        HBlank,
-        VBlank,
-        OamSearch,
-        PixelTransfer
-    };
-
-    PPUMode GetMode(gandalf::byte status)
-    {
-        return static_cast<PPUMode>(status & 0x3);
-    }
-
-    void SetMode(PPUMode mode, gandalf::byte& status)
-    {
-        status = (status & 0xFC) | static_cast<gandalf::byte>(mode);
-    }
 }
 
 namespace gandalf {
@@ -50,10 +33,11 @@ namespace gandalf {
     {
         ++line_ticks_;
         byte& stat = lcd_.GetLCDStatus();
+        byte& ly = lcd_.GetLY();        
 
-        switch (GetMode(lcd_.GetLCDStatus()))
+        switch (lcd_.GetMode())
         {
-        case PPUMode::OamSearch:
+        case LCD::Mode::OamSearch:
         {
             const int line_ticks_pre_increment = line_ticks_ - 1;
             if (line_ticks_pre_increment % 2 == 1 && fetched_sprites_.size() < 10)
@@ -75,26 +59,26 @@ namespace gandalf {
             }
             if (line_ticks_ >= 80) {
                 pipeline_.Reset();
-                SetMode(PPUMode::PixelTransfer, stat);
+                lcd_.SetMode(LCD::Mode::PixelTransfer);
             }
         }
         break;
-        case PPUMode::PixelTransfer:
+        case LCD::Mode::PixelTransfer:
             pipeline_.Process();
 
             if (pipeline_.Done()) {
-                // assert(BETWEEN(line_ticks_, 252, 369)); // TODO
-                SetMode(PPUMode::HBlank, stat);
+                //assert(BETWEEN(line_ticks_, 252, 369));
+                lcd_.SetMode(LCD::Mode::HBlank);
                 if (stat & 0x8)
                     bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
             }
             break;
-        case PPUMode::HBlank:
+        case LCD::Mode::HBlank:
             if (line_ticks_ >= kTicksPerLine) {
-                IncrementLY();
+                ++ly;
 
-                if (lcd_.GetLY() >= kScreenHeight) {
-                    SetMode(PPUMode::VBlank, stat);
+                if (ly >= kScreenHeight) {
+                    lcd_.SetMode(LCD::Mode::VBlank);
 
                     bus_.Write(kIF, bus_.Read(kIF) | kVBlankInterruptMask);
 
@@ -105,27 +89,44 @@ namespace gandalf {
                         vblank_listener_->OnVBlank();
                 }
                 else {
-                    SetMode(PPUMode::OamSearch, stat);
+                    lcd_.SetMode(LCD::Mode::OamSearch);
                     fetched_sprites_.clear();
                 }
 
+                CheckLYEqualsLYC();
                 line_ticks_ = 0;
             }
             break;
-        case PPUMode::VBlank:
+        case LCD::Mode::VBlank:
             if (line_ticks_ >= 456) {
-                IncrementLY();
+                ++ly;
 
-                byte& ly = lcd_.GetLY();
                 if (ly >= kLinesPerFrame) {
-                    SetMode(PPUMode::OamSearch, stat);
+                    lcd_.SetMode(LCD::Mode::OamSearch);
                     fetched_sprites_.clear();
                     ly = 0;
                 }
 
+                CheckLYEqualsLYC();
                 line_ticks_ = 0;
             }
             break;
+        }
+    }
+
+    void PPU::CheckLYEqualsLYC()
+    {
+        byte& stat = lcd_.GetLCDStatus();
+        if (lcd_.GetLY() == lcd_.GetLYC()) {
+            // Set LY==LYC coincidence flag
+            stat |= 0x4;
+
+            if (stat & 0x40) {
+                bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
+            }
+        }
+        else {
+            stat &= 0xFB;
         }
     }
 
@@ -172,27 +173,6 @@ namespace gandalf {
         result.insert(kVBK);
         result.insert(kOPRI);
         return result;
-    }
-
-    void PPU::IncrementLY()
-    {
-        byte& ly = lcd_.GetLY();
-        byte& lyc = lcd_.GetLYC();
-        byte& stat = lcd_.GetLCDStatus();
-
-        ++ly;
-
-        if (ly == lyc) {
-            // Set LY==LYC coincidence flag
-            stat |= 0x4;
-
-            if (stat & 0x40) {
-                bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
-            }
-        }
-        else {
-            stat &= 0xFB;
-        }
     }
 
     PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites, const byte& opri) :
@@ -281,7 +261,7 @@ namespace gandalf {
             break;
         case FetcherState::kFetchTile:
         {
-            const bool tile_map = (window_triggered_) ? lcd_.GetLCDControl() & 0x20 : lcd_.GetLCDControl() & 0x8;
+            const bool tile_map = (window_triggered_) ? lcd_.GetLCDControl() & 0x40 : lcd_.GetLCDControl() & 0x8;
             const word tile_map_offset = tile_map ? 0x1C00 : 0x1800;
             const word tile_address = tile_map_offset + (fetch_y_ / 8 * 32) + fetch_x_;
             tile_number_ = vram_[0].at(tile_address);

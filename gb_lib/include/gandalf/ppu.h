@@ -16,6 +16,13 @@ namespace gandalf {
             virtual void OnVBlank() = 0;
         };
 
+        enum class Mode {
+            HBlank,
+            VBlank,
+            OamSearch,
+            PixelTransfer
+        };
+
         PPU(GameboyMode mode, Bus& bus, LCD& lcd);
         virtual ~PPU();
 
@@ -28,8 +35,7 @@ namespace gandalf {
         void SetVBlankListener(VBlankListener* listener) { vblank_listener_ = listener; }
 
     private:
-        void IncrementLY();
-
+        void CheckLYEqualsLYC();
         Bus& bus_;
         LCD& lcd_;
         int line_ticks_;

@@ -78,7 +78,7 @@ TEST_P(BlarggTest, cpu_instructions)
     Bus& bus = gb->GetBus();
 
     SerialOutputReader serial_output_reader;
-    bus.Register(&serial_output_reader);
+    bus.Register(serial_output_reader);
 
     std::size_t ticks = 0;
     while (!serial_output_reader.Done() && ++ticks < 1e8)

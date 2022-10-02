@@ -17,27 +17,6 @@
 #include "settings.h"
 
 namespace gui {
-    struct Context {
-        bool* run;
-        bool* step;
-        gandalf::Gameboy* gameboy;
-        bool* show_debug_window;
-        std::optional<gandalf::word>* breakpoint;
-        gandalf::LCD::VideoBuffer** video_buffer;
-        bool* sleep;
-        bool* limit_frames;
-        bool* stop;
-    };
-
-    bool SetupGUI();
-    void RenderGUI(Context& context);
-    void DestroyGUI();
-    void LoadROM(gandalf::Gameboy& gb, const std::filesystem::path& path);
-
-    class Element {
-        virtual void Render(Context& context) = 0;
-    };
-
     class MainWindow : gandalf::PPU::VBlankListener {
     public:
         MainWindow(std::filesystem::path boot_rom_path);
@@ -54,6 +33,7 @@ namespace gui {
         void MenuBar();
         void GameboyView();
         void DebugView();
+        void VRAMViewer();
 
         void LoadROM(const std::filesystem::path& path);
         std::unique_ptr<gandalf::Gameboy::BootROM> LoadBootROM(const std::filesystem::path& path);

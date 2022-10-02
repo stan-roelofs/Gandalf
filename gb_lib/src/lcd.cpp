@@ -160,6 +160,16 @@ namespace gandalf
         return { kLCDC, kSTAT, kSCY, kSCX, kLY, kLYC, kWY, kWX, kBGP, kOBP0, kOBP1, kBCPS, kBCPD, kOCPS, kOCPD };
     }
 
+    LCD::Mode LCD::GetMode() const
+    {
+        return static_cast<Mode>(stat_ & 0x3);
+    }
+
+    void LCD::SetMode(Mode mode)
+    {
+        stat_ = (stat_ & 0xFC) | static_cast<gandalf::byte>(mode);
+    }
+
     void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)
     {
         if (mode_ == GameboyMode::DMG)

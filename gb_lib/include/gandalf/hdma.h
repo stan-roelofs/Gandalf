@@ -3,12 +3,14 @@
 
 #include "bus.h"
 
+#include "lcd.h"
+
 namespace gandalf
 {
     class HDMA : public Bus::AddressHandler
     {
     public:
-        HDMA(Bus& bus);
+        HDMA(Bus& bus, const LCD& lcd);
         virtual ~HDMA();
 
         void Tick();
@@ -22,6 +24,7 @@ namespace gandalf
     private:
         void StartTransfer(byte value);
         Bus& bus_;
+        const LCD& lcd_;
 
         byte hdma1_;
         byte hdma2_;
@@ -31,6 +34,7 @@ namespace gandalf
         word remaining_length_;
 
         bool hblank_;
+        byte remaining_bytes_hblank_;
 
         enum class State
         {
@@ -38,6 +42,7 @@ namespace gandalf
             kRead,
             kWrite,
             kWaitHBlank,
+            kWaitNotHBlank,
             kTerminated
         };
 

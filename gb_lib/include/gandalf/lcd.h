@@ -31,6 +31,17 @@ namespace gandalf {
         byte& GetWY() { return wy_; }
         byte& GetWX() { return wx_; }
 
+        enum class Mode
+        {
+            HBlank,
+            VBlank,
+            OamSearch,
+            PixelTransfer
+        };
+
+        Mode GetMode() const;
+        void SetMode(Mode mode);
+
         /**
          * Pushes a pixel onto the screen.
          *

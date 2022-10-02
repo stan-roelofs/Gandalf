@@ -11,7 +11,7 @@ namespace gandalf {
         {
             std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
             const auto cgb_flag = header->GetCGBFlag();
-            mode = cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB;
+            mode =  GameboyMode::CGB;
         }
 
         io_ = std::make_unique<IO>(mode, bus_);
