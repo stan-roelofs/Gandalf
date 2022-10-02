@@ -50,7 +50,7 @@ namespace gandalf {
     public:
       BootROMHandler(const std::vector<byte> boot_rom, Cartridge& cartridge, Bus& bus) : Bus::AddressHandler("Boot ROM"), boot_rom_(boot_rom), cartridge_(cartridge), bus_(bus)
       {
-          bus_.Register(*this);
+        bus_.Register(*this);
       }
       virtual ~BootROMHandler() = default;
 
@@ -61,8 +61,8 @@ namespace gandalf {
 
         if (value != 0)
         {
-            bus_.Unregister(*this);
-            bus_.Register(cartridge_);
+          bus_.Unregister(*this);
+          bus_.Register(cartridge_);
         }
       }
 
@@ -94,7 +94,6 @@ namespace gandalf {
       Bus& bus_;
     };
     std::unique_ptr<BootROMHandler> boot_rom_handler_;
-    bool executed_boot_rom_;
   };
 } // namespace gandalf
 #endif

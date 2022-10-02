@@ -1,7 +1,7 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom) : executed_boot_rom_(false)
+    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom)
     {
         LoadROM(rom);
         LoadBootROM(boot_rom);
@@ -57,7 +57,6 @@ namespace gandalf {
         return cartridge_ != nullptr;
     }
 
-    // TODO this is all a mess
     void Gameboy::Run()
     {
         if (!Ready())
