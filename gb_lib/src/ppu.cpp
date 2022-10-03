@@ -19,7 +19,7 @@ namespace gandalf {
         current_vram_bank_(0),
         opri_(0),
         vblank_listener_(nullptr),
-        pipeline_(mode, lcd_, vram_, current_vram_bank_, fetched_sprites_)
+        pipeline_(mode, lcd_, vram_, fetched_sprites_)
     {
         for (auto& bank : vram_)
             bank.fill((byte)std::rand());
@@ -175,10 +175,9 @@ namespace gandalf {
         return result;
     }
 
-    PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites) :
+    PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) :
         lcd_(lcd),
         vram_(vram),
-        current_vram_bank_(vram_bank),
         sprite_in_progress_(false),
         fetched_sprites_(fetched_sprites),
         sprite_line_(0),

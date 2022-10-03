@@ -66,7 +66,7 @@ namespace gandalf {
 
         class Pipeline {
         public:
-            Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites);
+            Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites);
             ~Pipeline();
 
             void Process();
@@ -110,7 +110,6 @@ namespace gandalf {
 
             LCD& lcd_;
             const VRAM& vram_;
-            const int& current_vram_bank_;
             std::deque<Pixel> background_fifo_;
             std::deque<Pixel> sprite_fifo_;
             FetcherState fetcher_state_;
