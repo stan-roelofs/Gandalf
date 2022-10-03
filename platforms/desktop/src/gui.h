@@ -36,7 +36,7 @@ namespace gui {
         void VRAMViewer();
 
         void LoadROM(const std::filesystem::path& path);
-        std::unique_ptr<gandalf::Gameboy::BootROM> LoadBootROM(const std::filesystem::path& path);
+        std::unique_ptr<gandalf::ROM> LoadBootROM(const std::filesystem::path& path);
 
         void OnVBlank() override;
 

@@ -560,16 +560,14 @@ namespace gui
         }
     }
 
-    std::unique_ptr<gandalf::Gameboy::BootROM> MainWindow::LoadBootROM(const std::filesystem::path& path)
+    std::unique_ptr<gandalf::ROM> MainWindow::LoadBootROM(const std::filesystem::path& path)
     {
         std::ifstream input(path, std::ios::binary);
         if (input.fail())
             return {};
 
-        std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
-            std::istreambuf_iterator<char>());
-
-        return std::make_unique<gandalf::Gameboy::BootROM>(file);
+        return std::make_unique<gandalf::ROM>(std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
+            std::istreambuf_iterator<char>()));
     }
 
     void MainWindow::OnVBlank()
