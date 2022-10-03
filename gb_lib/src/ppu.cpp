@@ -19,7 +19,7 @@ namespace gandalf {
         current_vram_bank_(0),
         opri_(0),
         vblank_listener_(nullptr),
-        pipeline_(mode, lcd_, vram_, current_vram_bank_, fetched_sprites_, opri_)
+        pipeline_(mode, lcd_, vram_, current_vram_bank_, fetched_sprites_)
     {
         for (auto& bank : vram_)
             bank.fill((byte)std::rand());
@@ -33,7 +33,7 @@ namespace gandalf {
     {
         ++line_ticks_;
         byte& stat = lcd_.GetLCDStatus();
-        byte& ly = lcd_.GetLY();        
+        byte& ly = lcd_.GetLY();
 
         switch (lcd_.GetMode())
         {
@@ -175,7 +175,7 @@ namespace gandalf {
         return result;
     }
 
-    PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites, const byte& opri) :
+    PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites) :
         lcd_(lcd),
         vram_(vram),
         current_vram_bank_(vram_bank),
@@ -185,8 +185,7 @@ namespace gandalf {
         drop_pixels_(0),
         window_triggered_(false),
         mode_(mode),
-        tile_attributes_(0),
-        opri_(opri)
+        tile_attributes_(0)
     {
         Reset();
     }
@@ -385,7 +384,6 @@ namespace gandalf {
             // In CGB mode, replace pixel when it is transparent OR the current sprite has higher priority (lower OAM index)
             else if (mode_ == GameboyMode::CGB && (pixel.color == 0 || current_sprite_.oam_index < pixel.sprite_priority))
             {
-                assert(opri_ == 0);
                 pixel.background_priority = !!(current_sprite_.attributes & 0x80);
                 pixel.color = color;
                 pixel.palette = current_sprite_.attributes & 0x7;

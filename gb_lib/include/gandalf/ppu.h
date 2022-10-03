@@ -66,7 +66,7 @@ namespace gandalf {
 
         class Pipeline {
         public:
-            Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites, const byte& opri);
+            Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, const int& vram_bank, FetchedSprites& fetched_sprites);
             ~Pipeline();
 
             void Process();
@@ -129,7 +129,6 @@ namespace gandalf {
             bool window_triggered_;
             GameboyMode mode_;
             byte tile_attributes_; // Tile attributes (CGB only)
-            const byte& opri_;
         };
 
         Pipeline pipeline_;
