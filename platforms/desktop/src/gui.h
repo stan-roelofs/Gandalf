@@ -42,8 +42,8 @@ namespace gui {
 
         SDL_Renderer* sdl_renderer_;
         SDL_Window* sdl_window_;
-        SDL_Surface* sdl_surface_;
         SDL_Texture* sdl_texture_;
+        SDL_Texture* debug_texture_;
         ImGui::FileBrowser file_dialog_;
         std::unique_ptr<gandalf::Gameboy> gameboy_;
         settings::Settings settings_;

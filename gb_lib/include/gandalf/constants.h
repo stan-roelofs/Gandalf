@@ -96,9 +96,11 @@ namespace gandalf {
     constexpr byte kSerialInterruptMask = 0x08;
     constexpr byte kJoypadInterruptMask = 0x10;
 
-    //
+    // Others
     constexpr int kScreenHeight = 144;
     constexpr int kScreenWidth = 160;
+    constexpr int kTotalScreenHeight = 0xFF;
+    constexpr int kTotalScreenWidth = 0xFF;
     constexpr int kCPUFrequency = 4194304; // MHz
 
     enum class GameboyMode

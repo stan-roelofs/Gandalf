@@ -55,7 +55,6 @@ namespace gui
     MainWindow::MainWindow(std::filesystem::path boot_rom_path) :
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
-        sdl_surface_(nullptr),
         sdl_texture_(nullptr),
         running_(false),
         show_debug_window_(true),
@@ -87,7 +86,6 @@ namespace gui
         SDL_DestroyWindow(sdl_window_);
 
         SDL_DestroyTexture(sdl_texture_);
-        SDL_FreeSurface(sdl_surface_);
 
         SDL_Quit();
     }
@@ -115,18 +113,13 @@ namespace gui
         SDL_GetRendererInfo(sdl_renderer_, &info);
         SDL_Log("Current SDL_Renderer: %s", info.name);
 
-        sdl_surface_ = SDL_CreateRGBSurfaceWithFormat(0, gandalf::kScreenWidth, gandalf::kScreenHeight, 16, SDL_PIXELFORMAT_BGR555);
-        if (!sdl_surface_)
-        {
-            std::cerr << "Error creating SDL_Surface!" << std::endl;
-            return false;
-        }
-
         sdl_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_BGR555,
             SDL_TEXTUREACCESS_STREAMING,
             gandalf::kScreenWidth, gandalf::kScreenHeight);
 
-        if (!sdl_texture_)
+        debug_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_BGR555, SDL_TEXTUREACCESS_STREAMING, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight);
+
+        if (!sdl_texture_ || !debug_texture_)
         {
             std::cerr << "Error creating SDL_Texture" << std::endl;
             return false;
@@ -217,7 +210,7 @@ namespace gui
 
     void MainWindow::GameboyView()
     {
-        SDL_UpdateTexture(sdl_texture_, nullptr, front_buffer_.get(), sdl_surface_->pitch);
+        SDL_UpdateTexture(sdl_texture_, nullptr, front_buffer_.get(), gandalf::kScreenWidth * sizeof(gandalf::LCD::BGR555));
 
         ImGui::Begin(kGameboyNodeName);
         ImGui::SliderInt("Scale", &scale_, 1, 5);
@@ -548,6 +541,48 @@ namespace gui
 
     void MainWindow::VRAMViewer()
     {
+        if (!gameboy_)
+            return;
+
+        constexpr gandalf::LCD::BGR555 kColorsDMG[4] = { 0x6BFC, 0x3B11, 0x29A6, 0x1061 };
+        std::array<gandalf::LCD::BGR555, gandalf::kTotalScreenHeight * gandalf::kTotalScreenWidth> pixels;
+
+        const auto& bus = gameboy_->GetBus();
+        const gandalf::byte lcdc = gameboy_->GetLCD().GetLCDControl();
+        const bool tile_map_select = (lcdc & 0x08) != 0;
+        const gandalf::word map = tile_map_select ? 0x9C00 : 0x9800;
+        const gandalf::word tile_data_area = (lcdc & 0x10) == 0 ? 0x8800 : 0x8000;
+        for (int tile_y = 0; tile_y < 16; ++tile_y)
+        {
+            for (int tile_x = 0; tile_x < 16; ++tile_x)
+            {
+                const gandalf::byte tile_index = bus.DebugRead(map + tile_y * 32 + tile_x);
+                int tile_offset = (tile_data_area == 0x8000 ? tile_index : (gandalf::signed_byte)(tile_index));
+
+                for (int line = 0; line < 8; ++line)
+                {
+                    const gandalf::byte tile_data_low = bus.DebugRead(tile_data_area + tile_offset * 16 + line * 2);
+                    const gandalf::byte tile_data_high = bus.DebugRead(tile_data_area + tile_offset * 16 + line * 2 + 1);
+
+                    for (int x = 0; x < 8; ++x)
+                    {
+                        bool flip_x = false;
+                        gandalf::byte color_bit_0 = flip_x ? !!((tile_data_low) & (1 << x)) : !!(tile_data_low & (1 << (7 - x)));
+                        gandalf::byte color_bit_1 = flip_x ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
+                        gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
+
+                        pixels[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = kColorsDMG[color];
+                    }
+                }
+            }
+        }
+
+
+        SDL_UpdateTexture(debug_texture_, nullptr, pixels.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
+
+        ImGui::Begin(kPPUNodeName);
+        ImGui::Image(debug_texture_, ImVec2(gandalf::kTotalScreenWidth * 4, gandalf::kTotalScreenHeight * 4));
+        ImGui::End();
         //ImGui::ShowDemoWindow();
     }
 
