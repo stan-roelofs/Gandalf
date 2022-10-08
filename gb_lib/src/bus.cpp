@@ -47,4 +47,12 @@ namespace gandalf {
     }
   }
 
+  std::string Bus::GetAddressHandler(word address) const
+  {
+      if (!address_space_[address])
+          return "";
+
+      return address_space_[address]->GetName();
+  }
+
 } // namespace gandalf

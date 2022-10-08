@@ -57,11 +57,6 @@ uint32_t SDLAudioHandler::GetNextSampleTime()
 
 void SDLAudioHandler::Play(float left, float right)
 {
-    if (divider_++ < kDownSampling)
-        return;
-
-    divider_ = 0;
-
     audio_buffer_[index_++] = left;
     audio_buffer_[index_++] = right;
 

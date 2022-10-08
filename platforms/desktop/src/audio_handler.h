@@ -18,7 +18,6 @@ private:
     SDL_AudioDeviceID device_id_;
     std::vector<float> audio_buffer_;
     int index_;
-    int divider_;
     const bool& wait_;
     const bool& gb_thread_running_;
 };

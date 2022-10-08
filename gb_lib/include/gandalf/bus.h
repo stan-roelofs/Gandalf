@@ -37,6 +37,9 @@ namespace gandalf {
       /// @return The addresses that are managed by this object.
       virtual std::set<word> GetAddresses() const = 0;
 
+      /// @returns The name of this handler.
+      std::string GetAddressOwner() const { return name_; }
+
     protected:
       AddressHandler(const std::string& name);
       virtual ~AddressHandler();
@@ -83,6 +86,13 @@ namespace gandalf {
      * @param handler the handler
     */
     void Unregister(AddressHandler& handler);
+
+
+    /**
+     * @param address Address for which the name is requested.
+     * @returns The name of the object that owns the specified address.
+     */
+    std::string GetAddressHandlerName(word address) const;
 
   private:
     std::array<AddressHandler*, 0x10000> address_space_;

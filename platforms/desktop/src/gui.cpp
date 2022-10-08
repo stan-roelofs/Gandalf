@@ -7,6 +7,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_sdlrenderer.h>
+#include <imgui_internal.h>
 #include "imfilebrowser.h"
 
 #include <SDL.h>
@@ -19,6 +20,15 @@ namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     const std::string kAppName = "Gandalf";
     const std::string kSettingsFileName = "settings.txt";
+
+    const char* kDockSpaceName = "Gandalf";
+    const char* kGameboyNodeName = "Gameboy";
+    const char* kCPUNodeName = "CPU";
+    const char* kMemoryNodeName = "Memory";
+    const char* kAPUNodeName = "APU";
+    const char* kPPUNodeName = "PPU";
+    const char* kCartridgeNodeName = "Cartridge";
+    const char* kDebuggerNodeName = "Debugger";
 
     const std::filesystem::path GetSettingsPath() { return std::filesystem::current_path() / kSettingsFileName; }
 }
@@ -156,7 +166,6 @@ namespace gui
 
             // Render our GUI elements
             DockSpace();
-            MenuBar();
             GameboyView();
             DebugView();
             VRAMViewer();
@@ -210,7 +219,7 @@ namespace gui
     {
         SDL_UpdateTexture(sdl_texture_, nullptr, front_buffer_.get(), sdl_surface_->pitch);
 
-        ImGui::Begin("Gameboy");
+        ImGui::Begin(kGameboyNodeName);
         ImGui::SliderInt("Scale", &scale_, 1, 5);
         ImGui::Image(sdl_texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
         ImGui::End();
@@ -238,16 +247,46 @@ namespace gui
             window_flags |= ImGuiWindowFlags_NoBackground;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("Gandalf", nullptr, window_flags);
+        ImGui::Begin(kDockSpaceName, nullptr, window_flags);
         ImGui::PopStyleVar(3);
 
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
-            ImGuiID dockspace_id = ImGui::GetID("Gandalf");
+            ImGuiID dockspace_id = ImGui::GetID(kDockSpaceName);
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+            static auto first_time = true;
+            if (first_time)
+            {
+                first_time = false;
+
+                ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
+                ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+                ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+                // split the dockspace into 2 nodes -- DockBuilderSplitNode takes in the following args in the following order
+                //   window ID to split, direction, fraction (between 0 and 1), the final two setting let's us choose which id we want (which ever one we DON'T set as NULL, will be returned by the function)
+                //                                                              out_id_at_dir is the id of the node in the direction we specified earlier, out_id_at_opposite_dir is in the opposite direction
+                ImGuiID left_half, right_half;
+                ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.5f, &left_half, &right_half);
+                ImGui::DockBuilderDockWindow(kGameboyNodeName, left_half);
+
+                // we now dock our windows into the docking node we made above
+                ImGui::DockBuilderDockWindow(kCPUNodeName, right_half);
+                ImGui::DockBuilderDockWindow(kCartridgeNodeName, right_half);
+                ImGui::DockBuilderDockWindow(kAPUNodeName, right_half);
+                ImGui::DockBuilderDockWindow(kMemoryNodeName, right_half);
+                ImGui::DockBuilderDockWindow(kDebuggerNodeName, right_half);
+
+                ImGui::DockBuilderFinish(dockspace_id);
+            }
         }
+
+        MenuBar();
+
+        ImGui::End();
     }
 
     void MainWindow::MenuBar()
@@ -289,8 +328,6 @@ namespace gui
             ImGui::EndMenuBar();
         }
 
-        ImGui::End();
-
         file_dialog_.Display();
         if (file_dialog_.HasSelected())
         {
@@ -304,7 +341,7 @@ namespace gui
         if (!gameboy_ || !show_debug_window_)
             return;
 
-        ImGui::Begin("CPU", nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin(kCPUNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
         ImGui::Checkbox("Pause", &gb_pause_);
         ImGui::Checkbox("Limit FPS", &block_audio_);
         ImGui::SameLine();
@@ -354,7 +391,7 @@ namespace gui
         ImGui::EndDisabled();
         ImGui::End();
 
-        ImGui::Begin("Memory", nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin(kMemoryNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
 
         // static bool follow_pc = false;
         // ImGui::Checkbox("Follow PC", &follow_pc);
@@ -399,11 +436,14 @@ namespace gui
                     for (int column = 0; column < 16; column++)
                     {
                         const gandalf::word address = address_start + column;
+                        const gandalf::byte value = gameboy_->GetBus().DebugRead(address);
                         ImGui::TableNextColumn();
-                        ImGui::Text("%02X", gameboy_->GetBus().DebugRead(address));
+                        ImGui::Text("%02X", value);
                         if (ImGui::IsItemHovered()) {
                             ImGui::BeginTooltip();
-                            ImGui::Text("%04X", address);
+                            ImGui::Text("Owned by: %s", gameboy_->GetBus().GetAddressHandlerName(address).c_str());
+                            ImGui::Text("Address: %04X", address);
+                            ImGui::Text("Value: %02X", value);
                             ImGui::EndTooltip();
                         }
                     }
@@ -418,7 +458,7 @@ namespace gui
 
         ImGui::End();
 
-        ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin(kDebuggerNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
         gandalf::Bus& bus = gameboy_->GetBus();
         gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
 
@@ -471,7 +511,7 @@ namespace gui
 
         ImGui::End();
 
-        ImGui::Begin("Cartridge");
+        ImGui::Begin(kCartridgeNodeName);
         if (const auto& cartridge_ptr = gameboy_->GetCartridge())
         {
             if (cartridge_ptr->Loaded()) {
@@ -492,7 +532,7 @@ namespace gui
             ImGui::TextUnformatted("No ROM loaded");
         ImGui::End();
 
-        ImGui::Begin("Sound");
+        ImGui::Begin(kAPUNodeName);
         static bool channel_enabled[4] = { true, true, true, true };
         if (ImGui::Checkbox("Square wave 1", &channel_enabled[0]))
             gameboy_->GetAPU().MuteChannel(0, !channel_enabled[0]);
@@ -508,7 +548,7 @@ namespace gui
 
     void MainWindow::VRAMViewer()
     {
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
     }
 
     void MainWindow::LoadROM(const std::filesystem::path& path)
