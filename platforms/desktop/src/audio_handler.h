@@ -11,11 +11,12 @@ public:
     SDLAudioHandler(const bool& gb_thread_running, const bool& wait);
     virtual ~SDLAudioHandler();
 
-    void Play(gandalf::byte left, gandalf::byte right) override;
+    uint32_t GetNextSampleTime() override;
+    void Play(float left, float right) override;
 
 private:
     SDL_AudioDeviceID device_id_;
-    std::vector<std::int8_t> audio_buffer_;
+    std::vector<float> audio_buffer_;
     int index_;
     int divider_;
     const bool& wait_;

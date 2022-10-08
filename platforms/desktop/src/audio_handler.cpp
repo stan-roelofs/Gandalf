@@ -8,16 +8,21 @@
 
 namespace
 {
-    constexpr int kFrequency = 48000;
-    constexpr int kFormat = AUDIO_U8;
+    constexpr int kFrequency = 44100;
+    constexpr int kFormat = AUDIO_F32;
     constexpr int kNumberOfChannels = 2;
     constexpr int kBufferSizeSamples = 1024;
-    constexpr int kBufferSizeBytes = kBufferSizeSamples * kNumberOfChannels;
+    constexpr int kBufferSizeBytes = kBufferSizeSamples * kNumberOfChannels * SDL_AUDIO_BITSIZE(kFormat) / 8;
     constexpr int kDownSampling = gandalf::kCPUFrequency / kFrequency; // TODO how to call this constant...
 }
 
-SDLAudioHandler::SDLAudioHandler(const bool& wait, const bool& gb_thread_running) : device_id_(0), index_(0), divider_(0), wait_(wait), gb_thread_running_(gb_thread_running)
+SDLAudioHandler::SDLAudioHandler(const bool& wait, const bool& gb_thread_running) :
+    device_id_(0),
+    index_(0),
+    wait_(wait),
+    gb_thread_running_(gb_thread_running)
 {
+    static_assert(sizeof(float) == 4);
     audio_buffer_.resize(kBufferSizeBytes);
 
     SDL_AudioSpec desired_spec;
@@ -50,7 +55,7 @@ uint32_t SDLAudioHandler::GetNextSampleTime()
     return kDownSampling;
 }
 
-void SDLAudioHandler::Play(gandalf::byte left, gandalf::byte right)
+void SDLAudioHandler::Play(float left, float right)
 {
     if (divider_++ < kDownSampling)
         return;
@@ -60,12 +65,12 @@ void SDLAudioHandler::Play(gandalf::byte left, gandalf::byte right)
     audio_buffer_[index_++] = left;
     audio_buffer_[index_++] = right;
 
-    if (index_ == kBufferSizeBytes / 2)
+    if (index_ == kBufferSizeSamples * kNumberOfChannels)
     {
         if (wait_) {
-            while (gb_thread_running_ && wait_ && SDL_GetQueuedAudioSize(device_id_) > kBufferSizeBytes / 2) {}
+            while (gb_thread_running_ && wait_ && SDL_GetQueuedAudioSize(device_id_) > kBufferSizeBytes) {}
 
-            SDL_QueueAudio(device_id_, audio_buffer_.data(), kBufferSizeBytes / 2);
+            SDL_QueueAudio(device_id_, audio_buffer_.data(), kBufferSizeBytes);
         }
 
         index_ = 0;

@@ -164,25 +164,20 @@ namespace gandalf
         }
 
         // Panning
-        byte left = 0, right = 0;
+        float left = 0, right = 0;
         for (int i = 0; i < 4; ++i)
         {
             if (channel_left_enabled_[i])
-                left += samples_[i];
+                left += (samples_[i] / 7.5f) - 1.0f; // Scale volume from 0..15 to -1..1
             if (channel_right_enabled_[i])
-                right += samples_[i];
+                right += (samples_[i] / 7.5f) - 1.0f; // Scale volume from 0..15 to -1..1
         }
 
-        // Mixing
-        //left /= 4; // TODO
-       // right /= 4;
+        // Mixing and volume
+        left = (left * (left_volume_ + 1) / 8.f) / 4.f;
+        right = (right * (right_volume_ + 1) / 8.f) / 4.f;
 
-        // Volume
-        left *= (left_volume_ + 1);
-        right *= (right_volume_ + 1);
-
-        if (output_handler_)
-            output_handler_->Play(left, right);
+        output_handler_->Play(left, right);
     }
 
     void APU::MuteChannel(int channel, bool mute)
