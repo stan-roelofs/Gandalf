@@ -3,11 +3,12 @@
 #include <cassert>
 
 namespace gandalf {
-    IO::IO(GameboyMode mode, Bus& bus) :
+    IO::IO(GameboyMode mode, Bus& bus, std::shared_ptr<APU::OutputHandler> audio_handler) :
         bus_(bus),
         timer_(bus),
         lcd_(mode),
         ppu_(mode, bus, lcd_),
+        apu_(audio_handler),
         dma_(bus),
         hdma_(bus, lcd_),
         mode_(mode)

@@ -1,7 +1,7 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom)
+    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom, std::shared_ptr<APU::OutputHandler> audio_handler)
     {
         LoadROM(rom);
         LoadBootROM(boot_rom);
@@ -14,7 +14,7 @@ namespace gandalf {
             mode = GameboyMode::CGB;
         }
 
-        io_ = std::make_unique<IO>(mode, bus_);
+        io_ = std::make_unique<IO>(mode, bus_, audio_handler);
         cpu_ = std::make_unique<CPU>(mode, *io_, bus_);
         wram_ = std::make_unique<WRAM>(mode);
         hram_ = std::make_unique<HRAM>();

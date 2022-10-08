@@ -10,28 +10,29 @@ namespace gandalf
     class APU : public Bus::AddressHandler
     {
     public:
-        APU();
+        class OutputHandler
+        {
+        public:
+            virtual ~OutputHandler() = default;
+
+            /// @returns The amount of ticks until we want a new sample
+            virtual std::uint32_t GetNextSampleTime() = 0;
+
+            /** Play an audio sample
+             * @param left the left channel sample
+             * @param right the right channel sample
+             */
+            virtual void Play(float left, float right) = 0;
+        };
+
+        APU(std::shared_ptr<OutputHandler> audio_handler);
         virtual ~APU();
 
         void Write(word address, byte value) override;
         byte Read(word address) const override;
         std::set<word> GetAddresses() const override;
 
-        void Tick();
-
-        class OutputHandler
-        {
-        public:
-            virtual ~OutputHandler() = default;
-
-            /** Play an audio sample
-             * @param left the left channel sample
-             * @param right the right channel sample
-             */
-            virtual void Play(byte left, byte right) = 0;
-        };
-
-        void SetOutputHandler(std::shared_ptr<OutputHandler> handler);
+        void Tick();        
 
         /** Enables / disables sound of the given channel
         * @param channel channel index (0-3)
@@ -47,6 +48,8 @@ namespace gandalf
         std::array<std::unique_ptr<SoundChannel>, 4> sound_channels_;
         std::array<byte, 4> samples_;
         std::array<bool, 4> mute_channel_;
+
+        std::uint32_t ticks_until_sample_;
 
         // NR50
         bool vin_left_;

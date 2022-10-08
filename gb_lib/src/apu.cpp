@@ -10,7 +10,9 @@
 
 namespace gandalf
 {
-    APU::APU() : Bus::AddressHandler("APU"),
+    APU::APU(std::shared_ptr<APU::OutputHandler> audio_handler) : Bus::AddressHandler("APU"),
+        output_handler_(audio_handler),
+        ticks_until_sample_(audio_handler->GetNextSampleTime()),
         vin_left_(false),
         vin_right_(false),
         left_volume_(0),
@@ -144,6 +146,17 @@ namespace gandalf
             assert(samples_[i] <= 15);
         }
 
+        if (!output_handler_)
+            return;
+
+        --ticks_until_sample_;
+        if (ticks_until_sample_ > 0)
+            return;
+
+        ticks_until_sample_ = output_handler_->GetNextSampleTime();
+        if (ticks_until_sample_ == 0)
+            throw std::invalid_argument("Next sample time must be greater than 0");
+
         for (int i = 0; i < 4; ++i)
         {
             if (mute_channel_[i])
@@ -170,11 +183,6 @@ namespace gandalf
 
         if (output_handler_)
             output_handler_->Play(left, right);
-    }
-
-    void APU::SetOutputHandler(std::shared_ptr<APU::OutputHandler> handler)
-    {
-        output_handler_ = handler;
     }
 
     void APU::MuteChannel(int channel, bool mute)

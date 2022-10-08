@@ -45,6 +45,10 @@ SDLAudioHandler::~SDLAudioHandler()
     SDL_CloseAudioDevice(device_id_);
 }
 
+uint32_t SDLAudioHandler::GetNextSampleTime()
+{
+    return kDownSampling;
+}
 
 void SDLAudioHandler::Play(gandalf::byte left, gandalf::byte right)
 {

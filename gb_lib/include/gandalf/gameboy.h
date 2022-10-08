@@ -16,7 +16,7 @@
 namespace gandalf {
   class Gameboy {
   public:
-    Gameboy(const ROM& boot_rom, const ROM& rom);
+    Gameboy(const ROM& boot_rom, const ROM& rom, std::shared_ptr<APU::OutputHandler> audio_handler);
     ~Gameboy();
 
     /// @returns Whether the Gameboy is ready to run (ROM is loaded and Boot ROM is loaded)

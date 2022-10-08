@@ -14,7 +14,7 @@
 namespace gandalf {
     class IO {
     public:
-        IO(GameboyMode mode, Bus& bus);
+        IO(GameboyMode mode, Bus& bus, std::shared_ptr<APU::OutputHandler> audio_handler);
         ~IO();
 
         void Tick(unsigned int cycles, bool double_speed);

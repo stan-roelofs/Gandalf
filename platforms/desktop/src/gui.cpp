@@ -543,9 +543,8 @@ namespace gui
                 return;
             }
 
-            std::unique_ptr<gandalf::Gameboy> gameboy = std::make_unique<gandalf::Gameboy>(*boot_rom, file);
             std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_, gb_thread_run_);
-            gameboy->GetAPU().SetOutputHandler(handler);
+            std::unique_ptr<gandalf::Gameboy> gameboy = std::make_unique<gandalf::Gameboy>(*boot_rom, file, handler);
             gameboy->GetPPU().SetVBlankListener(this);
 
             if (gameboy->Ready()) {
