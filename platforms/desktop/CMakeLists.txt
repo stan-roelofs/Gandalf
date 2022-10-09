@@ -36,7 +36,9 @@ target_link_libraries(imgui SDL2main SDL2-static)
 set(HEADERS
   src/audio_handler.h
   src/imfilebrowser.h
+  src/gameboy_view.h
   src/gui.h
+  src/gui_element.h
   src/settings.h
 )
 
@@ -44,6 +46,7 @@ set(SOURCES
     src/main.cpp
     src/gui.cpp
     src/audio_handler.cpp
+    src/gameboy_view.cpp
 )
 
 add_executable(gb_app ${HEADERS} ${SOURCES})

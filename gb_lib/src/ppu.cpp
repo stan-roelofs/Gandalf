@@ -18,7 +18,6 @@ namespace gandalf {
         mode_(mode),
         current_vram_bank_(0),
         opri_(0),
-        vblank_listener_(nullptr),
         pipeline_(mode, lcd_, vram_, fetched_sprites_)
     {
         for (auto& bank : vram_)
@@ -85,8 +84,8 @@ namespace gandalf {
                     if (stat & 0x10)
                         bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
 
-                    if (vblank_listener_)
-                        vblank_listener_->OnVBlank();
+                    for (auto listener : vblank_listeners_)
+                        listener->OnVBlank();
                 }
                 else {
                     lcd_.SetMode(LCD::Mode::OamSearch);

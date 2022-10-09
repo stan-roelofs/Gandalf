@@ -32,7 +32,7 @@ namespace gandalf {
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
-        void SetVBlankListener(VBlankListener* listener) { vblank_listener_ = listener; }
+        void AddVBlankListener(VBlankListener* listener) { vblank_listeners_.push_back(listener);  }
 
     private:
         void CheckLYEqualsLYC();
@@ -48,7 +48,7 @@ namespace gandalf {
         int current_vram_bank_;
         byte opri_;
         std::array<byte, 0xA0> oam_;
-        VBlankListener* vblank_listener_;
+        std::vector<VBlankListener*> vblank_listeners_;
         struct Sprite {
             byte y;
             byte x;

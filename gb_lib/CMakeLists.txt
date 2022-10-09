@@ -71,8 +71,6 @@ set(SOURCES
     src/wram.cpp
 )
 
-add_definitions(-D_ITERATOR_DEBUG_LEVEL=0) 
-
 add_library(gb_lib ${SOURCES} ${HEADERS})
 
 if(MSVC)

@@ -38,7 +38,7 @@ namespace gandalf {
       virtual std::set<word> GetAddresses() const = 0;
 
       /// @returns The name of this handler.
-      std::string GetAddressOwner() const { return name_; }
+      std::string GetName() const { return name_; }
 
     protected:
       AddressHandler(const std::string& name);

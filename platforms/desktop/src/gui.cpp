@@ -15,6 +15,7 @@
 
 #include <gandalf/constants.h>
 #include "audio_handler.h"
+#include "gameboy_view.h"
 
 namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -55,7 +56,7 @@ namespace gui
     MainWindow::MainWindow(std::filesystem::path boot_rom_path) :
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
-        sdl_texture_(nullptr),
+        debug_texture_(nullptr),
         running_(false),
         show_debug_window_(true),
         step_(false),
@@ -65,8 +66,8 @@ namespace gui
         boot_rom_path_(boot_rom_path),
         gb_thread_run_(false),
         gb_fps_(0),
-        back_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
-        front_buffer_(std::make_unique < gandalf::LCD::VideoBuffer>())
+
+        update_layout_(true)
     {
     }
 
@@ -85,7 +86,6 @@ namespace gui
         SDL_DestroyRenderer(sdl_renderer_);
         SDL_DestroyWindow(sdl_window_);
 
-        SDL_DestroyTexture(sdl_texture_);
 
         SDL_Quit();
     }
@@ -113,13 +113,12 @@ namespace gui
         SDL_GetRendererInfo(sdl_renderer_, &info);
         SDL_Log("Current SDL_Renderer: %s", info.name);
 
-        sdl_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_BGR555,
-            SDL_TEXTUREACCESS_STREAMING,
-            gandalf::kScreenWidth, gandalf::kScreenHeight);
+        gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
+
 
         debug_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_BGR555, SDL_TEXTUREACCESS_STREAMING, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight);
 
-        if (!sdl_texture_ || !debug_texture_)
+        if (!debug_texture_)
         {
             std::cerr << "Error creating SDL_Texture" << std::endl;
             return false;
@@ -159,10 +158,11 @@ namespace gui
 
             // Render our GUI elements
             DockSpace();
-            GameboyView();
             DebugView();
-            VRAMViewer();
             //ImGui::ShowDemoWindow();
+
+            for (auto& element : gui_elements_)
+                element->Render();
 
             // Now render everything
             ImGui::Render();
@@ -208,16 +208,6 @@ namespace gui
         }
     }
 
-    void MainWindow::GameboyView()
-    {
-        SDL_UpdateTexture(sdl_texture_, nullptr, front_buffer_.get(), gandalf::kScreenWidth * sizeof(gandalf::LCD::BGR555));
-
-        ImGui::Begin(kGameboyNodeName);
-        ImGui::SliderInt("Scale", &scale_, 1, 5);
-        ImGui::Image(sdl_texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
-        ImGui::End();
-    }
-
     void MainWindow::DockSpace()
     {
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
@@ -250,28 +240,31 @@ namespace gui
             ImGuiID dockspace_id = ImGui::GetID(kDockSpaceName);
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-            static auto first_time = true;
-            if (first_time)
+            if (update_layout_)
             {
-                first_time = false;
+                update_layout_ = false;
 
                 ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
                 ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
                 ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
 
-                // split the dockspace into 2 nodes -- DockBuilderSplitNode takes in the following args in the following order
-                //   window ID to split, direction, fraction (between 0 and 1), the final two setting let's us choose which id we want (which ever one we DON'T set as NULL, will be returned by the function)
-                //                                                              out_id_at_dir is the id of the node in the direction we specified earlier, out_id_at_opposite_dir is in the opposite direction
-                ImGuiID left_half, right_half;
-                ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.5f, &left_half, &right_half);
-                ImGui::DockBuilderDockWindow(kGameboyNodeName, left_half);
+                if (show_debug_window_)
+                {
+                    ImGuiID left_half, right_half;
+                    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.5f, &left_half, &right_half);
+                    ImGui::DockBuilderDockWindow(kGameboyNodeName, left_half);
 
-                // we now dock our windows into the docking node we made above
-                ImGui::DockBuilderDockWindow(kCPUNodeName, right_half);
-                ImGui::DockBuilderDockWindow(kCartridgeNodeName, right_half);
-                ImGui::DockBuilderDockWindow(kAPUNodeName, right_half);
-                ImGui::DockBuilderDockWindow(kMemoryNodeName, right_half);
-                ImGui::DockBuilderDockWindow(kDebuggerNodeName, right_half);
+                    // we now dock our windows into the docking node we made above
+                    ImGui::DockBuilderDockWindow(kCPUNodeName, right_half);
+                    ImGui::DockBuilderDockWindow(kCartridgeNodeName, right_half);
+                    ImGui::DockBuilderDockWindow(kAPUNodeName, right_half);
+                    ImGui::DockBuilderDockWindow(kMemoryNodeName, right_half);
+                    ImGui::DockBuilderDockWindow(kDebuggerNodeName, right_half);
+                    ImGui::DockBuilderDockWindow(kPPUNodeName, right_half);
+                }
+                else {
+                    ImGui::DockBuilderDockWindow(kGameboyNodeName, dockspace_id);
+                }
 
                 ImGui::DockBuilderFinish(dockspace_id);
             }
@@ -314,7 +307,8 @@ namespace gui
 
             if (ImGui::BeginMenu("View"))
             {
-                ImGui::MenuItem("Debug", nullptr, &show_debug_window_);
+                if (ImGui::MenuItem("Debug", nullptr, &show_debug_window_))
+                    update_layout_ = true;
                 ImGui::EndMenu();
             }
 
@@ -537,6 +531,9 @@ namespace gui
             gameboy_->GetAPU().MuteChannel(3, !channel_enabled[3]);
 
         ImGui::End();
+
+        VRAMViewer();
+        ImGui::ShowDemoWindow();
     }
 
     void MainWindow::VRAMViewer()
@@ -544,17 +541,25 @@ namespace gui
         if (!gameboy_)
             return;
 
+        ImGui::Begin(kPPUNodeName);
+        ImGui::Image(debug_texture_, ImVec2(gandalf::kTotalScreenWidth * 2, gandalf::kTotalScreenHeight * 2));
+
+        if (!ImGui::IsItemVisible())
+        {
+            ImGui::End();
+            return;
+        }
+
         constexpr gandalf::LCD::BGR555 kColorsDMG[4] = { 0x6BFC, 0x3B11, 0x29A6, 0x1061 };
-        std::array<gandalf::LCD::BGR555, gandalf::kTotalScreenHeight * gandalf::kTotalScreenWidth> pixels;
 
         const auto& bus = gameboy_->GetBus();
         const gandalf::byte lcdc = gameboy_->GetLCD().GetLCDControl();
         const bool tile_map_select = (lcdc & 0x08) != 0;
         const gandalf::word map = tile_map_select ? 0x9C00 : 0x9800;
-        const gandalf::word tile_data_area = (lcdc & 0x10) == 0 ? 0x8800 : 0x8000;
-        for (int tile_y = 0; tile_y < 16; ++tile_y)
+        const gandalf::word tile_data_area = (lcdc & 0x10) == 0 ? 0x9000 : 0x8000;
+        for (int tile_y = 0; tile_y < 32; ++tile_y)
         {
-            for (int tile_x = 0; tile_x < 16; ++tile_x)
+            for (int tile_x = 0; tile_x < 32; ++tile_x)
             {
                 const gandalf::byte tile_index = bus.DebugRead(map + tile_y * 32 + tile_x);
                 int tile_offset = (tile_data_area == 0x8000 ? tile_index : (gandalf::signed_byte)(tile_index));
@@ -571,19 +576,16 @@ namespace gui
                         gandalf::byte color_bit_1 = flip_x ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
                         gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
 
-                        pixels[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = kColorsDMG[color];
+                        vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = kColorsDMG[color];
                     }
                 }
             }
         }
 
 
-        SDL_UpdateTexture(debug_texture_, nullptr, pixels.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
+        SDL_UpdateTexture(debug_texture_, nullptr, vram_buffer_.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
 
-        ImGui::Begin(kPPUNodeName);
-        ImGui::Image(debug_texture_, ImVec2(gandalf::kTotalScreenWidth * 4, gandalf::kTotalScreenHeight * 4));
         ImGui::End();
-        //ImGui::ShowDemoWindow();
     }
 
     void MainWindow::LoadROM(const std::filesystem::path& path)
@@ -619,11 +621,15 @@ namespace gui
             }
 
             std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_, gb_thread_run_);
-            std::unique_ptr<gandalf::Gameboy> gameboy = std::make_unique<gandalf::Gameboy>(*boot_rom, file, handler);
-            gameboy->GetPPU().SetVBlankListener(this);
+            std::shared_ptr<gandalf::Gameboy> gameboy = std::make_shared<gandalf::Gameboy>(*boot_rom, file, handler);
+            gameboy->GetPPU().AddVBlankListener(this);
 
             if (gameboy->Ready()) {
                 gameboy_ = std::move(gameboy);
+
+                for (auto& element : gui_elements_)
+                    element->SetGameboy(gameboy_);
+
                 gb_thread_run_ = true;
                 gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_, &step_, &breakpoint_);
             }
@@ -646,9 +652,6 @@ namespace gui
 
     void MainWindow::OnVBlank()
     {
-        std::swap(front_buffer_, back_buffer_);
-        std::copy(gameboy_->GetLCD().GetVideoBuffer().begin(), gameboy_->GetLCD().GetVideoBuffer().end(), back_buffer_->begin());
-
         ++gb_fps_;
 
         using namespace std::chrono;

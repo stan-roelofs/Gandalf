@@ -15,6 +15,7 @@
 #include <SDL.h>
 
 #include "settings.h"
+#include "gui_element.h"
 
 namespace gui {
     class MainWindow : gandalf::PPU::VBlankListener {
@@ -31,7 +32,6 @@ namespace gui {
 
         void DockSpace();
         void MenuBar();
-        void GameboyView();
         void DebugView();
         void VRAMViewer();
 
@@ -42,10 +42,9 @@ namespace gui {
 
         SDL_Renderer* sdl_renderer_;
         SDL_Window* sdl_window_;
-        SDL_Texture* sdl_texture_;
         SDL_Texture* debug_texture_;
         ImGui::FileBrowser file_dialog_;
-        std::unique_ptr<gandalf::Gameboy> gameboy_;
+        std::shared_ptr<gandalf::Gameboy> gameboy_;
         settings::Settings settings_;
         bool running_;
         std::optional<gandalf::word> breakpoint_;
@@ -58,9 +57,11 @@ namespace gui {
         bool block_audio_;
         std::filesystem::path boot_rom_path_;
         std::thread gb_thread_;
+        bool update_layout_;
+        std::array<gandalf::LCD::BGR555, gandalf::kTotalScreenHeight* gandalf::kTotalScreenWidth> vram_buffer_;
 
-        std::unique_ptr<gandalf::LCD::VideoBuffer> front_buffer_;
-        std::unique_ptr<gandalf::LCD::VideoBuffer> back_buffer_;
+
+        std::list<std::unique_ptr<GUIElement>> gui_elements_;
     };
 }
 #endif
