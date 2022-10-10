@@ -12,6 +12,7 @@ namespace settings {
     {
         std::list<std::string> recent_roms;
         std::string boot_rom_location;
+        bool auto_layout;
     };
 
     // TODO
@@ -20,9 +21,9 @@ namespace settings {
         std::ifstream ifs(path);
         std::string line;
         while (std::getline(ifs, line))
-        {
             settings.recent_roms.push_back(line);
-        }
+
+        settings.auto_layout = true;
         return settings;
     }
 

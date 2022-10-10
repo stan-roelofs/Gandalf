@@ -174,6 +174,11 @@ namespace gandalf {
         return result;
     }
 
+    byte PPU::DebugReadVRam(int bank, word address) const
+    {
+        return vram_.at(bank).at(address);
+    }
+
     PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) :
         lcd_(lcd),
         vram_(vram),

@@ -21,6 +21,9 @@ namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     const std::string kAppName = "Gandalf";
     const std::string kSettingsFileName = "settings.txt";
+    const unsigned int kWidth = 1280;
+    const unsigned int kHeight = 720;
+
 
     const char* kDockSpaceName = "Gandalf";
     const char* kGameboyNodeName = "Gameboy";
@@ -29,7 +32,6 @@ namespace {
     const char* kAPUNodeName = "APU";
     const char* kPPUNodeName = "PPU";
     const char* kCartridgeNodeName = "Cartridge";
-    const char* kDebuggerNodeName = "Debugger";
 
     const std::filesystem::path GetSettingsPath() { return std::filesystem::current_path() / kSettingsFileName; }
 }
@@ -238,9 +240,25 @@ namespace gui
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID(kDockSpaceName);
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-            if (update_layout_)
+            ImVec2 dockspace_size(0.f, 0.f);
+            if (settings_.auto_layout && update_layout_)
+            {
+                if (show_debug_window_) {
+                    scale_ = 2;
+                    SDL_SetWindowSize(sdl_window_, kWidth, kHeight);
+                    dockspace_size = ImVec2(kWidth, kHeight);
+                }
+                else {
+                    scale_ = 4;
+                    SDL_SetWindowSize(sdl_window_, gandalf::kScreenWidth * scale_, kHeight);
+                    dockspace_size = ImVec2(gandalf::kScreenWidth * scale_, kHeight);
+                }
+            }
+
+            ImGui::DockSpace(dockspace_id, dockspace_size, dockspace_flags);
+
+            if (settings_.auto_layout && update_layout_)
             {
                 update_layout_ = false;
 
@@ -251,15 +269,15 @@ namespace gui
                 if (show_debug_window_)
                 {
                     ImGuiID left_half, right_half;
-                    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.5f, &left_half, &right_half);
+                    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f, &left_half, &right_half);
                     ImGui::DockBuilderDockWindow(kGameboyNodeName, left_half);
+                    scale_ = 2;
 
                     // we now dock our windows into the docking node we made above
                     ImGui::DockBuilderDockWindow(kCPUNodeName, right_half);
                     ImGui::DockBuilderDockWindow(kCartridgeNodeName, right_half);
                     ImGui::DockBuilderDockWindow(kAPUNodeName, right_half);
                     ImGui::DockBuilderDockWindow(kMemoryNodeName, right_half);
-                    ImGui::DockBuilderDockWindow(kDebuggerNodeName, right_half);
                     ImGui::DockBuilderDockWindow(kPPUNodeName, right_half);
                 }
                 else {
@@ -376,6 +394,57 @@ namespace gui
         ImGui::BeginDisabled();
         ImGui::Checkbox("IME", &gameboy_->GetCPU().GetRegisters().interrupt_master_enable);
         ImGui::EndDisabled();
+
+        ImGui::Separator();
+
+        gandalf::Bus& bus = gameboy_->GetBus();
+        gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
+        if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
+            static gandalf::word last_pc = registers.program_counter;
+            static float debugger_item_height = 0.f;
+            if (last_pc != registers.program_counter && debugger_item_height > 0) {
+                ImGui::SetScrollY(registers.program_counter * debugger_item_height);
+                last_pc = registers.program_counter;
+            }
+
+            ImGuiListClipper clipper;
+            clipper.Begin(0x10000);
+            while (clipper.Step())
+            {
+                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                {
+                    // TODO: decode instructions, show name with operand values, group them (e.g. LD_RR_NN should combine into one line)
+                    ImGui::TableNextRow();
+
+                    if (line_no == registers.program_counter)
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
+
+                    ImGui::TableSetColumnIndex(0);
+
+                    bool dummy = false;
+                    std::string label = "##b" + std::to_string(line_no);
+                    if (ImGui::Selectable(label.c_str(), breakpoint_ && *breakpoint_ == line_no)) {
+                        if (breakpoint_ && *breakpoint_ == line_no)
+                            breakpoint_ = std::nullopt;
+                        else
+                            breakpoint_ = line_no;
+                    }
+
+                    ImGui::TableSetColumnIndex(1);
+
+                    ImGui::Text("%04X", line_no);
+
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::Text("%02X", bus.DebugRead(line_no));
+                }
+
+                if (clipper.ItemsHeight > 0) debugger_item_height = clipper.ItemsHeight;
+            }
+            clipper.End();
+
+            ImGui::EndTable();
+        }
+
         ImGui::End();
 
         ImGui::Begin(kMemoryNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
@@ -445,59 +514,6 @@ namespace gui
 
         ImGui::End();
 
-        ImGui::Begin(kDebuggerNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
-        gandalf::Bus& bus = gameboy_->GetBus();
-        gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
-
-
-        if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
-            static gandalf::word last_pc = registers.program_counter;
-            static float debugger_item_height = 0.f;
-            if (last_pc != registers.program_counter && debugger_item_height > 0) {
-                ImGui::SetScrollY(registers.program_counter * debugger_item_height);
-                last_pc = registers.program_counter;
-            }
-
-            ImGuiListClipper clipper;
-            clipper.Begin(0x10000);
-            while (clipper.Step())
-            {
-                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-                {
-                    // TODO: decode instructions, show name with operand values, group them (e.g. LD_RR_NN should combine into one line)
-                    ImGui::TableNextRow();
-
-                    if (line_no == registers.program_counter)
-                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
-
-                    ImGui::TableSetColumnIndex(0);
-
-                    bool dummy = false;
-                    std::string label = "##b" + std::to_string(line_no);
-                    if (ImGui::Selectable(label.c_str(), breakpoint_ && *breakpoint_ == line_no)) {
-                        if (breakpoint_ && *breakpoint_ == line_no)
-                            breakpoint_ = std::nullopt;
-                        else
-                            breakpoint_ = line_no;
-                    }
-
-                    ImGui::TableSetColumnIndex(1);
-
-                    ImGui::Text("%04X", line_no);
-
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::Text("%02X", bus.DebugRead(line_no));
-                }
-
-                if (clipper.ItemsHeight > 0) debugger_item_height = clipper.ItemsHeight;
-            }
-            clipper.End();
-
-            ImGui::EndTable();
-        }
-
-        ImGui::End();
-
         ImGui::Begin(kCartridgeNodeName);
         if (const auto& cartridge_ptr = gameboy_->GetCartridge())
         {
@@ -542,48 +558,64 @@ namespace gui
             return;
 
         ImGui::Begin(kPPUNodeName);
-        ImGui::Image(debug_texture_, ImVec2(gandalf::kTotalScreenWidth * 2, gandalf::kTotalScreenHeight * 2));
 
-        if (!ImGui::IsItemVisible())
+        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
+        if (ImGui::BeginTabBar("PPUTabBar", tab_bar_flags))
         {
-            ImGui::End();
-            return;
-        }
-
-        constexpr gandalf::LCD::BGR555 kColorsDMG[4] = { 0x6BFC, 0x3B11, 0x29A6, 0x1061 };
-
-        const auto& bus = gameboy_->GetBus();
-        const gandalf::byte lcdc = gameboy_->GetLCD().GetLCDControl();
-        const bool tile_map_select = (lcdc & 0x08) != 0;
-        const gandalf::word map = tile_map_select ? 0x9C00 : 0x9800;
-        const gandalf::word tile_data_area = (lcdc & 0x10) == 0 ? 0x9000 : 0x8000;
-        for (int tile_y = 0; tile_y < 32; ++tile_y)
-        {
-            for (int tile_x = 0; tile_x < 32; ++tile_x)
+            if (ImGui::BeginTabItem("Background map"))
             {
-                const gandalf::byte tile_index = bus.DebugRead(map + tile_y * 32 + tile_x);
-                int tile_offset = (tile_data_area == 0x8000 ? tile_index : (gandalf::signed_byte)(tile_index));
+                ImGui::Image(debug_texture_, ImVec2(gandalf::kTotalScreenWidth * 2, gandalf::kTotalScreenHeight * 2));
 
-                for (int line = 0; line < 8; ++line)
+                if (!ImGui::IsItemVisible())
                 {
-                    const gandalf::byte tile_data_low = bus.DebugRead(tile_data_area + tile_offset * 16 + line * 2);
-                    const gandalf::byte tile_data_high = bus.DebugRead(tile_data_area + tile_offset * 16 + line * 2 + 1);
+                    ImGui::End();
+                    return;
+                }
 
-                    for (int x = 0; x < 8; ++x)
+                constexpr gandalf::LCD::BGR555 kColorsDMG[4] = { 0x6BFC, 0x3B11, 0x29A6, 0x1061 };
+
+                const auto& ppu = gameboy_->GetPPU();
+                const gandalf::byte lcdc = gameboy_->GetLCD().GetLCDControl();
+                const bool tile_map_select = (lcdc & 0x08) != 0;
+                const gandalf::word map = tile_map_select ? 0x1C00 : 0x1800;
+                const gandalf::word tile_data_area = (lcdc & 0x10) == 0 ? 0x1000 : 0;
+                for (int tile_y = 0; tile_y < 32; ++tile_y)
+                {
+                    for (int tile_x = 0; tile_x < 32; ++tile_x)
                     {
-                        bool flip_x = false;
-                        gandalf::byte color_bit_0 = flip_x ? !!((tile_data_low) & (1 << x)) : !!(tile_data_low & (1 << (7 - x)));
-                        gandalf::byte color_bit_1 = flip_x ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
-                        gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
+                        const gandalf::byte tile_index = ppu.DebugReadVRam(0, map + tile_y * 32 + tile_x);
+                        int tile_offset = (tile_data_area == 0x8000 ? tile_index : (gandalf::signed_byte)(tile_index));
 
-                        vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = kColorsDMG[color];
+                        for (int line = 0; line < 8; ++line)
+                        {
+                            const gandalf::byte tile_data_low = ppu.DebugReadVRam(0, tile_data_area + tile_offset * 16 + line * 2);
+                            const gandalf::byte tile_data_high = ppu.DebugReadVRam(0, tile_data_area + tile_offset * 16 + line * 2 + 1);
+
+                            for (int x = 0; x < 8; ++x)
+                            {
+                                bool flip_x = false;
+                                gandalf::byte color_bit_0 = flip_x ? !!((tile_data_low) & (1 << x)) : !!(tile_data_low & (1 << (7 - x)));
+                                gandalf::byte color_bit_1 = flip_x ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
+                                gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
+
+                                vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = kColorsDMG[color];
+                            }
+                        }
                     }
                 }
+
+
+                SDL_UpdateTexture(debug_texture_, nullptr, vram_buffer_.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
+                ImGui::EndTabItem();
             }
+
+            if (ImGui::BeginTabItem("Tiles"))
+            {
+
+            }
+
+            ImGui::EndTabBar();
         }
-
-
-        SDL_UpdateTexture(debug_texture_, nullptr, vram_buffer_.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
 
         ImGui::End();
     }

@@ -33,6 +33,7 @@ namespace gandalf {
         std::set<word> GetAddresses() const override;
 
         void AddVBlankListener(VBlankListener* listener) { vblank_listeners_.push_back(listener);  }
+        byte DebugReadVRam(int bank, word address) const;
 
     private:
         void CheckLYEqualsLYC();
