@@ -34,12 +34,14 @@ namespace gui {
         void MenuBar();
         void DebugView();
         void VRAMViewer();
+        void UpdateVRAMViewerBuffer();
 
         void LoadROM(const std::filesystem::path& path);
         std::unique_ptr<gandalf::ROM> LoadBootROM(const std::filesystem::path& path);
 
         void OnVBlank() override;
 
+        bool vram_viewer_visible_;
         SDL_Renderer* sdl_renderer_;
         SDL_Window* sdl_window_;
         SDL_Texture* debug_texture_;

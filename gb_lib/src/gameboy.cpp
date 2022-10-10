@@ -1,22 +1,21 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom, std::shared_ptr<APU::OutputHandler> audio_handler)
+    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom, std::shared_ptr<APU::OutputHandler> audio_handler) : mode_(GameboyMode::DMG)
     {
         LoadROM(rom);
         LoadBootROM(boot_rom);
 
-        GameboyMode mode = GameboyMode::DMG;
         if (cartridge_)
         {
             std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
-            //const auto cgb_flag = header->GetCGBFlag();
-            mode = GameboyMode::CGB;
+            //const auto cgb_flag = header->GetCGBFlag(); // TODO
+            mode_ = GameboyMode::CGB;
         }
 
-        io_ = std::make_unique<IO>(mode, bus_, audio_handler);
-        cpu_ = std::make_unique<CPU>(mode, *io_, bus_);
-        wram_ = std::make_unique<WRAM>(mode);
+        io_ = std::make_unique<IO>(mode_, bus_, audio_handler);
+        cpu_ = std::make_unique<CPU>(mode_, *io_, bus_);
+        wram_ = std::make_unique<WRAM>(mode_);
         hram_ = std::make_unique<HRAM>();
         bus_.Register(*cpu_);
         bus_.Register(*wram_);

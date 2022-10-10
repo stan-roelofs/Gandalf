@@ -170,27 +170,51 @@ namespace gandalf
         stat_ = (stat_ & 0xFC) | static_cast<gandalf::byte>(mode);
     }
 
-    void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)
+    LCD::BGR555 LCD::GetBackgroundColor(byte color_index, byte palette_index) const
     {
         if (mode_ == GameboyMode::DMG)
         {
-            byte palette = 0;
-            if (is_sprite)
-                palette = palette_index == 0 ? obp0_ : obp1_;
-            else
-                palette = bgp_;
+            if (palette_index > 0)
+                throw std::invalid_argument("Palette index out of range");
 
-            byte color = palette >> (2 * (color_index)) & 0x3;
-            video_buffer_[kScreenWidth * ly_ + x] = kColorsDMG[color];
+            byte color = bgp_ >> (2 * (color_index)) & 0x3;
+            return kColorsDMG[color];
         }
         else if (mode_ == GameboyMode::CGB)
         {
-            BGR555 color;
-            if (is_sprite)
-                color = ocpd_[palette_index * 4 + color_index];
-            else
-                color = bcpd_[palette_index * 4 + color_index];
-            video_buffer_[kScreenWidth * ly_ + x] = color;
+            if (palette_index > 7)
+                throw std::invalid_argument("Palette index out of range");
+
+            return bcpd_[palette_index * 4 + color_index];
         }
+
+        assert(false);
+        return 0;
+    }
+
+    LCD::BGR555 LCD::GetSpriteColor(byte color_index, byte palette_index) const
+    {
+        if (mode_ == GameboyMode::DMG)
+        {
+            if (palette_index > 1)
+                throw std::invalid_argument("Palette index out of range");
+
+            byte palette = palette_index == 0 ? obp0_ : obp1_;
+            return kColorsDMG[palette >> (2 * (color_index)) & 0x3];
+        }
+        else if (mode_ == GameboyMode::CGB) {
+            if (palette_index > 7)
+                throw std::invalid_argument("Palette index out of range");
+
+            return ocpd_[palette_index * 4 + color_index];
+        }
+
+        assert(false);
+        return 0;
+    }
+
+    void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)
+    {
+        video_buffer_[kScreenWidth * ly_ + x] = is_sprite ? GetSpriteColor(color_index, palette_index) : GetBackgroundColor(color_index, palette_index);;
     }
 }

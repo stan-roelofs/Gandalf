@@ -33,9 +33,13 @@ namespace gandalf {
     Joypad& GetJoypad() { return io_->GetJoypad(); }
     APU& GetAPU() { return io_->GetAPU(); }
 
+    GameboyMode GetMode() const { return mode_; }
+
   private:
     void LoadROM(const ROM& rom);
     void LoadBootROM(const ROM& boot_rom);
+
+    GameboyMode mode_;
 
     // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.
     Bus bus_;

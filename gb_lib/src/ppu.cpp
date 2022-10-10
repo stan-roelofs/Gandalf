@@ -31,8 +31,8 @@ namespace gandalf {
     void PPU::Tick()
     {
         ++line_ticks_;
-        byte& stat = lcd_.GetLCDStatus();
-        byte& ly = lcd_.GetLY();
+        const byte stat = lcd_.GetLCDStatus();
+        byte ly = lcd_.GetLY();
 
         switch (lcd_.GetMode())
         {
@@ -111,11 +111,13 @@ namespace gandalf {
             }
             break;
         }
+
+        lcd_.SetLY(ly);
     }
 
     void PPU::CheckLYEqualsLYC()
     {
-        byte& stat = lcd_.GetLCDStatus();
+        byte stat = lcd_.GetLCDStatus();
         if (lcd_.GetLY() == lcd_.GetLYC()) {
             // Set LY==LYC coincidence flag
             stat |= 0x4;
@@ -127,6 +129,8 @@ namespace gandalf {
         else {
             stat &= 0xFB;
         }
+
+        lcd_.SetLCDStatus(stat);
     }
 
     byte PPU::Read(word address) const

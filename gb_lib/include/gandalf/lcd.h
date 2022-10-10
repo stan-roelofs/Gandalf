@@ -19,17 +19,33 @@ namespace gandalf {
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
-        byte& GetLCDControl() { return lcdc_; }
-        byte& GetLCDStatus() { return stat_; }
-        byte& GetLY() { return ly_; }
-        byte& GetLYC() { return lyc_; }
-        byte& GetSCX() { return scx_; }
-        byte& GetSCY() { return scy_; }
-        byte& GetBGP() { return bgp_; }
-        byte& GetOBP0() { return obp0_; }
-        byte& GetOBP1() { return obp1_; }
-        byte& GetWY() { return wy_; }
-        byte& GetWX() { return wx_; }
+        byte GetLCDControl() const { return lcdc_; }
+        byte GetLCDStatus() const { return stat_; }
+        void SetLCDStatus(byte status) { stat_ = status; }
+        byte GetLY() const { return ly_; }
+        void SetLY(byte ly) { ly_ = ly; }
+        byte GetLYC() const { return lyc_; }
+        byte GetSCX() const { return scx_; }
+        byte GetSCY() const { return scy_; }
+        byte GetBGP() const { return bgp_; }
+        byte GetOBP0() const { return obp0_; }
+        byte GetOBP1() const { return obp1_; }
+        byte GetWY() const { return wy_; }
+        byte GetWX() const { return wx_; }
+
+        /**
+         * Returns the color for the given color index and palette index
+         * @param color_index The color index (0-3)
+         * @param palette_index The palette index (0-1 for DMG, 0-7 for CGB)
+        */
+        BGR555 GetSpriteColor(byte color_index, byte palette_index) const;
+
+        /**
+         * Returns the color for the given color index and palette index
+         * @param color_index The color index (0-3)
+         * @param palette_index The palette index (0-1 for DMG, 0-7 for CGB)
+        */
+        BGR555 GetBackgroundColor(byte color_index, byte palette_index) const;
 
         enum class Mode
         {
