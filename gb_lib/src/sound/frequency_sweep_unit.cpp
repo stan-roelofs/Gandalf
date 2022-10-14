@@ -44,7 +44,7 @@ namespace gandalf
 
     word FrequencySweepUnit::GetFrequency() const
     {
-        return (2048 - (frequency_low_ | (frequency_high_ << 8))) * 4;
+        return (frequency_high_ << 8) | frequency_low_;
     }
 
     void FrequencySweepUnit::SetShift(byte shift)

@@ -21,9 +21,6 @@ namespace gandalf
 
         void Trigger();
 
-        void SetFrequency(word frequency);
-        word GetFrequency() const;
-
         void SetShift(byte shift);
         byte GetShift() const;
         void SetNegate(bool negate);
@@ -31,6 +28,8 @@ namespace gandalf
         void SetPeriod(byte period);
         byte GetPeriod() const;
     private:
+        void SetFrequency(word frequency);
+        word GetFrequency() const;
         void ReloadTimer();
         word FrequencyCalculation();
 
