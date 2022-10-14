@@ -19,14 +19,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
-FetchContent_Declare(
-  nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG        bc889afb4c5bf1c0d8ee29ef35eaaf4c8bef8a5d
-)
-FetchContent_MakeAvailable(nlohmann_json)
-
-
 message(${imgui_SOURCE_DIR})
 
 # Compile as static library 
@@ -40,9 +32,22 @@ add_library(imgui ${imgui_SOURCE_DIR}/imgui.cpp
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui SDL2main SDL2-static)
 
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        bc889afb4c5bf1c0d8ee29ef35eaaf4c8bef8a5d
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
+FetchContent_Declare(
+  nfd
+  GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+  GIT_TAG        d4df2b6ad5420f5300c00f418bf28d86291fa675
+)
+FetchContent_MakeAvailable(nfd)
+
 set(HEADERS
   src/audio_handler.h
-  src/imfilebrowser.h
   src/gameboy_view.h
   src/gui.h
   src/gui_element.h
@@ -60,4 +65,4 @@ set(SOURCES
 )
 
 add_executable(gb_app ${HEADERS} ${SOURCES})
-target_link_libraries(gb_app gb_lib SDL2main SDL2-static imgui nlohmann_json::nlohmann_json)
+target_link_libraries(gb_app gb_lib SDL2main SDL2-static imgui nlohmann_json::nlohmann_json nfd)

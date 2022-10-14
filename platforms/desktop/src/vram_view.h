@@ -25,7 +25,7 @@ namespace gui
 
         std::array<gandalf::LCD::BGR555, gandalf::kTotalScreenHeight* gandalf::kTotalScreenWidth> vram_buffer_;
         bool visible_;
-        bool debug_enabled_;
+        const bool& debug_enabled_;
         SDL_Texture* texture_;
     };
 }

@@ -1,7 +1,5 @@
 #include <gandalf/bus.h>
 
-#include <iostream> // TODO remove this
-
 namespace gandalf {
   Bus::AddressHandler::AddressHandler(const std::string& name) : name_(name) {
 
@@ -49,10 +47,10 @@ namespace gandalf {
 
   std::string Bus::GetAddressHandlerName(word address) const
   {
-      if (!address_space_[address])
-          return "";
+    if (!address_space_[address])
+      return "";
 
-      return address_space_[address]->GetName();
+    return address_space_[address]->GetName();
   }
 
 } // namespace gandalf

@@ -10,7 +10,6 @@
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_sdlrenderer.h>
-#include "imfilebrowser.h"
 
 #include <SDL.h>
 
@@ -41,12 +40,10 @@ namespace gui {
 
         SDL_Renderer* sdl_renderer_;
         SDL_Window* sdl_window_;
-        ImGui::FileBrowser file_dialog_;
         std::shared_ptr<gandalf::Gameboy> gameboy_;
         settings::Settings settings_;
         bool running_;
         std::optional<gandalf::word> breakpoint_;
-        bool show_debug_window_;
         bool step_;
         int scale_;
         bool gb_pause_;

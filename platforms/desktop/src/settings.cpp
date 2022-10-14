@@ -7,15 +7,17 @@ namespace settings
         j = json{
             {"auto_layout", s.auto_layout},
             {"recent_roms", s.recent_roms},
-            {"boot_rom_location", s.boot_rom_location}
+            {"boot_rom_location", s.boot_rom_location},
+            {"show_debug", s.show_debug}
         };
     }
 
     void from_json(const json& j, Settings& s)
     {
-        j.at("auto_layout").get_to(s.auto_layout);
-        j.at("recent_roms").get_to(s.recent_roms);
-        j.at("boot_rom_location").get_to(s.boot_rom_location);
+        s.auto_layout = j.value("auto_layout", true);
+        s.recent_roms = j.value("recent_roms", std::list<std::string>());
+        s.boot_rom_location = j.value("boot_rom_location", "");
+        s.show_debug = j.value("show_debug", false);
     }
 
     bool Read(const std::filesystem::path& path, Settings& settings)

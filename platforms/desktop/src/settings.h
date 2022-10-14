@@ -19,6 +19,7 @@ namespace settings
         std::list<std::string> recent_roms;
         std::string boot_rom_location;
         bool auto_layout;
+        bool show_debug;
     };
 
     bool Read(const std::filesystem::path& path, Settings& settings);

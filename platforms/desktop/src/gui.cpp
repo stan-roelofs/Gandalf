@@ -8,12 +8,14 @@
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_sdlrenderer.h>
 #include <imgui_internal.h>
-#include "imfilebrowser.h"
+
+#include <gandalf/constants.h>
 
 #include <SDL.h>
 #include <SDL_timer.h>
 
-#include <gandalf/constants.h>
+#include <nfd.hpp>
+
 #include "audio_handler.h"
 #include "gameboy_view.h"
 #include "vram_view.h"
@@ -60,7 +62,6 @@ namespace gui
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
         running_(false),
-        show_debug_window_(true),
         step_(false),
         scale_(4),
         gb_pause_(false),
@@ -80,13 +81,14 @@ namespace gui
 
         settings::Write(GetSettingsPath(), settings_);
 
+        NFD::Quit();
+
         ImGui_ImplSDLRenderer_Shutdown();
         ImGui_ImplSDL2_Shutdown();
         ImGui::DestroyContext();
 
         SDL_DestroyRenderer(sdl_renderer_);
         SDL_DestroyWindow(sdl_window_);
-
 
         SDL_Quit();
     }
@@ -115,7 +117,7 @@ namespace gui
         SDL_Log("Current SDL_Renderer: %s", info.name);
 
         gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
-        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(show_debug_window_, *sdl_renderer_)));
+        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(settings_.show_debug, *sdl_renderer_)));
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -129,9 +131,7 @@ namespace gui
         ImGui_ImplSDL2_InitForSDLRenderer(sdl_window_, sdl_renderer_);
         ImGui_ImplSDLRenderer_Init(sdl_renderer_);
 
-        file_dialog_.SetTitle("Choose ROM");
-        file_dialog_.SetTypeFilters({ ".gb", ".gbc" });
-
+        NFD::Init();
         if (!settings::Read(GetSettingsPath(), settings_))
             std::cerr << "Error reading settings file!" << std::endl;
 
@@ -236,7 +236,7 @@ namespace gui
             ImVec2 dockspace_size(0.f, 0.f);
             if (settings_.auto_layout && update_layout_)
             {
-                if (show_debug_window_) {
+                if (settings_.show_debug) {
                     scale_ = 2;
                     SDL_SetWindowSize(sdl_window_, kWidth, kHeight);
                     dockspace_size = ImVec2(kWidth, kHeight);
@@ -258,7 +258,7 @@ namespace gui
                 ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
                 ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
 
-                if (show_debug_window_)
+                if (settings_.show_debug)
                 {
                     ImGuiID left_half, right_half;
                     ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f, &left_half, &right_half);
@@ -292,7 +292,13 @@ namespace gui
             if (ImGui::BeginMenu("File"))
             {
                 if (ImGui::MenuItem("Open ROM", "Ctrl+O"))
-                    file_dialog_.Open();
+                {
+                    NFD::UniquePath path;
+                    nfdfilteritem_t filter_item[] = { {"ROM", "gb,gbc"} };
+                    auto result = NFD::OpenDialog(path, filter_item, 1);
+                    if (result == NFD_OKAY)
+                        LoadROM(path.get());
+                }
 
                 if (ImGui::BeginMenu("Recent ROMs"))
                 {
@@ -317,25 +323,18 @@ namespace gui
 
             if (ImGui::BeginMenu("View"))
             {
-                if (ImGui::MenuItem("Debug", nullptr, &show_debug_window_))
+                if (ImGui::MenuItem("Debug", nullptr, &settings_.show_debug))
                     update_layout_ = true;
                 ImGui::EndMenu();
             }
 
             ImGui::EndMenuBar();
         }
-
-        file_dialog_.Display();
-        if (file_dialog_.HasSelected())
-        {
-            LoadROM(file_dialog_.GetSelected());
-            file_dialog_.ClearSelected();
-        }
     }
 
     void MainWindow::DebugView()
     {
-        if (!gameboy_ || !show_debug_window_)
+        if (!gameboy_ || !settings_.show_debug)
             return;
 
         ImGui::Begin(kCPUNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);

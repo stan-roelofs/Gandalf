@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-// TODO something is wrong with this implementation... It doesn't sound correct (example: pokemon gold intro)
-
 namespace {
     const gandalf::byte kVolumeCodeToShift[4] = { 4, 0, 1, 2 };
 }

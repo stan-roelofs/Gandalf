@@ -30,7 +30,7 @@ namespace gui
 
     void VRAMView::Render()
     {
-        if (!gameboy_ || !visible_)
+        if (!gameboy_ || !debug_enabled_)
             return;
 
         ImGui::Begin("PPU");

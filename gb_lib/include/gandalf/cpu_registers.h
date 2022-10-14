@@ -4,8 +4,6 @@
 #include  "types.h"
 
 namespace gandalf {
-  // TODO make things private?
-
   class Registers {
   public:
     Registers() :
