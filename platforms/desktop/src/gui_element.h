@@ -9,7 +9,7 @@ namespace gui
     {
     public:
         virtual void Render() = 0;
-        virtual void SetGameboy(std::shared_ptr<gandalf::Gameboy> gb) { 
+        virtual void SetGameboy(std::shared_ptr<gandalf::Gameboy> gb) {
             if (!gb)
                 throw std::runtime_error("Gameboy was nullptr!");
             gameboy_ = gb;

@@ -33,18 +33,14 @@ namespace gui {
         void DockSpace();
         void MenuBar();
         void DebugView();
-        void VRAMViewer();
-        void UpdateVRAMViewerBuffer();
 
         void LoadROM(const std::filesystem::path& path);
         std::unique_ptr<gandalf::ROM> LoadBootROM(const std::filesystem::path& path);
 
         void OnVBlank() override;
 
-        bool vram_viewer_visible_;
         SDL_Renderer* sdl_renderer_;
         SDL_Window* sdl_window_;
-        SDL_Texture* debug_texture_;
         ImGui::FileBrowser file_dialog_;
         std::shared_ptr<gandalf::Gameboy> gameboy_;
         settings::Settings settings_;
@@ -60,8 +56,6 @@ namespace gui {
         std::filesystem::path boot_rom_path_;
         std::thread gb_thread_;
         bool update_layout_;
-        std::array<gandalf::LCD::BGR555, gandalf::kTotalScreenHeight* gandalf::kTotalScreenWidth> vram_buffer_;
-
 
         std::list<std::unique_ptr<GUIElement>> gui_elements_;
     };

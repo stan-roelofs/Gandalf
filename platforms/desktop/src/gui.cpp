@@ -16,11 +16,12 @@
 #include <gandalf/constants.h>
 #include "audio_handler.h"
 #include "gameboy_view.h"
+#include "vram_view.h"
 
 namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     const std::string kAppName = "Gandalf";
-    const std::string kSettingsFileName = "settings.txt";
+    const std::string kSettingsFileName = "settings.json";
     const unsigned int kWidth = 1280;
     const unsigned int kHeight = 720;
 
@@ -58,7 +59,6 @@ namespace gui
     MainWindow::MainWindow(std::filesystem::path boot_rom_path) :
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
-        debug_texture_(nullptr),
         running_(false),
         show_debug_window_(true),
         step_(false),
@@ -68,7 +68,6 @@ namespace gui
         boot_rom_path_(boot_rom_path),
         gb_thread_run_(false),
         gb_fps_(0),
-        vram_viewer_visible_(false),
         update_layout_(true)
     {
     }
@@ -116,15 +115,7 @@ namespace gui
         SDL_Log("Current SDL_Renderer: %s", info.name);
 
         gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
-
-
-        debug_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_BGR555, SDL_TEXTUREACCESS_STREAMING, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight);
-
-        if (!debug_texture_)
-        {
-            std::cerr << "Error creating SDL_Texture" << std::endl;
-            return false;
-        }
+        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(show_debug_window_, *sdl_renderer_)));
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -141,7 +132,8 @@ namespace gui
         file_dialog_.SetTitle("Choose ROM");
         file_dialog_.SetTypeFilters({ ".gb", ".gbc" });
 
-        settings_ = settings::Read(GetSettingsPath());
+        if (!settings::Read(GetSettingsPath(), settings_))
+            std::cerr << "Error reading settings file!" << std::endl;
 
         running_ = true;
         return true;
@@ -548,94 +540,7 @@ namespace gui
 
         ImGui::End();
 
-        VRAMViewer();
         ImGui::ShowDemoWindow();
-    }
-
-    void MainWindow::UpdateVRAMViewerBuffer()
-    {
-        if (!gameboy_)
-            return; 
-
-        const auto& lcd = gameboy_->GetLCD();
-        const auto& ppu = gameboy_->GetPPU();
-        const gandalf::byte lcdc = gameboy_->GetLCD().GetLCDControl();
-        const bool tile_map_select = (lcdc & 0x08) != 0;
-        const gandalf::word map = tile_map_select ? 0x1C00 : 0x1800;
-        const gandalf::word tile_data_area = (lcdc & 0x10) == 0 ? 0x1000 : 0;
-        for (int tile_y = 0; tile_y < 32; ++tile_y)
-        {
-            for (int tile_x = 0; tile_x < 32; ++tile_x)
-            {
-                const gandalf::byte tile_index = ppu.DebugReadVRam(0, map + tile_y * 32 + tile_x);
-                const gandalf::byte tile_attributes = ppu.DebugReadVRam(1, map + tile_y * 32 + tile_x);
-                int tile_offset = (tile_data_area == 0 ? tile_index : (gandalf::signed_byte)(tile_index));
-
-                for (int line = 0; line < 8; ++line)
-                {
-                    const gandalf::byte tile_data_low = ppu.DebugReadVRam(0, tile_data_area + tile_offset * 16 + line * 2);
-                    const gandalf::byte tile_data_high = ppu.DebugReadVRam(0, tile_data_area + tile_offset * 16 + line * 2 + 1);
-
-                    for (int x = 0; x < 8; ++x)
-                    {
-                        bool flip_x = false;
-                        gandalf::byte color_bit_0 = flip_x ? !!((tile_data_low) & (1 << x)) : !!(tile_data_low & (1 << (7 - x)));
-                        gandalf::byte color_bit_1 = flip_x ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
-                        gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
-
-                        gandalf::LCD::BGR555 bgr_color = lcd.GetBackgroundColor(color, gameboy_->GetMode() == gandalf::GameboyMode::DMG ? 0 : tile_attributes & 0b111);
-                        vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = bgr_color;
-                    }
-                }
-            }
-        }
-
-        gandalf::byte left = lcd.GetSCX();
-        gandalf::byte top = lcd.GetSCY();
-        gandalf::byte right = left + gandalf::kScreenWidth;
-        gandalf::byte bottom = lcd.GetSCY() + gandalf::kScreenHeight;
-        gandalf::LCD::BGR555 color = 0b11111;
-        for (int x = 0; x < gandalf::kScreenWidth; ++x)
-        {
-            vram_buffer_[gandalf::kTotalScreenWidth * top + (gandalf::byte)(left + x)] = color;
-            vram_buffer_[gandalf::kTotalScreenWidth * bottom + (gandalf::byte)(left + x)] = color;
-        }
-        for (int y = 0; y < gandalf::kScreenHeight; ++y)
-        {
-            vram_buffer_[gandalf::kTotalScreenWidth * (gandalf::byte)(top + y) + left] = color;
-            vram_buffer_[gandalf::kTotalScreenWidth * (gandalf::byte)(top + y) + right] = color;
-        }
-    }
-
-    void MainWindow::VRAMViewer()
-    {
-        if (!gameboy_)
-            return;
-
-        ImGui::Begin(kPPUNodeName);
-
-        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
-        if (ImGui::BeginTabBar("PPUTabBar", tab_bar_flags))
-        {
-            if (ImGui::BeginTabItem("Background map"))
-            {
-                vram_viewer_visible_ = true;
-                SDL_UpdateTexture(debug_texture_, nullptr, vram_buffer_.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
-                ImGui::Image(debug_texture_, ImVec2(gandalf::kTotalScreenWidth * 2, gandalf::kTotalScreenHeight * 2));    
-                ImGui::EndTabItem();
-            }
-            else
-                vram_viewer_visible_ = false;
-
-            if (ImGui::BeginTabItem("Tiles"))
-            {
-
-            }
-
-            ImGui::EndTabBar();
-        }
-
-        ImGui::End();
     }
 
     void MainWindow::LoadROM(const std::filesystem::path& path)
@@ -649,6 +554,10 @@ namespace gui
             std::swap(*settings_.recent_roms.begin(), *it);
         else
             settings_.recent_roms.push_front(path.string());
+
+        if (settings_.recent_roms.size() > 10)
+            settings_.recent_roms.pop_back();
+
         settings::Write(GetSettingsPath(), settings_);
 
         std::ifstream input(path, std::ios::binary);
@@ -703,9 +612,6 @@ namespace gui
     void MainWindow::OnVBlank()
     {
         ++gb_fps_;
-
-        if (vram_viewer_visible_)
-            UpdateVRAMViewerBuffer();
 
         using namespace std::chrono;
 

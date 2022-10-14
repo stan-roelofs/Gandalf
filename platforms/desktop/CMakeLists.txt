@@ -12,13 +12,20 @@ set( SDL_STATIC ON CACHE BOOL "" FORCE )
 set( SDL_SHARED OFF CACHE BOOL "" FORCE )
 FetchContent_MakeAvailable(sdl2)
 
-include(FetchContent)
 FetchContent_Declare(
   imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git
   GIT_TAG        ad5aa5416630059c9213a4cfe00a827c3991e964
 )
 FetchContent_MakeAvailable(imgui)
+
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        bc889afb4c5bf1c0d8ee29ef35eaaf4c8bef8a5d
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 
 message(${imgui_SOURCE_DIR})
 
@@ -40,6 +47,7 @@ set(HEADERS
   src/gui.h
   src/gui_element.h
   src/settings.h
+  src/vram_view.h
 )
 
 set(SOURCES
@@ -47,7 +55,9 @@ set(SOURCES
     src/gui.cpp
     src/audio_handler.cpp
     src/gameboy_view.cpp
+    src/settings.cpp
+    src/vram_view.cpp
 )
 
 add_executable(gb_app ${HEADERS} ${SOURCES})
-target_link_libraries(gb_app gb_lib SDL2main SDL2-static imgui)
+target_link_libraries(gb_app gb_lib SDL2main SDL2-static imgui nlohmann_json::nlohmann_json)

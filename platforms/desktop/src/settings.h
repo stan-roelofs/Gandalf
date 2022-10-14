@@ -5,8 +5,14 @@
 #include <list>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
-namespace settings {
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
+namespace settings
+{
 
     struct Settings
     {
@@ -15,25 +21,7 @@ namespace settings {
         bool auto_layout;
     };
 
-    // TODO
-    static Settings Read(const std::filesystem::path& path) {
-        Settings settings;
-        std::ifstream ifs(path);
-        std::string line;
-        while (std::getline(ifs, line))
-            settings.recent_roms.push_back(line);
-
-        settings.auto_layout = true;
-        return settings;
-    }
-
-    static bool Write(const std::filesystem::path& path, const Settings& settings) {
-        std::ofstream ofs(path);
-        for (const auto& rom : settings.recent_roms) {
-            ofs << rom << std::endl;
-        }
-        ofs.close();
-        return true;
-    }
+    bool Read(const std::filesystem::path& path, Settings& settings);
+    bool Write(const std::filesystem::path& path, const Settings& settings);
 }
 #endif
