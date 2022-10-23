@@ -27,6 +27,21 @@ namespace gui
         bool visible_;
         const bool& debug_enabled_;
         SDL_Texture* texture_;
+
+        struct TileData
+        {
+            std::uint8_t tile_number;
+            std::uint16_t tile_address;
+            std::uint16_t map_address;
+            std::uint8_t attributes;
+            unsigned int vram_bank;
+            std::uint8_t palette;
+            bool x_flip;
+            bool y_flip;
+            bool priority;
+        };
+
+        std::array<std::array<TileData, 32>, 32> tile_data_;
     };
 }
 
