@@ -48,20 +48,22 @@ FetchContent_MakeAvailable(nfd)
 
 set(HEADERS
   src/audio_handler.h
-  src/gameboy_view.h
   src/gui.h
   src/gui_element.h
   src/settings.h
-  src/vram_view.h
+  src/views/cpu_view.h
+  src/views/gameboy_view.h
+  src/views/vram_view.h
 )
 
 set(SOURCES
     src/main.cpp
     src/gui.cpp
     src/audio_handler.cpp
-    src/gameboy_view.cpp
     src/settings.cpp
-    src/vram_view.cpp
+    src/views/cpu_view.cpp
+    src/views/gameboy_view.cpp
+    src/views/vram_view.cpp
 )
 
 add_executable(gb_app ${HEADERS} ${SOURCES})

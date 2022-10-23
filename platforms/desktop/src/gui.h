@@ -14,10 +14,10 @@
 #include <SDL.h>
 
 #include "settings.h"
-#include "gui_element.h"
+#include "views/gui_element.h"
 
 namespace gui {
-    class MainWindow : gandalf::PPU::VBlankListener {
+    class MainWindow: gandalf::PPU::VBlankListener {
     public:
         MainWindow(std::filesystem::path boot_rom_path);
         ~MainWindow();

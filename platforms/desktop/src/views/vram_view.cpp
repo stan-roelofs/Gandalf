@@ -180,6 +180,7 @@ namespace gui
             }
         }
 
+        // Draw a rectangle to show the currently visible area
         const gandalf::byte left = lcd.GetSCX();
         const gandalf::byte top = lcd.GetSCY();
         const gandalf::byte right = left + gandalf::kScreenWidth;

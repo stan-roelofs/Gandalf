@@ -17,8 +17,9 @@
 #include <nfd.hpp>
 
 #include "audio_handler.h"
-#include "gameboy_view.h"
-#include "vram_view.h"
+#include "views/cpu_view.h"
+#include "views/gameboy_view.h"
+#include "views/vram_view.h"
 
 namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -58,7 +59,7 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow(std::filesystem::path boot_rom_path) :
+    MainWindow::MainWindow(std::filesystem::path boot_rom_path):
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
         running_(false),
@@ -118,6 +119,7 @@ namespace gui
 
         gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
         gui_elements_.push_back(std::move(std::make_unique<VRAMView>(settings_.show_debug, *sdl_renderer_)));
+        gui_elements_.push_back(std::move(std::make_unique<CPUView>(settings_.show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -335,108 +337,7 @@ namespace gui
     void MainWindow::DebugView()
     {
         if (!gameboy_ || !settings_.show_debug)
-            return;
-
-        ImGui::Begin(kCPUNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
-        ImGui::Checkbox("Pause", &gb_pause_);
-        ImGui::Checkbox("Limit FPS", &block_audio_);
-        ImGui::SameLine();
-
-        if (!gb_pause_)
-            ImGui::BeginDisabled();
-
-        if (ImGui::Button("Step")) {
-            step_ = true;
-        }
-
-        if (!gb_pause_)
-            ImGui::EndDisabled();
-
-        if (ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
-        {
-            gandalf::Registers registers = gameboy_->GetCPU().GetRegisters();
-            ImGui::TableNextColumn();
-            ImGui::Text("A : %02X", registers.a());
-            ImGui::TableNextColumn();
-            ImGui::Text("F : %02X", registers.f());
-            ImGui::TableNextColumn();
-            ImGui::Text("B : %02X", registers.b());
-            ImGui::TableNextColumn();
-            ImGui::Text("C : %02X", registers.c());
-            ImGui::TableNextColumn();
-            ImGui::Text("D : %02X", registers.d());
-            ImGui::TableNextColumn();
-            ImGui::Text("E : %02X", registers.e());
-            ImGui::TableNextColumn();
-            ImGui::Text("H : %02X", registers.h());
-            ImGui::TableNextColumn();
-            ImGui::Text("L : %02X", registers.l());
-
-            ImGui::TableNextColumn();
-            ImGui::Text("SP : %04X", registers.stack_pointer);
-            ImGui::TableNextColumn();
-            ImGui::Text("PC : %04X", registers.program_counter);
-
-            ImGui::TableNextColumn();
-
-            ImGui::EndTable();
-        }
-
-        ImGui::BeginDisabled();
-        ImGui::Checkbox("IME", &gameboy_->GetCPU().GetRegisters().interrupt_master_enable);
-        ImGui::EndDisabled();
-
-        ImGui::Separator();
-
-        gandalf::Bus& bus = gameboy_->GetBus();
-        gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
-        if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
-            static gandalf::word last_pc = registers.program_counter;
-            static float debugger_item_height = 0.f;
-            if (last_pc != registers.program_counter && debugger_item_height > 0) {
-                ImGui::SetScrollY(registers.program_counter * debugger_item_height);
-                last_pc = registers.program_counter;
-            }
-
-            ImGuiListClipper clipper;
-            clipper.Begin(0x10000);
-            while (clipper.Step())
-            {
-                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-                {
-                    // TODO: decode instructions, show name with operand values, group them (e.g. LD_RR_NN should combine into one line)
-                    ImGui::TableNextRow();
-
-                    if (line_no == registers.program_counter)
-                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
-
-                    ImGui::TableSetColumnIndex(0);
-
-                    bool dummy = false;
-                    std::string label = "##b" + std::to_string(line_no);
-                    if (ImGui::Selectable(label.c_str(), breakpoint_ && *breakpoint_ == line_no)) {
-                        if (breakpoint_ && *breakpoint_ == line_no)
-                            breakpoint_ = std::nullopt;
-                        else
-                            breakpoint_ = line_no;
-                    }
-
-                    ImGui::TableSetColumnIndex(1);
-
-                    ImGui::Text("%04X", line_no);
-
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::Text("%02X", bus.DebugRead(line_no));
-                }
-
-                if (clipper.ItemsHeight > 0) debugger_item_height = clipper.ItemsHeight;
-            }
-            clipper.End();
-
-            ImGui::EndTable();
-        }
-
-        ImGui::End();
+            return;        
 
         ImGui::Begin(kMemoryNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
 

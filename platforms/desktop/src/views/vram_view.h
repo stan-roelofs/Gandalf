@@ -11,7 +11,7 @@
 
 namespace gui
 {
-    class VRAMView : public GUIElement, public gandalf::PPU::VBlankListener
+    class VRAMView: public GUIElement, public gandalf::PPU::VBlankListener
     {
     public:
         VRAMView(const bool& debug_enabled, SDL_Renderer& renderer);
