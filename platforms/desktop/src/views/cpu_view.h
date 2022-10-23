@@ -9,8 +9,6 @@
 
 #include "gui_element.h"
 
-#include <SDL.h>
-
 namespace gui
 {
     class CPUView: public GUIElement
