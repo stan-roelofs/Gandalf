@@ -67,9 +67,7 @@ namespace gandalf
             channel_left_enabled_[3] = (value & 0x80) != 0;
         }
         else if (address == kNR52)
-        {
             sound_enabled_ = (value & 0x80) != 0;
-        }
         else if (address >= 0xFF30)
             wave_ram_[address - 0xFF30] = value;
     }

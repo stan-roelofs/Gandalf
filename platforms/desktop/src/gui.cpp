@@ -59,7 +59,7 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow(std::filesystem::path boot_rom_path):
+    MainWindow::MainWindow():
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
         running_(false),
@@ -67,7 +67,6 @@ namespace gui
         scale_(4),
         gb_pause_(false),
         block_audio_(true),
-        boot_rom_path_(boot_rom_path),
         gb_thread_run_(false),
         gb_fps_(0),
         update_layout_(true)
@@ -141,6 +140,15 @@ namespace gui
         return true;
     }
 
+    std::string SelectBootROM()
+    {
+        NFD::UniquePath path;
+        auto result = NFD::OpenDialog(path);
+        if (result == NFD_OKAY)
+            return std::string(path.get());
+        return "";
+    }
+
     void MainWindow::Run()
     {
         while (running_)
@@ -157,8 +165,48 @@ namespace gui
             DebugView();
             //ImGui::ShowDemoWindow();
 
+
             for (auto& element : gui_elements_)
                 element->Render();
+
+            if (!show_error_.empty())
+            {
+                ImGui::OpenPopup(show_error_.c_str());
+                show_error_.clear();
+            }
+
+            if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Error - could not load boot ROM");
+                ImGui::Separator();
+
+                if (ImGui::Button("Select file", ImVec2(120, 0))) { 
+                    settings_.boot_rom_location = SelectBootROM();
+                    ImGui::CloseCurrentPopup(); 
+                }
+                ImGui::SetItemDefaultFocus();
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Error - could not load ROM");
+                ImGui::Separator();
+
+                if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Error - gameboy not ready");
+                ImGui::Separator();
+
+                if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                ImGui::EndPopup();
+            }
 
             // Now render everything
             ImGui::Render();
@@ -337,7 +385,7 @@ namespace gui
     void MainWindow::DebugView()
     {
         if (!gameboy_ || !settings_.show_debug)
-            return;        
+            return;
 
         ImGui::Begin(kMemoryNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
 
@@ -439,8 +487,6 @@ namespace gui
             gameboy_->GetAPU().MuteChannel(3, !channel_enabled[3]);
 
         ImGui::End();
-
-        ImGui::ShowDemoWindow();
     }
 
     void MainWindow::LoadROM(const std::filesystem::path& path)
@@ -451,7 +497,10 @@ namespace gui
 
         auto it = std::find(settings_.recent_roms.begin(), settings_.recent_roms.end(), path);
         if (it != settings_.recent_roms.end())
-            std::swap(*settings_.recent_roms.begin(), *it);
+        {
+            settings_.recent_roms.erase(it);
+            settings_.recent_roms.push_front(path.string());
+        }        
         else
             settings_.recent_roms.push_front(path.string());
 
@@ -462,41 +511,36 @@ namespace gui
 
         std::ifstream input(path, std::ios::binary);
         if (input.fail()) {
-            if (ImGui::BeginPopupModal("Error")) {
-                ImGui::TextUnformatted("Could not open file!");
-                ImGui::EndPopup();
-            }
+            show_error_ = "Error##LoadROM";
+            return;
         }
-        else {
-            std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
-                std::istreambuf_iterator<char>());
 
-            auto boot_rom = LoadBootROM(boot_rom_path_);
-            if (!boot_rom && ImGui::BeginPopupModal("Error"))
-            {
-                ImGui::TextUnformatted("Could not load boot ROM!");
-                ImGui::EndPopup();
-                return;
-            }
+        std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
+            std::istreambuf_iterator<char>());
 
-            std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_, gb_thread_run_);
-            std::shared_ptr<gandalf::Gameboy> gameboy = std::make_shared<gandalf::Gameboy>(*boot_rom, file, handler);
-            gameboy->GetPPU().AddVBlankListener(this);
-
-            if (gameboy->Ready()) {
-                gameboy_ = std::move(gameboy);
-
-                for (auto& element : gui_elements_)
-                    element->SetGameboy(gameboy_);
-
-                gb_thread_run_ = true;
-                gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_, &step_, &breakpoint_);
-            }
-            else if (ImGui::BeginPopupModal("Error")) {
-                ImGui::TextUnformatted("Could not load ROM!");
-                ImGui::EndPopup();
-            }
+        auto boot_rom = LoadBootROM(settings_.boot_rom_location);
+        if (!boot_rom)
+        {
+            show_error_ = "Error##LoadBootROM";
+            return;
         }
+
+        std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_, gb_thread_run_);
+        std::shared_ptr<gandalf::Gameboy> gameboy = std::make_shared<gandalf::Gameboy>(*boot_rom, file, handler);
+        gameboy->GetPPU().AddVBlankListener(this);
+
+        if (!gameboy->Ready()) {
+            show_error_ = "Error##GameboyNotReady";
+            return;
+        }
+
+        gameboy_ = std::move(gameboy);
+
+        for (auto& element : gui_elements_)
+            element->SetGameboy(gameboy_);
+
+        gb_thread_run_ = true;
+        gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_, &step_, &breakpoint_);
     }
 
     std::unique_ptr<gandalf::ROM> MainWindow::LoadBootROM(const std::filesystem::path& path)
