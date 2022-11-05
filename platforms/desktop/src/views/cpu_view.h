@@ -1,7 +1,6 @@
 #ifndef __GUI_CPU_VIEW_H
 #define __GUI_CPU_VIEW_H
 
-#include <memory>
 #include <optional>
 
 #include <gandalf/gameboy.h>

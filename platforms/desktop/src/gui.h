@@ -31,7 +31,6 @@ namespace gui {
 
         void DockSpace();
         void MenuBar();
-        void DebugView();
 
         void LoadROM(const std::filesystem::path& path);
         std::unique_ptr<gandalf::ROM> LoadBootROM(const std::filesystem::path& path);

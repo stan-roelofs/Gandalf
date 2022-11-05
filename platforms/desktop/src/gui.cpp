@@ -20,6 +20,10 @@
 #include "views/cpu_view.h"
 #include "views/gameboy_view.h"
 #include "views/vram_view.h"
+#include "views/memory_view.h"
+#include "views/cartridge_view.h"
+#include "views/apu_view.h"
+
 
 namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -27,7 +31,7 @@ namespace {
     const std::string kSettingsFileName = "settings.json";
     const unsigned int kWidth = 1280;
     const unsigned int kHeight = 720;
-
+    const unsigned int kROMHistorySize = 10;
 
     const char* kDockSpaceName = "Gandalf";
     const char* kGameboyNodeName = "Gameboy";
@@ -119,6 +123,9 @@ namespace gui
         gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
         gui_elements_.push_back(std::move(std::make_unique<VRAMView>(settings_.show_debug, *sdl_renderer_)));
         gui_elements_.push_back(std::move(std::make_unique<CPUView>(settings_.show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
+        gui_elements_.push_back(std::move(std::make_unique<MemoryView>(settings_.show_debug)));
+        gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(settings_.show_debug)));
+        gui_elements_.push_back(std::move(std::make_unique<APUView>(settings_.show_debug)));
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -162,7 +169,6 @@ namespace gui
 
             // Render our GUI elements
             DockSpace();
-            DebugView();
             //ImGui::ShowDemoWindow();
 
 
@@ -180,9 +186,9 @@ namespace gui
                 ImGui::Text("Error - could not load boot ROM");
                 ImGui::Separator();
 
-                if (ImGui::Button("Select file", ImVec2(120, 0))) { 
+                if (ImGui::Button("Select file", ImVec2(120, 0))) {
                     settings_.boot_rom_location = SelectBootROM();
-                    ImGui::CloseCurrentPopup(); 
+                    ImGui::CloseCurrentPopup();
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();
@@ -352,13 +358,16 @@ namespace gui
 
                 if (ImGui::BeginMenu("Recent ROMs"))
                 {
+                    std::string rom_to_load;
                     for (const auto& path : settings_.recent_roms)
                     {
-                        if (ImGui::MenuItem(path.c_str())) {
-                            LoadROM(path);
-                        }
+                        if (ImGui::MenuItem(path.c_str()))
+                            rom_to_load = path;
                     }
                     ImGui::EndMenu();
+
+                    if (!rom_to_load.empty())
+                        LoadROM(rom_to_load);
                 }
 
                 ImGui::EndMenu();
@@ -382,113 +391,6 @@ namespace gui
         }
     }
 
-    void MainWindow::DebugView()
-    {
-        if (!gameboy_ || !settings_.show_debug)
-            return;
-
-        ImGui::Begin(kMemoryNodeName, nullptr, ImGuiWindowFlags_NoTitleBar);
-
-        // static bool follow_pc = false;
-        // ImGui::Checkbox("Follow PC", &follow_pc);
-
-        // if (*context.run)
-        //     follow_pc = false;
-
-        static char address[5];
-        address[4] = '\0';
-        ImGui::InputText("address", address, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
-        ImGui::SameLine();
-
-        std::optional<gandalf::word> scroll_target;
-        bool should_scroll = false;
-        if (ImGui::Button("Scroll to")) {
-            auto address_value = std::strtoul(address, nullptr, 16);
-            if (address_value < 0)
-                address_value = 0;
-            if (address_value > 0xFFFF)
-                address_value = 0xFFFF;
-
-            scroll_target = static_cast<gandalf::word>(address_value);
-        }
-
-        if (ImGui::BeginTable("Memory viewer", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
-            static float memory_item_height = 0.f;
-
-            if (scroll_target)
-                ImGui::SetScrollY((*scroll_target / 16) * memory_item_height);
-
-            gandalf::Bus& bus = gameboy_->GetBus();
-            ImGuiListClipper clipper;
-            clipper.Begin(0x10000 / 16);
-            while (clipper.Step())
-            {
-                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-                {
-                    gandalf::word address_start = line_no * 16;
-
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%04X", address_start);
-                    for (int column = 0; column < 16; column++)
-                    {
-                        const gandalf::word address = address_start + column;
-                        const gandalf::byte value = gameboy_->GetBus().DebugRead(address);
-                        ImGui::TableNextColumn();
-                        ImGui::Text("%02X", value);
-                        if (ImGui::IsItemHovered()) {
-                            ImGui::BeginTooltip();
-                            ImGui::Text("Owned by: %s", gameboy_->GetBus().GetAddressHandlerName(address).c_str());
-                            ImGui::Text("Address: %04X", address);
-                            ImGui::Text("Value: %02X", value);
-                            ImGui::EndTooltip();
-                        }
-                    }
-                }
-
-                if (clipper.ItemsHeight > 0) memory_item_height = clipper.ItemsHeight;
-            }
-            clipper.End();
-
-            ImGui::EndTable();
-        }
-
-        ImGui::End();
-
-        ImGui::Begin(kCartridgeNodeName);
-        if (const auto& cartridge_ptr = gameboy_->GetCartridge())
-        {
-            if (cartridge_ptr->Loaded()) {
-                const auto& header = cartridge_ptr->GetHeader();
-                ImGui::Text("ROM loaded");
-                ImGui::Text("Title: %s", header->GetTitleString().c_str());
-                ImGui::Text("Manufacturer code: %s", header->GetManufacturerCodeString().c_str());
-                ImGui::Text("Licensee: %s", header->GetLicenseeString().c_str());
-                ImGui::Text("ROM Size: %s", header->GetROMSizeString().c_str());
-                ImGui::Text("RAM Size: %s", header->GetRAMSizeString().c_str());
-                ImGui::Text("CGB flag: %s", header->GetCGBFlagString().c_str());
-                ImGui::Text("SGB flag: %s", header->GetSGBFlagString().c_str());
-                ImGui::Text("Cartridge type: %s", header->GetTypeString().c_str());
-                ImGui::Text("Destination: %s", header->GetDestinationString().c_str());
-            }
-        }
-        else
-            ImGui::TextUnformatted("No ROM loaded");
-        ImGui::End();
-
-        ImGui::Begin(kAPUNodeName);
-        static bool channel_enabled[4] = { true, true, true, true };
-        if (ImGui::Checkbox("Square wave 1", &channel_enabled[0]))
-            gameboy_->GetAPU().MuteChannel(0, !channel_enabled[0]);
-        if (ImGui::Checkbox("Square wave 2", &channel_enabled[1]))
-            gameboy_->GetAPU().MuteChannel(1, !channel_enabled[1]);
-        if (ImGui::Checkbox("Wave", &channel_enabled[2]))
-            gameboy_->GetAPU().MuteChannel(2, !channel_enabled[2]);
-        if (ImGui::Checkbox("Noise", &channel_enabled[3]))
-            gameboy_->GetAPU().MuteChannel(3, !channel_enabled[3]);
-
-        ImGui::End();
-    }
-
     void MainWindow::LoadROM(const std::filesystem::path& path)
     {
         gb_thread_run_ = false;
@@ -497,14 +399,10 @@ namespace gui
 
         auto it = std::find(settings_.recent_roms.begin(), settings_.recent_roms.end(), path);
         if (it != settings_.recent_roms.end())
-        {
             settings_.recent_roms.erase(it);
-            settings_.recent_roms.push_front(path.string());
-        }        
-        else
-            settings_.recent_roms.push_front(path.string());
+        settings_.recent_roms.push_front(path.string());
 
-        if (settings_.recent_roms.size() > 10)
+        if (settings_.recent_roms.size() > kROMHistorySize)
             settings_.recent_roms.pop_back();
 
         settings::Write(GetSettingsPath(), settings_);
