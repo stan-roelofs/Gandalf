@@ -1,7 +1,7 @@
 # Gandalf
 
-A Gameboy color emulator.
+A Gameboy color emulator with debugging tools.
 
 Work in progress. 
 
-![screenshot.png](screenshot.png)
+![preview.gif](preview.gif)
