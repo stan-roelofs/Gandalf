@@ -2,9 +2,11 @@
 
 #include <imgui.h>
 
+#include "../text.h"
+
 namespace gui
 {
-    CartridgeView::CartridgeView(const bool& debug_enabled):
+    CartridgeView::CartridgeView(const bool& debug_enabled) :
         debug_enabled_(debug_enabled)
     {
     }
@@ -19,16 +21,15 @@ namespace gui
         {
             if (cartridge_ptr->Loaded()) {
                 const auto& header = cartridge_ptr->GetHeader();
-                ImGui::Text("ROM loaded");
-                ImGui::Text("Title: %s", header->GetTitleString().c_str());
-                ImGui::Text("Manufacturer code: %s", header->GetManufacturerCodeString().c_str());
-                ImGui::Text("Licensee: %s", header->GetLicenseeString().c_str());
-                ImGui::Text("ROM Size: %s", header->GetROMSizeString().c_str());
-                ImGui::Text("RAM Size: %s", header->GetRAMSizeString().c_str());
-                ImGui::Text("CGB flag: %s", header->GetCGBFlagString().c_str());
-                ImGui::Text("SGB flag: %s", header->GetSGBFlagString().c_str());
-                ImGui::Text("Cartridge type: %s", header->GetTypeString().c_str());
-                ImGui::Text("Destination: %s", header->GetDestinationString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeTitle), header->GetTitleString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeManufacturer), header->GetManufacturerCodeString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeLicensee), header->GetLicenseeString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeROMSize), header->GetROMSizeString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeRAMSize), header->GetRAMSizeString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeCGB), header->GetCGBFlagString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeSGB), header->GetSGBFlagString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeType), header->GetTypeString().c_str());
+                ImGui::Text("%s: %s", text::Get(text::ID::kWindowCartridgeDestination), header->GetDestinationString().c_str());
             }
         }
         else

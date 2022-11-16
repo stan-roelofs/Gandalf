@@ -1,5 +1,5 @@
-#ifndef __GB_APP_GUI_H
-#define __GB_APP_GUI_H
+#ifndef __GB_APP_MAIN_WINDOW_H
+#define __GB_APP_MAIN_WINDOW_H
 
 #include <optional>
 #include <filesystem>
@@ -14,16 +14,17 @@
 #include <SDL.h>
 
 #include "settings.h"
+#include "settings_window.h"
 #include "views/gui_element.h"
 
 namespace gui {
-    class MainWindow: gandalf::PPU::VBlankListener {
+    class MainWindow : gandalf::PPU::VBlankListener {
     public:
         MainWindow();
         ~MainWindow();
 
         bool Initialize();
-        void Run();
+        void Show();
 
     private:
         void HandleEvents();
@@ -50,11 +51,11 @@ namespace gui {
         unsigned int gb_fps_;
         bool block_audio_;
         std::thread gb_thread_;
-        bool update_layout_;
 
-        std::string show_error_;
+        std::string show_popup_;
 
         std::list<std::unique_ptr<GUIElement>> gui_elements_;
+        std::unique_ptr<SettingsWindow> settings_window_;
     };
 }
 #endif

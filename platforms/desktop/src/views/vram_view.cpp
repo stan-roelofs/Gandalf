@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 
+#include "../text.h"
 namespace
 {
     constexpr int kTileSize = 8;
@@ -38,12 +39,12 @@ namespace gui
         if (!gameboy_ || !debug_enabled_)
             return;
 
-        ImGui::Begin("PPU");
+        ImGui::Begin(text::Get(text::ID::kWindowPPU));
 
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
         if (ImGui::BeginTabBar("PPUTabBar", tab_bar_flags))
         {
-            if (ImGui::BeginTabItem("Background map"))
+            if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUBackgroundMap)))
             {
                 visible_ = true;
                 SDL_UpdateTexture(texture_, nullptr, vram_buffer_.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
@@ -64,7 +65,7 @@ namespace gui
 
                     const int region_x = tile_x * kTileSize;
                     const int region_y = tile_y * kTileSize;
-                    
+
                     // TODO draw grid
 
                     constexpr float kTextureSize = gandalf::kTotalScreenWidth;
@@ -78,8 +79,8 @@ namespace gui
                     auto& tile_data = tile_data_[tile_y][tile_x];
                     ImGui::BeginTable("Tile data", 2);
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted("X"); 
-                    ImGui::TableNextColumn();    
+                    ImGui::TextUnformatted("X");
+                    ImGui::TableNextColumn();
                     ImGui::Text("%d", tile_x);
 
                     ImGui::TableNextColumn();
@@ -88,27 +89,27 @@ namespace gui
                     ImGui::Text("%d", tile_y);
 
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted("Number");
+                    ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileNumber));
                     ImGui::TableNextColumn();
                     ImGui::Text("%2.2X", tile_data.tile_number);
 
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted("Tile map");
+                    ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileMap));
                     ImGui::TableNextColumn();
                     ImGui::Text("%4.4X", tile_data.map_address);
 
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted("Tile address");
+                    ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileAddress));
                     ImGui::TableNextColumn();
                     ImGui::Text("%4.4X", tile_data.tile_address);
                     ImGui::EndTable();
 
                     ImGui::Separator();
-                    ImGui::Text("Attributes: %X", tile_data.attributes);
-                    ImGui::Checkbox("Flip x", &tile_data.x_flip); ImGui::SameLine(); ImGui::Checkbox("Flip y", &tile_data.y_flip);
-                    ImGui::Text("Palette: %d", tile_data.palette);
-                    ImGui::Text("VRAM Bank: %d", tile_data.vram_bank);
-                    ImGui::Checkbox("Priority", &tile_data.priority);
+                    ImGui::Text("%s: %X", text::Get(text::ID::kWindowPPUTileAttributes), tile_data.attributes);
+                    ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipX), &tile_data.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipY), &tile_data.y_flip);
+                    ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTilePalette), tile_data.palette);
+                    ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTileVRAMBank), tile_data.vram_bank);
+                    ImGui::Checkbox(text::Get(text::ID::kWindowPPUTilePriority), &tile_data.priority);
 
                     ImGui::EndTooltip();
                 }
@@ -118,7 +119,7 @@ namespace gui
             else
                 visible_ = false;
 
-            if (ImGui::BeginTabItem("Tiles"))
+            if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUTiles)))
             {
 
             }

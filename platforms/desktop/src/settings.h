@@ -18,7 +18,6 @@ namespace settings
     {
         std::list<std::string> recent_roms;
         std::string boot_rom_location;
-        bool auto_layout;
         bool show_debug;
         std::int32_t key_up;
         std::int32_t key_down;

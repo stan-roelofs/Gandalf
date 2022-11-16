@@ -1,4 +1,4 @@
-#include "gui.h"
+#include "main_window.h"
 
 #include <iostream>
 #include <fstream>
@@ -17,29 +17,22 @@
 #include <nfd.hpp>
 
 #include "audio_handler.h"
+#include "settings_window.h"
 #include "views/cpu_view.h"
 #include "views/gameboy_view.h"
 #include "views/vram_view.h"
 #include "views/memory_view.h"
 #include "views/cartridge_view.h"
 #include "views/apu_view.h"
-
+#include "text.h"
 
 namespace {
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    const std::string kAppName = "Gandalf";
     const std::string kSettingsFileName = "settings.json";
+    const char* kDockSpaceName = "Gandalf";
     const unsigned int kWidth = 1280;
     const unsigned int kHeight = 720;
     const unsigned int kROMHistorySize = 10;
-
-    const char* kDockSpaceName = "Gandalf";
-    const char* kGameboyNodeName = "Gameboy";
-    const char* kCPUNodeName = "CPU";
-    const char* kMemoryNodeName = "Memory";
-    const char* kAPUNodeName = "APU";
-    const char* kPPUNodeName = "PPU";
-    const char* kCartridgeNodeName = "Cartridge";
 
     const std::filesystem::path GetSettingsPath() { return std::filesystem::current_path() / kSettingsFileName; }
 }
@@ -72,8 +65,7 @@ namespace gui
         gb_pause_(false),
         block_audio_(true),
         gb_thread_run_(false),
-        gb_fps_(0),
-        update_layout_(true)
+        gb_fps_(0)
     {
     }
 
@@ -107,7 +99,7 @@ namespace gui
 
         // Setup window
         SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-        sdl_window_ = SDL_CreateWindow(kAppName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+        sdl_window_ = SDL_CreateWindow(text::Get(text::ID::kAppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
 
         // Setup SDL_Renderer instance
         sdl_renderer_ = SDL_CreateRenderer(sdl_window_, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -126,6 +118,7 @@ namespace gui
         gui_elements_.push_back(std::move(std::make_unique<MemoryView>(settings_.show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(settings_.show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<APUView>(settings_.show_debug)));
+
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -156,7 +149,7 @@ namespace gui
         return "";
     }
 
-    void MainWindow::Run()
+    void MainWindow::Show()
     {
         while (running_)
         {
@@ -175,30 +168,36 @@ namespace gui
             for (auto& element : gui_elements_)
                 element->Render();
 
-            if (!show_error_.empty())
+            if (!show_popup_.empty())
             {
-                ImGui::OpenPopup(show_error_.c_str());
-                show_error_.clear();
+                ImGui::OpenPopup(show_popup_.c_str());
+                show_popup_.clear();
+            }
+
+            if (settings_window_) {
+                settings_window_->Show();
+                if (settings_window_->Terminated())
+                    settings_window_.release();
             }
 
             if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text("Error - could not load boot ROM");
+                ImGui::Text(text::Get(text::ID::kErrorLoadBootROM));
                 ImGui::Separator();
 
-                if (ImGui::Button("Select file", ImVec2(120, 0))) {
+                if (ImGui::Button(text::Get(text::ID::kSelectBootROM), ImVec2(120, 0))) {
                     settings_.boot_rom_location = SelectBootROM();
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                if (ImGui::Button(text::Get(text::ID::kCancel), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
                 ImGui::EndPopup();
             }
 
             if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text("Error - could not load ROM");
+                ImGui::Text(text::Get(text::ID::kErrorLoad));
                 ImGui::Separator();
 
                 if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
@@ -207,10 +206,10 @@ namespace gui
 
             if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text("Error - gameboy not ready");
+                ImGui::Text(text::Get(text::ID::kErrorLoad));
                 ImGui::Separator();
 
-                if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                if (ImGui::Button(text::Get(text::ID::kOk), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
                 ImGui::EndPopup();
             }
 
@@ -296,50 +295,7 @@ namespace gui
             ImGuiID dockspace_id = ImGui::GetID(kDockSpaceName);
 
             ImVec2 dockspace_size(0.f, 0.f);
-            if (settings_.auto_layout && update_layout_)
-            {
-                if (settings_.show_debug) {
-                    scale_ = 2;
-                    SDL_SetWindowSize(sdl_window_, kWidth, kHeight);
-                    dockspace_size = ImVec2(kWidth, kHeight);
-                }
-                else {
-                    scale_ = 4;
-                    SDL_SetWindowSize(sdl_window_, gandalf::kScreenWidth * scale_, kHeight);
-                    dockspace_size = ImVec2(gandalf::kScreenWidth * scale_, kHeight);
-                }
-            }
-
-            ImGui::DockSpace(dockspace_id, dockspace_size, dockspace_flags);
-
-            if (settings_.auto_layout && update_layout_)
-            {
-                update_layout_ = false;
-
-                ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
-                ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
-                ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
-
-                if (settings_.show_debug)
-                {
-                    ImGuiID left_half, right_half;
-                    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f, &left_half, &right_half);
-                    ImGui::DockBuilderDockWindow(kGameboyNodeName, left_half);
-                    scale_ = 2;
-
-                    // we now dock our windows into the docking node we made above
-                    ImGui::DockBuilderDockWindow(kCPUNodeName, right_half);
-                    ImGui::DockBuilderDockWindow(kCartridgeNodeName, right_half);
-                    ImGui::DockBuilderDockWindow(kAPUNodeName, right_half);
-                    ImGui::DockBuilderDockWindow(kMemoryNodeName, right_half);
-                    ImGui::DockBuilderDockWindow(kPPUNodeName, right_half);
-                }
-                else {
-                    ImGui::DockBuilderDockWindow(kGameboyNodeName, dockspace_id);
-                }
-
-                ImGui::DockBuilderFinish(dockspace_id);
-            }
+            ImGui::DockSpace(dockspace_id, ImVec2(0.f, 0.f), dockspace_flags);
         }
 
         MenuBar();
@@ -351,9 +307,9 @@ namespace gui
     {
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::BeginMenu("File"))
+            if (ImGui::BeginMenu(text::Get(text::ID::kMenuFile)))
             {
-                if (ImGui::MenuItem("Open ROM", "Ctrl+O"))
+                if (ImGui::MenuItem(text::Get(text::ID::kMenuFileOpenROM)))
                 {
                     NFD::UniquePath path;
                     nfdfilteritem_t filter_item[] = { {"ROM", "gb,gbc"} };
@@ -362,7 +318,7 @@ namespace gui
                         LoadROM(path.get());
                 }
 
-                if (ImGui::BeginMenu("Recent ROMs"))
+                if (ImGui::BeginMenu(text::Get(text::ID::kMenuFileRecentROMs)))
                 {
                     std::string rom_to_load;
                     for (const auto& path : settings_.recent_roms)
@@ -377,19 +333,25 @@ namespace gui
                 }
 
                 ImGui::EndMenu();
-
             }
 
-            if (ImGui::BeginMenu("Gameboy"))
+            if (ImGui::BeginMenu(text::Get(text::ID::kMenuSettings)))
             {
-                ImGui::MenuItem("Pause", nullptr, &gb_pause_);
+                if (ImGui::MenuItem(text::Get(text::ID::kMenuSettings)))
+                    settings_window_ = std::make_unique<SettingsWindow>(settings_);
+
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("View"))
+            if (ImGui::BeginMenu(text::Get(text::ID::kMenuEmulation)))
             {
-                if (ImGui::MenuItem("Debug", nullptr, &settings_.show_debug))
-                    update_layout_ = true;
+                ImGui::MenuItem(text::Get(text::ID::kPause), nullptr, &gb_pause_);
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu(text::Get(text::ID::kMenuView)))
+            {
+                ImGui::MenuItem(text::Get(text::ID::kMenuViewDebug), nullptr, &settings_.show_debug);
                 ImGui::EndMenu();
             }
 
@@ -415,7 +377,7 @@ namespace gui
 
         std::ifstream input(path, std::ios::binary);
         if (input.fail()) {
-            show_error_ = "Error##LoadROM";
+            show_popup_ = "Error##LoadROM";
             return;
         }
 
@@ -425,7 +387,7 @@ namespace gui
         auto boot_rom = LoadBootROM(settings_.boot_rom_location);
         if (!boot_rom)
         {
-            show_error_ = "Error##LoadBootROM";
+            show_popup_ = "Error##LoadBootROM";
             return;
         }
 
@@ -434,7 +396,7 @@ namespace gui
         gameboy->GetPPU().AddVBlankListener(this);
 
         if (!gameboy->Ready()) {
-            show_error_ = "Error##GameboyNotReady";
+            show_popup_ = "Error##GameboyNotReady";
             return;
         }
 

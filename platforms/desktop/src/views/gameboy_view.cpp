@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include "../text.h"
+
 namespace gui
 {
     GameboyView::GameboyView(SDL_Renderer& renderer, int& scale) :
@@ -33,8 +35,8 @@ namespace gui
         SDL_UpdateTexture(texture_, nullptr, front_buffer_.get(), gandalf::kScreenWidth * sizeof(gandalf::LCD::BGR555));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("Gameboy");
-        ImGui::SliderInt("Scale", &scale_, 1, 5);
+        ImGui::Begin(text::Get(text::ID::kWindowGameboy));
+        ImGui::SliderInt(text::Get(text::ID::kWindowGameboyScale), &scale_, 1, 5);
         ImGui::Image(texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
         ImGui::End();
         ImGui::PopStyleVar();

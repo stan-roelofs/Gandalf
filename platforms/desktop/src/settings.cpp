@@ -7,7 +7,6 @@ namespace settings
     void to_json(json& j, const Settings& s)
     {
         j = json{
-            {"auto_layout", s.auto_layout},
             {"recent_roms", s.recent_roms},
             {"boot_rom_location", s.boot_rom_location},
             {"show_debug", s.show_debug},
@@ -24,7 +23,6 @@ namespace settings
 
     void from_json(const json& j, Settings& s)
     {
-        s.auto_layout = j.value("auto_layout", true);
         s.recent_roms = j.value("recent_roms", std::list<std::string>());
         s.boot_rom_location = j.value("boot_rom_location", "");
         s.show_debug = j.value("show_debug", false);

@@ -2,9 +2,11 @@
 
 #include <imgui.h>
 
+#include "../text.h"
+
 namespace gui
 {
-    CPUView::CPUView(const bool& debug_enabled, bool& gb_pause, bool& block_audio, bool& step, std::optional<gandalf::word>& breakpoint):
+    CPUView::CPUView(const bool& debug_enabled, bool& gb_pause, bool& block_audio, bool& step, std::optional<gandalf::word>& breakpoint) :
         debug_enabled_(debug_enabled),
         gb_pause_(gb_pause),
         block_audio_(block_audio),
@@ -18,22 +20,22 @@ namespace gui
         if (!gameboy_ || !debug_enabled_)
             return;
 
-        ImGui::Begin("CPU", nullptr, ImGuiWindowFlags_NoTitleBar);
-        ImGui::Checkbox("Pause", &gb_pause_);
-        ImGui::Checkbox("Limit FPS", &block_audio_);
+        ImGui::Begin(text::Get(text::ID::kWindowCPU), nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Checkbox(text::Get(text::ID::kPause), &gb_pause_);
+        ImGui::Checkbox(text::Get(text::ID::kWindowCPULimitFPS), &block_audio_);
         ImGui::SameLine();
 
         if (!gb_pause_)
             ImGui::BeginDisabled();
 
-        if (ImGui::Button("Step")) {
+        if (ImGui::Button(text::Get(text::ID::kWindowCPUStep))) {
             step_ = true;
         }
 
         if (!gb_pause_)
             ImGui::EndDisabled();
 
-        if (ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        if (ImGui::BeginTable(text::Get(text::ID::kWindowCPURegisters), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
             gandalf::Registers registers = gameboy_->GetCPU().GetRegisters();
             ImGui::TableNextColumn();

@@ -48,8 +48,10 @@ FetchContent_MakeAvailable(nfd)
 
 set(HEADERS
   src/audio_handler.h
-  src/gui.h
+  src/main_window.h
   src/settings.h
+  src/settings_window.h
+  src/text.h
   src/views/gui_element.h
   src/views/cpu_view.h
   src/views/gameboy_view.h
@@ -61,9 +63,11 @@ set(HEADERS
 
 set(SOURCES
   src/main.cpp
-  src/gui.cpp
+  src/main_window.cpp
   src/audio_handler.cpp
   src/settings.cpp
+  src/settings_window.cpp
+  src/text.cpp
   src/views/cpu_view.cpp
   src/views/gameboy_view.cpp
   src/views/memory_view.cpp

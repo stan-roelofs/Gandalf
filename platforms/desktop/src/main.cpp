@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 
-#include "gui.h"
+#include "main_window.h"
 
 
 int main(int argc, char* argv[]) {
@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
     if (!main_window->Initialize())
         return EXIT_FAILURE;
 
-    main_window->Run();
+    main_window->Show();
     main_window.release();
 
     return EXIT_SUCCESS;
