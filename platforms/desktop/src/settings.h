@@ -20,6 +20,14 @@ namespace settings
         std::string boot_rom_location;
         bool auto_layout;
         bool show_debug;
+        std::int32_t key_up;
+        std::int32_t key_down;
+        std::int32_t key_left;
+        std::int32_t key_right;
+        std::int32_t key_a;
+        std::int32_t key_b;
+        std::int32_t key_start;
+        std::int32_t key_select;
     };
 
     bool Read(const std::filesystem::path& path, Settings& settings);

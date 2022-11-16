@@ -63,7 +63,7 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow():
+    MainWindow::MainWindow() :
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
         running_(false),
@@ -245,17 +245,23 @@ namespace gui
             return;
 
         auto& joypad = gameboy_->GetJoypad();
-        switch (key)
-        {
-        case SDLK_z: joypad.ButtonEvent(gandalf::Joypad::Button::kA, pressed); break;
-        case SDLK_x: joypad.ButtonEvent(gandalf::Joypad::Button::kB, pressed); break;
-        case SDLK_TAB: joypad.ButtonEvent(gandalf::Joypad::Button::kSelect, pressed); break;
-        case SDLK_RETURN: joypad.ButtonEvent(gandalf::Joypad::Button::kStart, pressed); break;
-        case SDLK_LEFT: joypad.ButtonEvent(gandalf::Joypad::Button::kLeft, pressed); break;
-        case SDLK_RIGHT: joypad.ButtonEvent(gandalf::Joypad::Button::kRight, pressed); break;
-        case SDLK_UP: joypad.ButtonEvent(gandalf::Joypad::Button::kUp, pressed); break;
-        case SDLK_DOWN: joypad.ButtonEvent(gandalf::Joypad::Button::kDown, pressed); break;
-        }
+
+        if (key == static_cast<SDL_Keycode>(settings_.key_a))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kA, pressed);
+        else if (key == static_cast<SDL_Keycode>(settings_.key_b))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kB, pressed);
+        else if (key == static_cast<SDL_Keycode>(settings_.key_start))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kStart, pressed);
+        else if (key == static_cast<SDL_Keycode>(settings_.key_select))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kSelect, pressed);
+        else if (key == static_cast<SDL_Keycode>(settings_.key_up))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kUp, pressed);
+        else if (key == static_cast<SDL_Keycode>(settings_.key_down))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kDown, pressed);
+        else if (key == static_cast<SDL_Keycode>(settings_.key_left))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kLeft, pressed);
+        else if (key == static_cast<SDL_Keycode>(settings_.key_right))
+            joypad.ButtonEvent(gandalf::Joypad::Button::kRight, pressed);
     }
 
     void MainWindow::DockSpace()
