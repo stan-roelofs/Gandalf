@@ -20,7 +20,7 @@ namespace gui
 
         static char address[5];
         address[4] = '\0';
-        ImGui::InputText("address", address, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+        ImGui::InputText("", address, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
         ImGui::SameLine();
 
         std::optional<gandalf::word> scroll_target;

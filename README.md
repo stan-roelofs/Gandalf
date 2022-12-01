@@ -2,6 +2,9 @@
 
 A Gameboy color emulator with debugging tools.
 
-Work in progress. 
+Work in progress. If you want to play Gameboy games I recommend finding a better emulator.
 
-![preview.gif](preview.gif)
+## Preview
+![zelda.png](res/zelda.png)
+
+![dkc.png](res/dkc.png)
