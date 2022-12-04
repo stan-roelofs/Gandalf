@@ -33,6 +33,7 @@ namespace gui
             {ID::kMenuViewDebug, "Debug"},
 
             {ID::kSettingsWindowKeys, "Keys"},
+            {ID::kSettingsWindowPressKey, "Press a key or escape to cancel"},
 
             {ID::kWindowAPU, "APU"},
             {ID::kWindowAPUSquare1Enable, "Enable Square wave 1 channel"},

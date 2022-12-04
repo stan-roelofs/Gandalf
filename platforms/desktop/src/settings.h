@@ -11,11 +11,11 @@
 
 using json = nlohmann::json;
 
-namespace settings
+namespace gui
 {
-
     struct Settings
     {
+        Settings();
         std::list<std::string> recent_roms;
         std::string boot_rom_location;
         bool show_debug;
@@ -29,7 +29,12 @@ namespace settings
         std::int32_t key_select;
     };
 
-    bool Read(const std::filesystem::path& path, Settings& settings);
-    bool Write(const std::filesystem::path& path, const Settings& settings);
+    Settings DefaultSettings();
+
+    namespace settings
+    {
+        bool Read(const std::filesystem::path& path, Settings& settings);
+        bool Write(const std::filesystem::path& path, const Settings& settings);
+    }
 }
 #endif

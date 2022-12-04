@@ -13,12 +13,13 @@
 
 #include <SDL.h>
 
+#include "gui_context.h"
 #include "settings.h"
 #include "settings_window.h"
 #include "views/gui_element.h"
 
 namespace gui {
-    class MainWindow : gandalf::PPU::VBlankListener {
+    class MainWindow : gandalf::PPU::VBlankListener, KeyboardHandler {
     public:
         MainWindow();
         ~MainWindow();
@@ -28,7 +29,8 @@ namespace gui {
 
     private:
         void HandleEvents();
-        void HandleKey(SDL_Keycode key, bool pressed);
+
+        void HandleKey(std::int32_t key, bool pressed) override;
 
         void DockSpace();
         void MenuBar();
@@ -41,7 +43,6 @@ namespace gui {
         SDL_Renderer* sdl_renderer_;
         SDL_Window* sdl_window_;
         std::shared_ptr<gandalf::Gameboy> gameboy_;
-        settings::Settings settings_;
         bool running_;
         std::optional<gandalf::word> breakpoint_;
         bool step_;
@@ -56,6 +57,7 @@ namespace gui {
 
         std::list<std::unique_ptr<GUIElement>> gui_elements_;
         std::unique_ptr<SettingsWindow> settings_window_;
+        GUIContext gui_context_;
     };
 }
 #endif

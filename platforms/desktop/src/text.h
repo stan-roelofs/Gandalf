@@ -35,6 +35,7 @@ namespace gui
 
             // Settings window
             kSettingsWindowKeys,
+            kSettingsWindowPressKey,
 
             // APU window
             kWindowAPU,

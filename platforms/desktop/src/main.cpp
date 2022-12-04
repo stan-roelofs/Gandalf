@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
 
     main_window->Show();
-    main_window.release();
+    main_window.reset();
 
     return EXIT_SUCCESS;
 }

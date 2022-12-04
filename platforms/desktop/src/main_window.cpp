@@ -67,6 +67,7 @@ namespace gui
         gb_thread_run_(false),
         gb_fps_(0)
     {
+        gui_context_.AddKeyboardHandler(this);
     }
 
     MainWindow::~MainWindow()
@@ -75,7 +76,7 @@ namespace gui
         if (gb_thread_.joinable())
             gb_thread_.join();
 
-        settings::Write(GetSettingsPath(), settings_);
+        settings::Write(GetSettingsPath(), gui_context_.GetSettings());
 
         NFD::Quit();
 
@@ -113,11 +114,11 @@ namespace gui
         SDL_Log("Current SDL_Renderer: %s", info.name);
 
         gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
-        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(settings_.show_debug, *sdl_renderer_)));
-        gui_elements_.push_back(std::move(std::make_unique<CPUView>(settings_.show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
-        gui_elements_.push_back(std::move(std::make_unique<MemoryView>(settings_.show_debug)));
-        gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(settings_.show_debug)));
-        gui_elements_.push_back(std::move(std::make_unique<APUView>(settings_.show_debug)));
+        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(gui_context_.GetSettings().show_debug, *sdl_renderer_)));
+        gui_elements_.push_back(std::move(std::make_unique<CPUView>(gui_context_.GetSettings().show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
+        gui_elements_.push_back(std::move(std::make_unique<MemoryView>(gui_context_.GetSettings().show_debug)));
+        gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(gui_context_.GetSettings().show_debug)));
+        gui_elements_.push_back(std::move(std::make_unique<APUView>(gui_context_.GetSettings().show_debug)));
 
 
         // Setup Dear ImGui context
@@ -133,7 +134,7 @@ namespace gui
         ImGui_ImplSDLRenderer_Init(sdl_renderer_);
 
         NFD::Init();
-        if (!settings::Read(GetSettingsPath(), settings_))
+        if (!settings::Read(GetSettingsPath(), gui_context_.GetSettings()))
             std::cerr << "Error reading settings file!" << std::endl;
 
         running_ = true;
@@ -162,7 +163,7 @@ namespace gui
 
             // Render our GUI elements
             DockSpace();
-            //ImGui::ShowDemoWindow();
+            ImGui::ShowDemoWindow();
 
 
             for (auto& element : gui_elements_)
@@ -176,8 +177,11 @@ namespace gui
 
             if (settings_window_) {
                 settings_window_->Show();
-                if (settings_window_->Terminated())
-                    settings_window_.release();
+                gb_pause_ = true;
+                if (settings_window_->Terminated()) {
+                    settings_window_.reset();
+                    gb_pause_ = false;
+                }
             }
 
             if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -186,7 +190,7 @@ namespace gui
                 ImGui::Separator();
 
                 if (ImGui::Button(text::Get(text::ID::kSelectBootROM), ImVec2(120, 0))) {
-                    settings_.boot_rom_location = SelectBootROM();
+                    gui_context_.GetSettings().boot_rom_location = SelectBootROM();
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SetItemDefaultFocus();
@@ -229,38 +233,40 @@ namespace gui
         {
             ImGui_ImplSDL2_ProcessEvent(&event);
 
-            if (event.type == SDL_KEYDOWN)
-                HandleKey(event.key.keysym.sym, true);
-            else if (event.type == SDL_KEYUP)
-                HandleKey(event.key.keysym.sym, false);
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
+            {
+                if (auto handler = gui_context_.GetKeyboardHandler())
+                    handler->HandleKey(event.key.keysym.sym, event.type == SDL_KEYDOWN);
+            }
             else if (event.type == SDL_QUIT || (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(sdl_window_)))
                 running_ = false;
         }
     }
 
-    void MainWindow::HandleKey(SDL_Keycode key, bool pressed)
+    void MainWindow::HandleKey(std::int32_t key, bool pressed)
     {
         if (!gameboy_)
             return;
 
         auto& joypad = gameboy_->GetJoypad();
 
-        if (key == static_cast<SDL_Keycode>(settings_.key_a))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kA, pressed);
-        else if (key == static_cast<SDL_Keycode>(settings_.key_b))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kB, pressed);
-        else if (key == static_cast<SDL_Keycode>(settings_.key_start))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kStart, pressed);
-        else if (key == static_cast<SDL_Keycode>(settings_.key_select))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kSelect, pressed);
-        else if (key == static_cast<SDL_Keycode>(settings_.key_up))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kUp, pressed);
-        else if (key == static_cast<SDL_Keycode>(settings_.key_down))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kDown, pressed);
-        else if (key == static_cast<SDL_Keycode>(settings_.key_left))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kLeft, pressed);
-        else if (key == static_cast<SDL_Keycode>(settings_.key_right))
-            joypad.ButtonEvent(gandalf::Joypad::Button::kRight, pressed);
+        const auto& settings = gui_context_.GetSettings();
+        if (key == settings.key_a)
+            joypad.SetButtonState(gandalf::Joypad::Button::kA, pressed);
+        else if (key == settings.key_b)
+            joypad.SetButtonState(gandalf::Joypad::Button::kB, pressed);
+        else if (key == settings.key_start)
+            joypad.SetButtonState(gandalf::Joypad::Button::kStart, pressed);
+        else if (key == settings.key_select)
+            joypad.SetButtonState(gandalf::Joypad::Button::kSelect, pressed);
+        else if (key == settings.key_up)
+            joypad.SetButtonState(gandalf::Joypad::Button::kUp, pressed);
+        else if (key == settings.key_down)
+            joypad.SetButtonState(gandalf::Joypad::Button::kDown, pressed);
+        else if (key == settings.key_left)
+            joypad.SetButtonState(gandalf::Joypad::Button::kLeft, pressed);
+        else if (key == settings.key_right)
+            joypad.SetButtonState(gandalf::Joypad::Button::kRight, pressed);
     }
 
     void MainWindow::DockSpace()
@@ -321,7 +327,7 @@ namespace gui
                 if (ImGui::BeginMenu(text::Get(text::ID::kMenuFileRecentROMs)))
                 {
                     std::string rom_to_load;
-                    for (const auto& path : settings_.recent_roms)
+                    for (const auto& path : gui_context_.GetSettings().recent_roms)
                     {
                         if (ImGui::MenuItem(path.c_str()))
                             rom_to_load = path;
@@ -338,7 +344,7 @@ namespace gui
             if (ImGui::BeginMenu(text::Get(text::ID::kMenuSettings)))
             {
                 if (ImGui::MenuItem(text::Get(text::ID::kMenuSettings)))
-                    settings_window_ = std::make_unique<SettingsWindow>(settings_);
+                    settings_window_ = std::make_unique<SettingsWindow>(gui_context_);
 
                 ImGui::EndMenu();
             }
@@ -351,7 +357,7 @@ namespace gui
 
             if (ImGui::BeginMenu(text::Get(text::ID::kMenuView)))
             {
-                ImGui::MenuItem(text::Get(text::ID::kMenuViewDebug), nullptr, &settings_.show_debug);
+                ImGui::MenuItem(text::Get(text::ID::kMenuViewDebug), nullptr, &gui_context_.GetSettings().show_debug);
                 ImGui::EndMenu();
             }
 
@@ -365,15 +371,14 @@ namespace gui
         if (gb_thread_.joinable())
             gb_thread_.join();
 
-        auto it = std::find(settings_.recent_roms.begin(), settings_.recent_roms.end(), path);
-        if (it != settings_.recent_roms.end())
-            settings_.recent_roms.erase(it);
-        settings_.recent_roms.push_front(path.string());
+        auto& settings = gui_context_.GetSettings();
+        auto it = std::find(settings.recent_roms.begin(), settings.recent_roms.end(), path);
+        if (it != settings.recent_roms.end())
+            settings.recent_roms.erase(it);
+        settings.recent_roms.push_front(path.string());
 
-        if (settings_.recent_roms.size() > kROMHistorySize)
-            settings_.recent_roms.pop_back();
-
-        settings::Write(GetSettingsPath(), settings_);
+        if (settings.recent_roms.size() > kROMHistorySize)
+            settings.recent_roms.pop_back();
 
         std::ifstream input(path, std::ios::binary);
         if (input.fail()) {
@@ -384,7 +389,7 @@ namespace gui
         std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
             std::istreambuf_iterator<char>());
 
-        auto boot_rom = LoadBootROM(settings_.boot_rom_location);
+        auto boot_rom = LoadBootROM(settings.boot_rom_location);
         if (!boot_rom)
         {
             show_popup_ = "Error##LoadBootROM";

@@ -32,7 +32,7 @@ namespace gandalf
 
     Joypad::~Joypad() = default;
 
-    void Joypad::ButtonEvent(Button button, bool pressed)
+    void Joypad::SetButtonState(Button button, bool pressed)
     {
         pressed_buttons_[button] = pressed;
         Update();

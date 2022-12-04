@@ -48,6 +48,7 @@ FetchContent_MakeAvailable(nfd)
 
 set(HEADERS
   src/audio_handler.h
+  src/gui_context.h
   src/main_window.h
   src/settings.h
   src/settings_window.h
@@ -62,9 +63,10 @@ set(HEADERS
 )
 
 set(SOURCES
+  src/audio_handler.cpp
+  src/gui_context.cpp
   src/main.cpp
   src/main_window.cpp
-  src/audio_handler.cpp
   src/settings.cpp
   src/settings_window.cpp
   src/text.cpp
