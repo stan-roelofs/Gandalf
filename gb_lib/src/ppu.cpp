@@ -32,7 +32,6 @@ namespace gandalf {
     {
         ++line_ticks_;
         const byte stat = lcd_.GetLCDStatus();
-        byte ly = lcd_.GetLY();
 
         switch (lcd_.GetMode())
         {
@@ -74,9 +73,9 @@ namespace gandalf {
             break;
         case LCD::Mode::HBlank:
             if (line_ticks_ >= kTicksPerLine) {
-                ++ly;
+                lcd_.SetLY(lcd_.GetLY() + 1);
 
-                if (ly >= kScreenHeight) {
+                if (lcd_.GetLY() >= kScreenHeight) {
                     lcd_.SetMode(LCD::Mode::VBlank);
 
                     bus_.Write(kIF, bus_.Read(kIF) | kVBlankInterruptMask);
@@ -98,21 +97,22 @@ namespace gandalf {
             break;
         case LCD::Mode::VBlank:
             if (line_ticks_ >= 456) {
-                ++ly;
-
-                if (ly >= kLinesPerFrame) {
-                    lcd_.SetMode(LCD::Mode::OamSearch);
-                    fetched_sprites_.clear();
-                    ly = 0;
-                }
+                lcd_.SetLY(lcd_.GetLY() + 1);
 
                 CheckLYEqualsLYC();
+
+                if (lcd_.GetLY() >= kLinesPerFrame) {
+                    lcd_.SetMode(LCD::Mode::OamSearch);
+                    fetched_sprites_.clear();
+                    lcd_.SetLY(0);
+                }
+
                 line_ticks_ = 0;
             }
             break;
         }
 
-        lcd_.SetLY(ly);
+        //lcd_.SetLY(ly);
     }
 
     void PPU::CheckLYEqualsLYC()
@@ -457,5 +457,3 @@ namespace gandalf {
         ++pixels_pushed_;
     }
 } // namespace gandalf
-
-// TODO lcdc bit 0

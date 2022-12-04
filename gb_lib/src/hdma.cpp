@@ -47,6 +47,11 @@ namespace gandalf
             ++destination_;
             --remaining_length_;
 
+            hdma1_ = source_ >> 8;
+            hdma2_ = source_ & 0xFF;
+            hdma3_ = destination_ >> 8;
+            hdma4_ = destination_ & 0xFF;
+
             if (hblank_)
             {
                 --remaining_bytes_hblank_;
@@ -142,6 +147,8 @@ namespace gandalf
         hblank_ = (value & 0x80) != 0;
         source_ = ((hdma1_ << 8) | hdma2_) & 0xFFF0; // The four lower bits of this address will be ignored and treated as 0.
         destination_ = 0x8000 + (((hdma3_ << 8) | hdma4_) & 0x1FF0); // Only bits 12-4 are respected; others are ignored
+
+        // TODO can this overflow? Should we cap the length?
 
         if (hblank_)
             state_ = State::kWaitHBlank;

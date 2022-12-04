@@ -36,23 +36,28 @@ namespace gandalf {
 
     void IO::Tick(unsigned int cycles, bool double_speed)
     {
+        assert(cycles % 2 == 0);
+
         for (unsigned int i = 0; i < cycles; ++i) {
             timer_.Tick();
             serial_.Tick();
             dma_.Tick();
+
+            // In double speed the components above operate twice as fast. 
+            // We implement this by running the components below twice as slow. 
+            if (!double_speed || i % 2 == 0)
+            {
+                ppu_.Tick();
+                apu_.Tick();
+
+                if (mode_ == GameboyMode::CGB)
+                    hdma_.Tick();
+            }
         }
 
-        const unsigned int speed_cycles = double_speed ? (cycles / 2) : cycles;
-        for (unsigned int i = 0; i < speed_cycles; ++i) {
-            ppu_.Tick();
-            apu_.Tick();
-
-            if (mode_ == GameboyMode::CGB)
-                hdma_.Tick();
-        }
-
+        // When using this transfer method, all data is transferred at once. The execution of the program is halted until the transfer has completed.
         if (mode_ == GameboyMode::CGB && hdma_.GetRemainingGDMACycles() > 0)
-            Tick(hdma_.GetRemainingGDMACycles(), double_speed);
+            Tick(double_speed ? hdma_.GetRemainingGDMACycles() * 2 : hdma_.GetRemainingGDMACycles(), double_speed);
     }
 
 } // namespace gandalf

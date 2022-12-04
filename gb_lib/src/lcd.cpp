@@ -90,7 +90,7 @@ namespace gandalf
             lcdc_ = value;
             break;
         case kSTAT:
-            stat_ = value;
+            stat_ = (stat_ & 0b11) | (value & 0xFC);
             break;
         case kSCY:
             scy_ = value;
@@ -162,12 +162,12 @@ namespace gandalf
 
     LCD::Mode LCD::GetMode() const
     {
-        return static_cast<Mode>(stat_ & 0x3);
+        return static_cast<Mode>(stat_ & 0b11);
     }
 
     void LCD::SetMode(Mode mode)
     {
-        stat_ = (stat_ & 0xFC) | static_cast<gandalf::byte>(mode);
+        stat_ = (stat_ & 0xFC) | (static_cast<gandalf::byte>(mode) & 0b11);
     }
 
     LCD::BGR555 LCD::GetBackgroundColor(byte color_index, byte palette_index) const
