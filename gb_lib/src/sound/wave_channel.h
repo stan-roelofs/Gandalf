@@ -26,7 +26,6 @@ namespace gandalf
         std::shared_ptr<LengthCounter> length_counter_;
 
         bool dac_enabled_;
-        byte volume_shift_; // The number of bits we should shift the wave channel's output by
         byte volume_code_; // Bits 5-6 of NR32
         std::uint32_t timer_;
         word frequency_register_; // Bits 0-7 of the frequency

@@ -17,7 +17,7 @@ namespace gandalf
         timer_(0),
         last_output_(0),
         length_counter_(std::make_shared<LengthCounter>((byte)64, channel_enabled_)),
-        volume_envelope_(std::make_shared<VolumeEnvelope>())
+        volume_envelope_(std::make_shared<VolumeEnvelope>(channel_enabled_))
     {
         frame_sequencer.AddListener(length_counter_);
         frame_sequencer.AddListener(volume_envelope_);
@@ -111,7 +111,7 @@ namespace gandalf
     {
         channel_enabled_ = true;
         length_counter_->Trigger();
-        volume_envelope_->Trigger();
+        volume_envelope_->Trigger(); // Note: this may disable the channel if the DAC is off
 
         if (frequency_sweep_unit_)
             frequency_sweep_unit_->Trigger();

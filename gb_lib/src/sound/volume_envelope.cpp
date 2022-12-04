@@ -2,7 +2,8 @@
 
 namespace gandalf
 {
-    VolumeEnvelope::VolumeEnvelope() :
+    VolumeEnvelope::VolumeEnvelope(bool& sound_channel_enabled) :
+        sound_channel_enabled_(sound_channel_enabled),
         counter_(0),
         enabled_(false),
         current_volume_(0),
@@ -32,7 +33,7 @@ namespace gandalf
         counter_ = period_;
 
         const byte new_volume = current_volume_ + (add_mode_ ? 1 : -1);
-        if (new_volume > 0xF) {
+        if ((current_volume_ == 0 && !add_mode_) || new_volume > 0xF) {
             enabled_ = false;
             return;
         }
@@ -53,6 +54,8 @@ namespace gandalf
         enabled_ = true;
         current_volume_ = starting_volume_;
         counter_ = period_;
+
+        CheckDACEnabled();
     }
 
     byte VolumeEnvelope::GetVolume() const
@@ -68,6 +71,7 @@ namespace gandalf
     void VolumeEnvelope::SetStartingVolume(byte volume)
     {
         starting_volume_ = volume & 0xF;
+        CheckDACEnabled();
     }
 
     bool VolumeEnvelope::GetAddMode() const
@@ -78,6 +82,7 @@ namespace gandalf
     void VolumeEnvelope::SetAddMode(bool add_mode)
     {
         add_mode_ = add_mode;
+        CheckDACEnabled();
     }
 
     byte VolumeEnvelope::GetPeriod() const
@@ -88,5 +93,12 @@ namespace gandalf
     void VolumeEnvelope::SetPeriod(byte period)
     {
         period_ = period & 0x7;
+    }
+
+    void VolumeEnvelope::CheckDACEnabled()
+    {
+        // DAC is enabled iff [NRx2] & 0b11111000 != 0. The starting volume corresponds to bits 4-7 and the add mode to bit 3.
+        if (starting_volume_ == 0 && !add_mode_)
+            sound_channel_enabled_ = false;
     }
 } // namespace gandalf

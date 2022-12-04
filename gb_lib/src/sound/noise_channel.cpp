@@ -11,7 +11,7 @@ namespace gandalf
 {
     NoiseChannel::NoiseChannel(FrameSequencer& frame_sequencer) : SoundChannel(),
         length_counter_(std::make_shared<LengthCounter>((byte)64, channel_enabled_)),
-        volume_envelope_(std::make_shared<VolumeEnvelope>()),
+        volume_envelope_(std::make_shared<VolumeEnvelope>(channel_enabled_)),
         last_output_(0),
         timer_(0),
         lfsr_(0),
@@ -119,7 +119,7 @@ namespace gandalf
     {
         channel_enabled_ = true;
         length_counter_->Trigger();
-        volume_envelope_->Trigger();
+        volume_envelope_->Trigger(); // Note: this may disable the channel if the DAC is off
 
         timer_ = GetFrequency();
         lfsr_ = 0x7FFF;

@@ -12,7 +12,6 @@ namespace gandalf
         wave_ram_(wave_ram),
         length_counter_(std::make_shared<LengthCounter>(256, channel_enabled_)),
         dac_enabled_(false),
-        volume_shift_(0),
         volume_code_(0),
         timer_(0),
         frequency_register_(0),
@@ -65,7 +64,6 @@ namespace gandalf
             break;
         case 2:
             volume_code_ = (value >> 5) & 0b11;
-            volume_shift_ = kVolumeCodeToShift[volume_code_];
             break;
         case 3:
             frequency_register_ = (frequency_register_ & 0x700) | value;
@@ -112,6 +110,6 @@ namespace gandalf
             sample_buffer_ &= 0x0F;
         }
 
-        return channel_enabled_ ? sample_buffer_ >> volume_shift_ : 0;
+        return channel_enabled_ ? sample_buffer_ >> kVolumeCodeToShift[volume_code_] : 0;
     }
 } // namespace gandalf

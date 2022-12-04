@@ -12,7 +12,7 @@ namespace gandalf
     class VolumeEnvelope : public FrameSequencer::Listener
     {
     public:
-        VolumeEnvelope();
+        VolumeEnvelope(bool& sound_channel_enabled);
         virtual ~VolumeEnvelope();
 
         void OnFrameSequencerStep() override;
@@ -29,6 +29,9 @@ namespace gandalf
         void SetPeriod(byte period);
 
     private:
+        void CheckDACEnabled();
+
+        bool& sound_channel_enabled_;
         byte counter_;
         bool enabled_;
         byte current_volume_;
