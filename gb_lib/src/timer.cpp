@@ -28,15 +28,9 @@ namespace gandalf
 
     Timer::~Timer() = default;
 
-    void Timer::Tick()
+    void Timer::OnDIVChanged(word old_div)
     {
-        // TODO reloading takes some cycles 
-
-        word prev_div = div_;
-
-        div_++;
-
-        if (enabled_ && ShouldIncreaseTimer(tac_, prev_div, div_)) {
+        if (enabled_ && ShouldIncreaseTimer(tac_, old_div, div_)) {
             tima_++;
 
             if (tima_ == 0) {
@@ -45,6 +39,16 @@ namespace gandalf
                 bus_.Write(kIF, bus_.Read(kIF) | kTimerInterruptMask);
             }
         }
+    }
+
+    void Timer::Tick()
+    {
+        // TODO reloading takes some cycles 
+
+        word prev_div = div_;
+        ++div_;
+
+        OnDIVChanged(prev_div);        
     }
 
     void Timer::Write(word address, byte value)
@@ -65,8 +69,10 @@ namespace gandalf
             tma_ = value;
             break;
         case kDIV:
-            // TODO writing to DIV can cause TIMA increase, we'll ignore this for now and implement it later
+            word old_div = div_;
             div_ = 0;
+            OnDIVChanged(old_div);
+
             break;
         }
     }

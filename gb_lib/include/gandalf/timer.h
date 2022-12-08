@@ -17,6 +17,7 @@ namespace gandalf {
         void Tick();
 
     private:
+        void OnDIVChanged(word old_div);
         word div_;
         byte tma_;
         byte tima_;
