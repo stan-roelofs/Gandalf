@@ -80,6 +80,8 @@ namespace gui
             {ID::kWindowPPUTileVRAMBank, "VRAM bank"},
             {ID::kWindowPPUTilePriority, "Priority"},
             {ID::kWindowPPUTiles, "Tiles"},
+
+            {ID::kWindowIO, "IO"},
         };
 
         const char* Get(ID id)

@@ -10,6 +10,7 @@
 #include "constants.h"
 #include "hram.h"
 #include "io.h"
+#include "timer.h"
 #include "model.h"
 #include "wram.h"
 
@@ -32,6 +33,7 @@ namespace gandalf {
     PPU& GetPPU() { return io_->GetPPU(); }
     Joypad& GetJoypad() { return io_->GetJoypad(); }
     APU& GetAPU() { return io_->GetAPU(); }
+    Timer& GetTimer() { return io_->GetTimer(); }
 
     GameboyMode GetMode() const { return mode_; }
 
@@ -49,10 +51,10 @@ namespace gandalf {
     std::unique_ptr<HRAM> hram_;
     std::unique_ptr<Cartridge> cartridge_;
 
-    class BootROMHandler : public Bus::AddressHandler
+    class BootROMHandler: public Bus::AddressHandler
     {
     public:
-      BootROMHandler(const std::vector<byte> boot_rom, Cartridge& cartridge, Bus& bus) : Bus::AddressHandler("Boot ROM"), boot_rom_(boot_rom), cartridge_(cartridge), bus_(bus)
+      BootROMHandler(const std::vector<byte> boot_rom, Cartridge& cartridge, Bus& bus): Bus::AddressHandler("Boot ROM"), boot_rom_(boot_rom), cartridge_(cartridge), bus_(bus)
       {
         bus_.Register(*this);
       }

@@ -6,10 +6,10 @@
 
 namespace gui
 {
-    GameboyView::GameboyView(SDL_Renderer& renderer, int& scale) :
+    GameboyView::GameboyView(SDL_Renderer& renderer) :
         back_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
         front_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
-        scale_(scale)
+        scale_(5)
     {
         texture_ = SDL_CreateTexture(&renderer, SDL_PIXELFORMAT_BGR555,
             SDL_TEXTUREACCESS_STREAMING,

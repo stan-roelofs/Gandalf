@@ -56,6 +56,7 @@ set(HEADERS
   src/views/gui_element.h
   src/views/cpu_view.h
   src/views/gameboy_view.h
+  src/views/io_view.h
   src/views/memory_view.h
   src/views/cartridge_view.h
   src/views/apu_view.h
@@ -72,6 +73,7 @@ set(SOURCES
   src/text.cpp
   src/views/cpu_view.cpp
   src/views/gameboy_view.cpp
+  src/views/io_view.cpp
   src/views/memory_view.cpp
   src/views/cartridge_view.cpp
   src/views/apu_view.cpp

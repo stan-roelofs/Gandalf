@@ -88,6 +88,9 @@ namespace gui
             kWindowPPUTileVRAMBank,
             kWindowPPUTilePriority,
             kWindowPPUTiles,
+
+            // IO window
+            kWindowIO,
         };
 
         const char* Get(ID id);

@@ -15,7 +15,7 @@ namespace gui
     class GameboyView : public GUIElement, public gandalf::PPU::VBlankListener
     {
     public:
-        GameboyView(SDL_Renderer& renderer, int& scale);
+        GameboyView(SDL_Renderer& renderer);
         ~GameboyView();
 
         void SetGameboy(std::shared_ptr<gandalf::Gameboy> gameboy) override;
@@ -27,7 +27,7 @@ namespace gui
         std::unique_ptr<gandalf::LCD::VideoBuffer> front_buffer_;
         std::unique_ptr<gandalf::LCD::VideoBuffer> back_buffer_;
         SDL_Texture* texture_;
-        int& scale_;
+        int scale_;
     };
 }
 

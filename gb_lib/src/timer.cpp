@@ -22,7 +22,7 @@ namespace {
 namespace gandalf
 {
     // TODO is initial value correct? verify using tests
-    Timer::Timer(Bus& bus) : Bus::AddressHandler("Timer"), div_(0xAC00), tma_(0), tima_(0), tac_(0), bus_(bus), enabled_(false)
+    Timer::Timer(Bus& bus): Bus::AddressHandler("Timer"), div_(0), tma_(0), tima_(0), tac_(0), bus_(bus), enabled_(false)
     {
     }
 
@@ -31,7 +31,7 @@ namespace gandalf
     void Timer::OnDIVChanged(word old_div)
     {
         if (enabled_ && ShouldIncreaseTimer(tac_, old_div, div_)) {
-            tima_++;
+            ++tima_;
 
             if (tima_ == 0) {
                 tima_ = tma_;
@@ -48,7 +48,7 @@ namespace gandalf
         word prev_div = div_;
         ++div_;
 
-        OnDIVChanged(prev_div);        
+        OnDIVChanged(prev_div);
     }
 
     void Timer::Write(word address, byte value)

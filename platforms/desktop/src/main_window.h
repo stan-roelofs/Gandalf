@@ -46,7 +46,6 @@ namespace gui {
         bool running_;
         std::optional<gandalf::word> breakpoint_;
         bool step_;
-        int scale_;
         bool gb_pause_;
         bool gb_thread_run_;
         unsigned int gb_fps_;

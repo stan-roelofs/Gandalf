@@ -4,9 +4,9 @@
 
 #include "resource_helper.h"
 
-class BlarggTest : public ::testing::TestWithParam<std::string>, protected ResourceHelper {
+class BlarggTest: public ::testing::TestWithParam<std::string>, protected ResourceHelper {
 public:
-    BlarggTest() : ResourceHelper() {
+    BlarggTest(): ResourceHelper() {
     }
 
     virtual ~BlarggTest() = default;
@@ -17,10 +17,10 @@ protected:
 
 namespace gandalf {
     // Test will write its output to serial, this class overrides the default serial address handler and stores the output from the test in a string
-    class SerialOutputReader : public Bus::AddressHandler
+    class SerialOutputReader: public Bus::AddressHandler
     {
     public:
-        SerialOutputReader() : Bus::AddressHandler("BlarggTest - SerialOutputReader"), done_(false), last_character_(false) {}
+        SerialOutputReader(): Bus::AddressHandler("BlarggTest - SerialOutputReader"), done_(false), last_character_(false) {}
         void Write(word address, byte value) override
         {
             if (address == kSC) {
@@ -57,7 +57,7 @@ namespace gandalf {
     };
 }
 
-TEST_P(BlarggTest, cpu_instructions)
+TEST_P(BlarggTest, test_rom)
 {
     using namespace gandalf;
 
@@ -65,7 +65,7 @@ TEST_P(BlarggTest, cpu_instructions)
     std::cout << "Running test ROM: " << file_name << std::endl;
 
     ROM rom_bytes;
-    ASSERT_TRUE(ReadFileBytes("/blargg/cpu_instrs/" + file_name, rom_bytes));
+    ASSERT_TRUE(ReadFileBytes("/blargg/" + file_name, rom_bytes));
 
     ROM bootrom_bytes;
     ASSERT_TRUE(ReadFileBytes("/bootrom/boot.bin", bootrom_bytes));
@@ -90,11 +90,27 @@ TEST_P(BlarggTest, cpu_instructions)
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    BlarggTest,
+    cpu_instrs,
     BlarggTest,
     ::testing::Values(
-        "01-special", "02-interrupts", "03-op sp,hl", "04-op r,imm",
-        "05-op rp", "06-ld r,r", "07-jr,jp,call,ret,rst", "08-misc instrs",
-        "09-op r,r", "10-bit ops", "11-op a,(hl)", "cpu_instrs"
+        "cpu_instrs/01-special", "cpu_instrs/02-interrupts", "cpu_instrs/03-op sp,hl", "cpu_instrs/04-op r,imm",
+        "cpu_instrs/05-op rp", "cpu_instrs/06-ld r,r", "cpu_instrs/07-jr,jp,call,ret,rst", "cpu_instrs/08-misc instrs",
+        "cpu_instrs/09-op r,r", "cpu_instrs/10-bit ops", "cpu_instrs/11-op a,(hl)", "cpu_instrs/cpu_instrs"
+        )
+);
+
+INSTANTIATE_TEST_SUITE_P(
+    mem_timing,
+    BlarggTest,
+    ::testing::Values(
+        "mem_timing/01-read_timing", "mem_timing/02-write_timing", "mem_timing/03-modify_timing"
+    )
+);
+
+INSTANTIATE_TEST_SUITE_P(
+    mem_timing2,
+    BlarggTest,
+    ::testing::Values(
+        "mem_timing-2/01-read_timing", "mem_timing-2/02-write_timing", "mem_timing-2/03-modify_timing"
     )
 );

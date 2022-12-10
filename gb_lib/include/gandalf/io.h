@@ -23,6 +23,7 @@ namespace gandalf {
         PPU& GetPPU() { return ppu_; }
         Joypad& GetJoypad() { return joypad_; }
         APU& GetAPU() { return apu_; }
+        Timer& GetTimer() { return timer_; }
 
     private:
         Bus& bus_;

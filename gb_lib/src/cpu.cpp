@@ -186,16 +186,18 @@ namespace gandalf {
   {                                                                            \
     signed_byte value;                                                         \
     READ_PC(value);                                                            \
+    ADVANCE_IO(4);                                                             \
     registers_.program_counter += value;                                       \
-    ADVANCE_IO(4);                                                \
   }
 
 #define JR_CC_N(condition)                                                     \
   {                                                                            \
     signed_byte value;                                                         \
     READ_PC(value)                                                             \
-    if (condition)                                                             \
+    if (condition) {                                                           \
+      ADVANCE_IO(4)                                                            \
       registers_.program_counter += value;                                     \
+    }                                                                          \
   }
 
 #define DAA()                                                                  \
@@ -417,11 +419,11 @@ namespace gandalf {
     READ_SP(low);                                                              \
     READ_SP(high);                                                             \
     registers_.program_counter = low | (high << 8);                            \
-    ADVANCE_IO(4);                                                               \
+    ADVANCE_IO(4);                                                             \
   }
 
 #define RET_CC(condition)                                                      \
-  ADVANCE_IO(4);                                                                 \
+  ADVANCE_IO(4);                                                               \
   if (condition) {                                                             \
     RET();                                                                     \
   }
@@ -440,7 +442,7 @@ namespace gandalf {
     READ_PC(low);                                                              \
     READ_PC(high);                                                             \
     if (condition) {                                                           \
-      ADVANCE_IO(4);                                              \
+      ADVANCE_IO(4);                                                           \
       registers_.program_counter = low | (high << 8);                          \
     }                                                                          \
   }

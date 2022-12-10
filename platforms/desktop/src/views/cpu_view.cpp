@@ -6,7 +6,7 @@
 
 namespace gui
 {
-    CPUView::CPUView(const bool& debug_enabled, bool& gb_pause, bool& block_audio, bool& step, std::optional<gandalf::word>& breakpoint) :
+    CPUView::CPUView(const bool& debug_enabled, bool& gb_pause, bool& block_audio, bool& step, std::optional<gandalf::word>& breakpoint):
         debug_enabled_(debug_enabled),
         gb_pause_(gb_pause),
         block_audio_(block_audio),

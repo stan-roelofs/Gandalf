@@ -4,7 +4,7 @@
 #include "bus.h"
 
 namespace gandalf {
-    class Timer : public Bus::AddressHandler
+    class Timer: public Bus::AddressHandler
     {
     public:
         Timer(Bus& bus);
@@ -15,6 +15,9 @@ namespace gandalf {
         std::set<word> GetAddresses() const override;
 
         void Tick();
+
+        word GetInternalCounter() { return div_; }
+        word GetDIV() { return div_ >> 8; }
 
     private:
         void OnDIVChanged(word old_div);

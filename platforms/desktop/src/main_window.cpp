@@ -20,6 +20,7 @@
 #include "settings_window.h"
 #include "views/cpu_view.h"
 #include "views/gameboy_view.h"
+#include "views/io_view.h"
 #include "views/vram_view.h"
 #include "views/memory_view.h"
 #include "views/cartridge_view.h"
@@ -56,12 +57,11 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow() :
+    MainWindow::MainWindow():
         sdl_renderer_(nullptr),
         sdl_window_(nullptr),
         running_(false),
         step_(false),
-        scale_(4),
         gb_pause_(false),
         block_audio_(true),
         gb_thread_run_(false),
@@ -100,7 +100,7 @@ namespace gui
 
         // Setup window
         SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-        sdl_window_ = SDL_CreateWindow(text::Get(text::ID::kAppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+        sdl_window_ = SDL_CreateWindow(text::Get(text::ID::kAppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, window_flags);
 
         // Setup SDL_Renderer instance
         sdl_renderer_ = SDL_CreateRenderer(sdl_window_, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -113,13 +113,13 @@ namespace gui
         SDL_GetRendererInfo(sdl_renderer_, &info);
         SDL_Log("Current SDL_Renderer: %s", info.name);
 
-        gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
+        gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_)));
         gui_elements_.push_back(std::move(std::make_unique<VRAMView>(gui_context_.GetSettings().show_debug, *sdl_renderer_)));
         gui_elements_.push_back(std::move(std::make_unique<CPUView>(gui_context_.GetSettings().show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
         gui_elements_.push_back(std::move(std::make_unique<MemoryView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<APUView>(gui_context_.GetSettings().show_debug)));
-
+        gui_elements_.push_back(std::move(std::make_unique<IOView>(gui_context_.GetSettings().show_debug)));
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -163,7 +163,7 @@ namespace gui
 
             // Render our GUI elements
             DockSpace();
-            ImGui::ShowDemoWindow();
+            //ImGui::ShowDemoWindow();
 
 
             for (auto& element : gui_elements_)
