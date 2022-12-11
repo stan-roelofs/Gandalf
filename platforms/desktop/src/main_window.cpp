@@ -63,9 +63,9 @@ namespace gui
         running_(false),
         step_(false),
         gb_pause_(false),
-        block_audio_(true),
         gb_thread_run_(false),
-        gb_fps_(0)
+        gb_fps_(0),
+        block_audio_(true)
     {
         gui_context_.AddKeyboardHandler(this);
     }
@@ -136,6 +136,8 @@ namespace gui
         NFD::Init();
         if (!settings::Read(GetSettingsPath(), gui_context_.GetSettings()))
             std::cerr << "Error reading settings file!" << std::endl;
+
+        SDL_SetWindowSize(sdl_window_, gui_context_.GetSettings().window_width, gui_context_.GetSettings().window_height);
 
         running_ = true;
         return true;
@@ -219,6 +221,11 @@ namespace gui
 
             // Now render everything
             ImGui::Render();
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }
             SDL_SetRenderDrawColor(sdl_renderer_, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
             SDL_RenderClear(sdl_renderer_);
             ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
@@ -238,7 +245,20 @@ namespace gui
                 if (auto handler = gui_context_.GetKeyboardHandler())
                     handler->HandleKey(event.key.keysym.sym, event.type == SDL_KEYDOWN);
             }
-            else if (event.type == SDL_QUIT || (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(sdl_window_)))
+            else if (event.type == SDL_WINDOWEVENT && event.window.windowID == SDL_GetWindowID(sdl_window_))
+            {
+                switch (event.window.event)
+                {
+                case SDL_WINDOWEVENT_CLOSE:
+                    running_ = false;
+                        break;
+                case SDL_WINDOWEVENT_RESIZED:
+                    gui_context_.GetSettings().window_width = event.window.data1;
+                    gui_context_.GetSettings().window_height = event.window.data2;
+                    break;
+                }
+            }
+            else if (event.type == SDL_QUIT)
                 running_ = false;
         }
     }

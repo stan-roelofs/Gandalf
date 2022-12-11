@@ -66,6 +66,20 @@ namespace gui
         {
             if (ImGui::BeginTabBar("SettingsTabBar", ImGuiTabBarFlags_None))
             {
+                if (ImGui::BeginTabItem(text::Get(text::ID::kSettingsWindowGeneral)))
+                {
+                    ImGui::TextUnformatted(text::Get(text::ID::kSettingsWindowBootROMLocation));
+                    ImGui::SameLine();
+                    ImGui::TextUnformatted(settings_copy_.boot_rom_location.c_str());
+                    ImGui::SameLine();
+
+                    if (ImGui::Button(text::Get(text::ID::kSettingsWindowBootROMSelect), ImVec2(120, 0)))
+                    {
+
+                    };
+
+                    ImGui::EndTabItem();
+                }
                 if (ImGui::BeginTabItem(text::Get(text::ID::kSettingsWindowKeys)))
                 {
                     if (ImGui::BeginTable("KeysTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
@@ -81,6 +95,7 @@ namespace gui
 
                         ImGui::EndTable();
                     }
+                    ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
             }
