@@ -6,22 +6,25 @@
 
 namespace gui
 {
-    GameboyView::GameboyView(SDL_Renderer& renderer) :
+    GameboyView::GameboyView() :
         back_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
         front_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
         scale_(5)
     {
-        texture_ = SDL_CreateTexture(&renderer, SDL_PIXELFORMAT_BGR555,
-            SDL_TEXTUREACCESS_STREAMING,
-            gandalf::kScreenWidth, gandalf::kScreenHeight);
+        glGenTextures(1, &texture_);
+        glBindTexture(GL_TEXTURE_2D, texture_);
 
-        if (!texture_)
-            throw std::runtime_error("Failed to create texture!");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, gandalf::kScreenWidth, gandalf::kScreenHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, front_buffer_->data());
     }
 
     GameboyView::~GameboyView()
     {
-        SDL_DestroyTexture(texture_);
+        glDeleteTextures(1, &texture_);
     }
 
     void GameboyView::SetGameboy(std::shared_ptr<gandalf::Gameboy> gameboy)
@@ -32,19 +35,20 @@ namespace gui
 
     void GameboyView::Render()
     {
-        SDL_UpdateTexture(texture_, nullptr, front_buffer_.get(), gandalf::kScreenWidth * sizeof(gandalf::LCD::BGR555));
+        glBindTexture(GL_TEXTURE_2D, texture_);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::kScreenWidth, gandalf::kScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, front_buffer_->data());
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin(text::Get(text::ID::kWindowGameboy));
         ImGui::SliderInt(text::Get(text::ID::kWindowGameboyScale), &scale_, 1, 5);
-        ImGui::Image(texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
+        ImGui::Image((void*)texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
         ImGui::End();
         ImGui::PopStyleVar();
     }
 
     void GameboyView::OnVBlank()
     {
-        std::swap(front_buffer_, back_buffer_);
-        std::copy(gameboy_->GetLCD().GetVideoBuffer().begin(), gameboy_->GetLCD().GetVideoBuffer().end(), back_buffer_->begin());
+       std::swap(front_buffer_, back_buffer_);
+       std::copy(gameboy_->GetLCD().GetVideoBuffer().begin(), gameboy_->GetLCD().GetVideoBuffer().end(), back_buffer_->begin());
     }
 }

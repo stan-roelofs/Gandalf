@@ -8,14 +8,14 @@
 
 #include "gui_element.h"
 
-#include <SDL.h>
+#include <SDL_opengl.h>
 
 namespace gui
 {
     class GameboyView : public GUIElement, public gandalf::PPU::VBlankListener
     {
     public:
-        GameboyView(SDL_Renderer& renderer);
+        GameboyView();
         ~GameboyView();
 
         void SetGameboy(std::shared_ptr<gandalf::Gameboy> gameboy) override;
@@ -26,7 +26,7 @@ namespace gui
 
         std::unique_ptr<gandalf::LCD::VideoBuffer> front_buffer_;
         std::unique_ptr<gandalf::LCD::VideoBuffer> back_buffer_;
-        SDL_Texture* texture_;
+        GLuint texture_;
         int scale_;
     };
 }

@@ -7,14 +7,14 @@
 
 #include "gui_element.h"
 
-#include <SDL.h>
+#include <SDL_opengl.h>
 
 namespace gui
 {
     class VRAMView: public GUIElement, public gandalf::PPU::VBlankListener
     {
     public:
-        VRAMView(const bool& debug_enabled, SDL_Renderer& renderer);
+        VRAMView(const bool& debug_enabled);
         ~VRAMView();
 
         void SetGameboy(std::shared_ptr<gandalf::Gameboy> gameboy) override;
@@ -23,10 +23,10 @@ namespace gui
     private:
         void OnVBlank() override;
 
-        std::array<gandalf::LCD::BGR555, gandalf::kTotalScreenHeight* gandalf::kTotalScreenWidth> vram_buffer_;
+        std::array<gandalf::LCD::ABGR1555, gandalf::kTotalScreenHeight* gandalf::kTotalScreenWidth> vram_buffer_;
         bool visible_;
         const bool& debug_enabled_;
-        SDL_Texture* texture_;
+        GLuint texture_;
 
         struct TileData
         {
