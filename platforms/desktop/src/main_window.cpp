@@ -14,7 +14,6 @@
 #include <SDL.h>
 #include <SDL_timer.h>
 #include <SDL_opengl.h>
-#include <gl/GL.h>
 #include <nfd.hpp>
 
 #include "audio_handler.h"
@@ -58,7 +57,7 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow():
+    MainWindow::MainWindow() :
         sdl_gl_context_(nullptr),
         sdl_window_(nullptr),
         running_(false),
@@ -187,7 +186,7 @@ namespace gui
 
             if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text(text::Get(text::ID::kErrorLoadBootROM));
+                ImGui::TextUnformatted(text::Get(text::ID::kErrorLoadBootROM));
                 ImGui::Separator();
 
                 if (ImGui::Button(text::Get(text::ID::kSelectBootROM), ImVec2(120, 0))) {
@@ -202,7 +201,7 @@ namespace gui
 
             if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text(text::Get(text::ID::kErrorLoad));
+                ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
                 ImGui::Separator();
 
                 if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
@@ -211,14 +210,14 @@ namespace gui
 
             if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text(text::Get(text::ID::kErrorLoad));
+                ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
                 ImGui::Separator();
 
                 if (ImGui::Button(text::Get(text::ID::kOk), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
                 ImGui::EndPopup();
             }
 
-            auto& io = ImGui::GetIO();            
+            auto& io = ImGui::GetIO();
 
             // Now render everything
             ImGui::Render();
@@ -258,7 +257,7 @@ namespace gui
                 {
                 case SDL_WINDOWEVENT_CLOSE:
                     running_ = false;
-                        break;
+                    break;
                 case SDL_WINDOWEVENT_RESIZED:
                     gui_context_.GetSettings().window_width = event.window.data1;
                     gui_context_.GetSettings().window_height = event.window.data2;

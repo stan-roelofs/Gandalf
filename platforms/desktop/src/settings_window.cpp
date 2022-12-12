@@ -4,6 +4,7 @@
 #include "text.h"
 
 #include <SDL.h>
+#include <nfd.hpp>
 
 namespace gui
 {
@@ -75,7 +76,10 @@ namespace gui
 
                     if (ImGui::Button(text::Get(text::ID::kSettingsWindowBootROMSelect), ImVec2(120, 0)))
                     {
-
+                        NFD::UniquePath path;
+                        auto result = NFD::OpenDialog(path);
+                        if (result == NFD_OKAY)
+                            settings_copy_.boot_rom_location = path.get();
                     };
 
                     ImGui::EndTabItem();

@@ -41,14 +41,14 @@ namespace gui
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin(text::Get(text::ID::kWindowGameboy));
         ImGui::SliderInt(text::Get(text::ID::kWindowGameboyScale), &scale_, 1, 5);
-        ImGui::Image((void*)texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
+        ImGui::Image((void*)(intptr_t)texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
         ImGui::End();
         ImGui::PopStyleVar();
     }
 
     void GameboyView::OnVBlank()
     {
-       std::swap(front_buffer_, back_buffer_);
-       std::copy(gameboy_->GetLCD().GetVideoBuffer().begin(), gameboy_->GetLCD().GetVideoBuffer().end(), back_buffer_->begin());
+        std::swap(front_buffer_, back_buffer_);
+        std::copy(gameboy_->GetLCD().GetVideoBuffer().begin(), gameboy_->GetLCD().GetVideoBuffer().end(), back_buffer_->begin());
     }
 }
