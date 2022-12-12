@@ -13,7 +13,7 @@ namespace {
 namespace gandalf
 {
     // TODO is initial value correct? verify using tests
-    Timer::Timer(Bus& bus): Bus::AddressHandler("Timer"), div_(0), tma_(0), tima_(0), tac_(0), bus_(bus), enabled_(false), reload_counter_(0)
+    Timer::Timer(Bus& bus): Bus::AddressHandler("Timer"), div_(0), tma_(0), tima_(0), tac_(0), bus_(bus), reload_counter_(0), selected_bit_(0), enabled_(false)
     {
     }
 
