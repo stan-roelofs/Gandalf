@@ -9,8 +9,8 @@
 namespace gandalf {
     class LCD : public Bus::AddressHandler {
     public:
-        using BGR555 = word;
-        using VideoBuffer = std::array<BGR555, kScreenWidth* kScreenHeight>;
+        using ABGR1555 = word;
+        using VideoBuffer = std::array<ABGR1555, kScreenWidth* kScreenHeight>;
 
         LCD(GameboyMode mode);
         virtual ~LCD();
@@ -38,14 +38,14 @@ namespace gandalf {
          * @param color_index The color index (0-3)
          * @param palette_index The palette index (0-1 for DMG, 0-7 for CGB)
         */
-        BGR555 GetSpriteColor(byte color_index, byte palette_index) const;
+        ABGR1555 GetSpriteColor(byte color_index, byte palette_index) const;
 
         /**
          * Returns the color for the given color index and palette index
          * @param color_index The color index (0-3)
          * @param palette_index The palette index (0-1 for DMG, 0-7 for CGB)
         */
-        BGR555 GetBackgroundColor(byte color_index, byte palette_index) const;
+        ABGR1555 GetBackgroundColor(byte color_index, byte palette_index) const;
 
         enum class Mode
         {

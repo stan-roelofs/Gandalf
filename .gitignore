@@ -35,8 +35,5 @@
 build/
 buildwin/
 gb_lib/bootroms/*.*
-*.gb
 
-imgui.ini
-todo.txt
-settings.json
+*.sym

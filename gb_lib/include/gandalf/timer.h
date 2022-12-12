@@ -4,7 +4,7 @@
 #include "bus.h"
 
 namespace gandalf {
-    class Timer : public Bus::AddressHandler
+    class Timer: public Bus::AddressHandler
     {
     public:
         Timer(Bus& bus);
@@ -16,12 +16,18 @@ namespace gandalf {
 
         void Tick();
 
+        word GetInternalCounter() { return div_; }
+        word GetDIV() { return div_ >> 8; }
+
     private:
+        void OnDIVChanged(word old_div);
         word div_;
         byte tma_;
         byte tima_;
         byte tac_;
         Bus& bus_;
+        byte reload_counter_;
+        byte selected_bit_;
 
         bool enabled_;
     };

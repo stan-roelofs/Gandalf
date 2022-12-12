@@ -6,7 +6,7 @@
 #include <gandalf/util.h>
 
 namespace {
-    constexpr gandalf::LCD::BGR555 kColorsDMG[4] = { 0x6BFC, 0x3B11, 0x29A6, 0x1061 };
+    constexpr gandalf::LCD::ABGR1555 kColorsDMG[4] = { 0xEBFC, 0xBB11, 0xA9A6, 0x9061 };
 }
 
 namespace gandalf
@@ -130,7 +130,7 @@ namespace gandalf
                 if (index % 2 == 0)
                     bcpd_[index / 2] = (bcpd_[index / 2] & 0xFF00) | value;
                 else
-                    bcpd_[index / 2] = (bcpd_[index / 2] & 0x00FF) | (value << 8);
+                    bcpd_[index / 2] = (bcpd_[index / 2] & 0x00FF) | (value << 8) | 0x8000;
 
                 if ((bcps_ & 0x80) != 0)
                     bcps_ = 0x80 | ((index + 1) & 0x3F);
@@ -146,7 +146,7 @@ namespace gandalf
                 if (index % 2 == 0)
                     ocpd_[index / 2] = (ocpd_[index / 2] & 0xFF00) | value;
                 else
-                    ocpd_[index / 2] = (ocpd_[index / 2] & 0x00FF) | (value << 8);
+                    ocpd_[index / 2] = (ocpd_[index / 2] & 0x00FF) | (value << 8) | 0x8000;
 
                 if ((ocps_ & 0x80) != 0)
                     ocps_ = 0x80 | ((index + 1) & 0x3F);
@@ -170,7 +170,7 @@ namespace gandalf
         stat_ = (stat_ & 0xFC) | (static_cast<gandalf::byte>(mode) & 0b11);
     }
 
-    LCD::BGR555 LCD::GetBackgroundColor(byte color_index, byte palette_index) const
+    LCD::ABGR1555 LCD::GetBackgroundColor(byte color_index, byte palette_index) const
     {
         if (mode_ == GameboyMode::DMG)
         {
@@ -192,7 +192,7 @@ namespace gandalf
         return 0;
     }
 
-    LCD::BGR555 LCD::GetSpriteColor(byte color_index, byte palette_index) const
+    LCD::ABGR1555 LCD::GetSpriteColor(byte color_index, byte palette_index) const
     {
         if (mode_ == GameboyMode::DMG)
         {
@@ -215,6 +215,6 @@ namespace gandalf
 
     void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)
     {
-        video_buffer_[kScreenWidth * ly_ + x] = is_sprite ? GetSpriteColor(color_index, palette_index) : GetBackgroundColor(color_index, palette_index);;
+        video_buffer_[kScreenWidth * ly_ + x] = is_sprite ? GetSpriteColor(color_index, palette_index) : GetBackgroundColor(color_index, palette_index);
     }
 }

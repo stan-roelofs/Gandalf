@@ -34,6 +34,9 @@ namespace gui
 
             {ID::kSettingsWindowKeys, "Keys"},
             {ID::kSettingsWindowPressKey, "Press a key or escape to cancel"},
+            {ID::kSettingsWindowGeneral, "General"},
+            {ID::kSettingsWindowBootROMLocation, "Boot ROM location"},
+            {ID::kSettingsWindowBootROMSelect, "Select"},
 
             {ID::kWindowAPU, "APU"},
             {ID::kWindowAPUSquare1Enable, "Enable Square wave 1 channel"},
@@ -80,6 +83,8 @@ namespace gui
             {ID::kWindowPPUTileVRAMBank, "VRAM bank"},
             {ID::kWindowPPUTilePriority, "Priority"},
             {ID::kWindowPPUTiles, "Tiles"},
+
+            {ID::kWindowIO, "IO"},
         };
 
         const char* Get(ID id)

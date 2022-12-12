@@ -6,20 +6,22 @@
 
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
-#include <imgui_impl_sdlrenderer.h>
+#include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
 
 #include <gandalf/constants.h>
 
 #include <SDL.h>
 #include <SDL_timer.h>
-
+#include <SDL_opengl.h>
+#include <gl/GL.h>
 #include <nfd.hpp>
 
 #include "audio_handler.h"
 #include "settings_window.h"
 #include "views/cpu_view.h"
 #include "views/gameboy_view.h"
+#include "views/io_view.h"
 #include "views/vram_view.h"
 #include "views/memory_view.h"
 #include "views/cartridge_view.h"
@@ -56,16 +58,15 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow() :
-        sdl_renderer_(nullptr),
+    MainWindow::MainWindow():
+        sdl_gl_context_(nullptr),
         sdl_window_(nullptr),
         running_(false),
         step_(false),
-        scale_(4),
         gb_pause_(false),
-        block_audio_(true),
         gb_thread_run_(false),
-        gb_fps_(0)
+        gb_fps_(0),
+        block_audio_(true)
     {
         gui_context_.AddKeyboardHandler(this);
     }
@@ -80,11 +81,11 @@ namespace gui
 
         NFD::Quit();
 
-        ImGui_ImplSDLRenderer_Shutdown();
+        ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL2_Shutdown();
         ImGui::DestroyContext();
 
-        SDL_DestroyRenderer(sdl_renderer_);
+        SDL_GL_DeleteContext(sdl_gl_context_);
         SDL_DestroyWindow(sdl_window_);
 
         SDL_Quit();
@@ -99,27 +100,25 @@ namespace gui
         }
 
         // Setup window
-        SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-        sdl_window_ = SDL_CreateWindow(text::Get(text::ID::kAppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
-
-        // Setup SDL_Renderer instance
-        sdl_renderer_ = SDL_CreateRenderer(sdl_window_, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
-        if (!sdl_renderer_)
+        SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL);
+        sdl_window_ = SDL_CreateWindow(text::Get(text::ID::kAppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, window_flags);
+        assert(sdl_window_);
+        sdl_gl_context_ = SDL_GL_CreateContext(sdl_window_);
+        if (!sdl_gl_context_)
         {
-            std::cerr << "Error creating SDL_Renderer!" << std::endl;
+            std::cerr << "Error: " << SDL_GetError() << std::endl;
             return false;
         }
-        SDL_RendererInfo info;
-        SDL_GetRendererInfo(sdl_renderer_, &info);
-        SDL_Log("Current SDL_Renderer: %s", info.name);
+        SDL_GL_MakeCurrent(sdl_window_, sdl_gl_context_);
+        SDL_GL_SetSwapInterval(1); // enable vsync
 
-        gui_elements_.push_back(std::move(std::make_unique<GameboyView>(*sdl_renderer_, scale_)));
-        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(gui_context_.GetSettings().show_debug, *sdl_renderer_)));
+        gui_elements_.push_back(std::move(std::make_unique<GameboyView>()));
+        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<CPUView>(gui_context_.GetSettings().show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
         gui_elements_.push_back(std::move(std::make_unique<MemoryView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<APUView>(gui_context_.GetSettings().show_debug)));
-
+        gui_elements_.push_back(std::move(std::make_unique<IOView>(gui_context_.GetSettings().show_debug)));
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -130,12 +129,14 @@ namespace gui
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
 
-        ImGui_ImplSDL2_InitForSDLRenderer(sdl_window_, sdl_renderer_);
-        ImGui_ImplSDLRenderer_Init(sdl_renderer_);
+        ImGui_ImplSDL2_InitForOpenGL(sdl_window_, sdl_gl_context_);
+        ImGui_ImplOpenGL3_Init();
 
         NFD::Init();
         if (!settings::Read(GetSettingsPath(), gui_context_.GetSettings()))
             std::cerr << "Error reading settings file!" << std::endl;
+
+        SDL_SetWindowSize(sdl_window_, gui_context_.GetSettings().window_width, gui_context_.GetSettings().window_height);
 
         running_ = true;
         return true;
@@ -157,13 +158,13 @@ namespace gui
             HandleEvents();
 
             // Start frame
-            ImGui_ImplSDLRenderer_NewFrame();
+            ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplSDL2_NewFrame();
             ImGui::NewFrame();
 
             // Render our GUI elements
             DockSpace();
-            ImGui::ShowDemoWindow();
+            //ImGui::ShowDemoWindow();
 
 
             for (auto& element : gui_elements_)
@@ -217,12 +218,25 @@ namespace gui
                 ImGui::EndPopup();
             }
 
+            auto& io = ImGui::GetIO();            
+
             // Now render everything
             ImGui::Render();
-            SDL_SetRenderDrawColor(sdl_renderer_, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
-            SDL_RenderClear(sdl_renderer_);
-            ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
-            SDL_RenderPresent(sdl_renderer_);
+            glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+            glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+                SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+                SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+            }
+
+            SDL_GL_SwapWindow(sdl_window_);
         }
     }
 
@@ -238,7 +252,20 @@ namespace gui
                 if (auto handler = gui_context_.GetKeyboardHandler())
                     handler->HandleKey(event.key.keysym.sym, event.type == SDL_KEYDOWN);
             }
-            else if (event.type == SDL_QUIT || (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(sdl_window_)))
+            else if (event.type == SDL_WINDOWEVENT && event.window.windowID == SDL_GetWindowID(sdl_window_))
+            {
+                switch (event.window.event)
+                {
+                case SDL_WINDOWEVENT_CLOSE:
+                    running_ = false;
+                        break;
+                case SDL_WINDOWEVENT_RESIZED:
+                    gui_context_.GetSettings().window_width = event.window.data1;
+                    gui_context_.GetSettings().window_height = event.window.data2;
+                    break;
+                }
+            }
+            else if (event.type == SDL_QUIT)
                 running_ = false;
         }
     }

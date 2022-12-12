@@ -6,6 +6,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG        15460959cbbfa20e66ef0b5ab497367e47fc0a04 # v1.12.0
 )
+
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
@@ -13,6 +14,7 @@ FetchContent_MakeAvailable(googletest)
 set(SOURCES
   src/blargg_test.cpp
   src/cartridge_test.cpp
+  src/mooneye_test.cpp
   src/resource_helper.h
   src/resource_helper.cpp
 )
