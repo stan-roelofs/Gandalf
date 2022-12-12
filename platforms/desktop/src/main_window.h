@@ -11,6 +11,7 @@
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_sdlrenderer.h>
 
+
 #include <SDL.h>
 
 #include "gui_context.h"
@@ -40,7 +41,7 @@ namespace gui {
 
         void OnVBlank() override;
 
-        SDL_Renderer* sdl_renderer_;
+        SDL_GLContext sdl_gl_context_;
         SDL_Window* sdl_window_;
         std::shared_ptr<gandalf::Gameboy> gameboy_;
         bool running_;

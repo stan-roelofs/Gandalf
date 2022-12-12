@@ -27,6 +27,8 @@ namespace gui
         std::int32_t key_b;
         std::int32_t key_start;
         std::int32_t key_select;
+        std::uint16_t window_width;
+        std::uint16_t window_height;
     };
 
     Settings DefaultSettings();

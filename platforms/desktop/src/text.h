@@ -36,6 +36,9 @@ namespace gui
             // Settings window
             kSettingsWindowKeys,
             kSettingsWindowPressKey,
+            kSettingsWindowGeneral,
+            kSettingsWindowBootROMLocation,
+            kSettingsWindowBootROMSelect,
 
             // APU window
             kWindowAPU,

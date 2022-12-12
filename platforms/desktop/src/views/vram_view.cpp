@@ -13,19 +13,27 @@ namespace
 
 namespace gui
 {
-    VRAMView::VRAMView(const bool& debug_enabled, SDL_Renderer& renderer) : debug_enabled_(debug_enabled), visible_(false)
+    VRAMView::VRAMView(const bool& debug_enabled) : debug_enabled_(debug_enabled), visible_(false)
     {
-        texture_ = SDL_CreateTexture(&renderer, SDL_PIXELFORMAT_BGR555, SDL_TEXTUREACCESS_STREAMING, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight);
-        if (!texture_)
-            throw std::runtime_error("Failed to create texture!");
+        glGenTextures(1, &texture_);
+        glBindTexture(GL_TEXTURE_2D, texture_);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         for (auto& row : tile_data_)
             row.fill(TileData());
+
+        vram_buffer_.fill(0);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
     }
 
     VRAMView::~VRAMView()
     {
-        SDL_DestroyTexture(texture_);
+        glDeleteTextures(1, &texture_);
     }
 
     void VRAMView::SetGameboy(std::shared_ptr<gandalf::Gameboy> gameboy)
@@ -46,11 +54,13 @@ namespace gui
         {
             if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUBackgroundMap)))
             {
+                glBindTexture(GL_TEXTURE_2D, texture_);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
+
                 visible_ = true;
-                SDL_UpdateTexture(texture_, nullptr, vram_buffer_.data(), gandalf::kTotalScreenWidth * sizeof(gandalf::LCD::BGR555));
                 ImVec2 pos = ImGui::GetCursorScreenPos();
 
-                ImGui::Image(texture_, ImVec2(gandalf::kTotalScreenWidth * kScale, gandalf::kTotalScreenHeight * kScale));
+                ImGui::Image((void*)texture_, ImVec2(gandalf::kTotalScreenWidth * kScale, gandalf::kTotalScreenHeight * kScale));
 
                 if (ImGui::IsItemHovered())
                 {
@@ -72,7 +82,7 @@ namespace gui
 
                     ImVec2 uv0 = ImVec2(region_x / kTextureSize, region_y / kTextureSize);
                     ImVec2 uv1 = ImVec2((region_x + kTileSize) / kTextureSize, (region_y + kTileSize) / kTextureSize);
-                    ImGui::Image(texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
+                    ImGui::Image((void*)texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
 
                     ImGui::Separator();
                     assert(tile_x < 32 && tile_y < 32);
@@ -172,8 +182,8 @@ namespace gui
                         const gandalf::byte color_bit_1 = tile_data.x_flip ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
                         const gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
 
-                        const gandalf::LCD::BGR555 bgr_color = lcd.GetBackgroundColor(color, tile_data.palette);
-                        vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = bgr_color;
+                        const gandalf::LCD::ABGR1555 abgr_color = lcd.GetBackgroundColor(color, tile_data.palette) | 0x8000;
+                        vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = abgr_color;
                     }
                 }
 
@@ -186,7 +196,7 @@ namespace gui
         const gandalf::byte top = lcd.GetSCY();
         const gandalf::byte right = left + gandalf::kScreenWidth;
         const gandalf::byte bottom = lcd.GetSCY() + gandalf::kScreenHeight;
-        const gandalf::LCD::BGR555 color = 0b11111;
+        const gandalf::LCD::ABGR1555 color = 0b11111 | 0x8000;
         for (int x = 0; x < gandalf::kScreenWidth; ++x)
         {
             vram_buffer_[gandalf::kTotalScreenWidth * top + (gandalf::byte)(left + x)] = color;
