@@ -59,7 +59,7 @@ namespace gandalf
             /* When writing to TAC, if the previously selected multiplexer input was 1 and the new input is 0, TIMA will increase too. 
              * This doesnt happen when the timer is disabled, but it also happens when disabling the timer (the same effect as writing to DIV).
             */
-            if ((new_enable && (div_ & (1 << selected_bit_)) && (!(div_ & (1 << new_selected_bit)))) || !new_enable && div_ & (1 << selected_bit_))
+            if ((new_enable && (div_ & (1 << selected_bit_)) && (!(div_ & (1 << new_selected_bit)))) || (!new_enable && div_ & (1 << selected_bit_)))
             {
                 ++tima_;
                 if (tima_ == 0) {
