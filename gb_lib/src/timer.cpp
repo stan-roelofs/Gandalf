@@ -6,23 +6,14 @@
 #include <gandalf/constants.h>
 
 namespace {
-    bool ShouldIncreaseTimer(gandalf::byte tac, gandalf::word prev_div, gandalf::word div) {
-        const gandalf::byte mode = tac & 0x3;
-        if (mode == 0)
-            return (prev_div & (1 << 9)) && (!(div & (1 << 9)));
-        else if (mode == 0x1)
-            return (prev_div & (1 << 3)) && (!(div & (1 << 3)));
-        else if (mode == 0x2)
-            return (prev_div & (1 << 5)) && (!(div & (1 << 5)));
-        else
-            return (prev_div & (1 << 7)) && (!(div & (1 << 7)));
-    }
+
+    constexpr gandalf::byte selected_bit[4] = { 9, 3, 5, 7 };
 }
 
 namespace gandalf
 {
     // TODO is initial value correct? verify using tests
-    Timer::Timer(Bus& bus): Bus::AddressHandler("Timer"), div_(0), tma_(0), tima_(0), tac_(0), bus_(bus), enabled_(false)
+    Timer::Timer(Bus& bus): Bus::AddressHandler("Timer"), div_(0), tma_(0), tima_(0), tac_(0), bus_(bus), enabled_(false), reload_counter_(0)
     {
     }
 
@@ -30,20 +21,23 @@ namespace gandalf
 
     void Timer::OnDIVChanged(word old_div)
     {
-        if (enabled_ && ShouldIncreaseTimer(tac_, old_div, div_)) {
+        if (enabled_ && (old_div & (1 << selected_bit_)) && (!(div_ & (1 << selected_bit_)))) {
             ++tima_;
 
-            if (tima_ == 0) {
-                tima_ = tma_;
-
-                bus_.Write(kIF, bus_.Read(kIF) | kTimerInterruptMask);
-            }
+            if (tima_ == 0)
+                reload_counter_ = 8;            
         }
     }
 
     void Timer::Tick()
     {
-        // TODO reloading takes some cycles 
+        if (reload_counter_ > 0) {
+            --reload_counter_;
+            if (reload_counter_ <= 4) {
+                tima_ = tma_;
+                bus_.Write(kIF, bus_.Read(kIF) | kTimerInterruptMask);
+            }
+        }
 
         word prev_div = div_;
         ++div_;
@@ -58,12 +52,32 @@ namespace gandalf
         switch (address)
         {
         case kTAC:
-            // TODO disabling can cause TIMA increase, we'll ignore this for now and implement it later
+        {
+            byte new_selected_bit = selected_bit[value & 0x3];
+            bool new_enable = value & (1 << 2);
+
+            /* When writing to TAC, if the previously selected multiplexer input was 1 and the new input is 0, TIMA will increase too. 
+             * This doesnt happen when the timer is disabled, but it also happens when disabling the timer (the same effect as writing to DIV).
+            */
+            if ((new_enable && (div_ & (1 << selected_bit_)) && (!(div_ & (1 << new_selected_bit)))) || !new_enable && div_ & (1 << selected_bit_))
+            {
+                ++tima_;
+                if (tima_ == 0) {
+                    tima_ = tma_;
+                    bus_.Write(kIF, bus_.Read(kIF) | kTimerInterruptMask);
+                }
+            }
+
             tac_ = value;
-            enabled_ = tac_ & (1 << 2);
+            enabled_ = new_enable;
+            selected_bit_ = new_selected_bit;
             break;
+        }
         case kTIMA:
-            tima_ = value;
+            if (reload_counter_ > 4)
+                reload_counter_ = 0;
+            if (reload_counter_ == 0)
+                tima_ = value;
             break;
         case kTMA:
             tma_ = value;

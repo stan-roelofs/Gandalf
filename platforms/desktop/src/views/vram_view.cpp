@@ -60,7 +60,7 @@ namespace gui
                 visible_ = true;
                 ImVec2 pos = ImGui::GetCursorScreenPos();
 
-                ImGui::Image((void*)texture_, ImVec2(gandalf::kTotalScreenWidth * kScale, gandalf::kTotalScreenHeight * kScale));
+                ImGui::Image((void*)(intptr_t)texture_, ImVec2(gandalf::kTotalScreenWidth * kScale, gandalf::kTotalScreenHeight * kScale));
 
                 if (ImGui::IsItemHovered())
                 {
@@ -82,7 +82,7 @@ namespace gui
 
                     ImVec2 uv0 = ImVec2(region_x / kTextureSize, region_y / kTextureSize);
                     ImVec2 uv1 = ImVec2((region_x + kTileSize) / kTextureSize, (region_y + kTileSize) / kTextureSize);
-                    ImGui::Image((void*)texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
+                    ImGui::Image((void*)(intptr_t)texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
 
                     ImGui::Separator();
                     assert(tile_x < 32 && tile_y < 32);

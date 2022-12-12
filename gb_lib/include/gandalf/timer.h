@@ -26,6 +26,8 @@ namespace gandalf {
         byte tima_;
         byte tac_;
         Bus& bus_;
+        byte reload_counter_;
+        byte selected_bit_;
 
         bool enabled_;
     };

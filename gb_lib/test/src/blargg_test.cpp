@@ -24,6 +24,12 @@ namespace {
         std::string rom_path;
     };
 
+    std::ostream& operator<<(std::ostream& os, const TestProperties& p)
+    {
+        os << p.rom_path;
+        return os;
+    }
+
     class BlarggTest: public ::testing::TestWithParam<TestProperties>, protected ResourceHelper {
     public:
         BlarggTest(): ResourceHelper() {
@@ -36,7 +42,8 @@ namespace {
     };
 }
 
-namespace gandalf {
+namespace blargg {
+    using namespace gandalf;
     // Test will write its output to serial, this class overrides the default serial address handler and stores the output from the test in a string
     class SerialOutputValidator: public Bus::AddressHandler, public TestRunner
     {
@@ -149,8 +156,6 @@ namespace gandalf {
 
         ASSERT_TRUE(gb->Ready());
 
-        Bus& bus = gb->GetBus();
-
         EXPECT_TRUE(p.runner->RunTestROM(*gb));
 
         std::cout << "Test output: " << std::endl << p.runner->GetOutput() << std::endl;
@@ -181,7 +186,8 @@ namespace gandalf {
         ::testing::Values(
             TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/01-read_timing.gb" },
             TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/02-write_timing.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/03-modify_timing.gb" }
+            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/03-modify_timing.gb" },
+            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/mem_timing.gb" }
         )
     );
 
@@ -191,7 +197,9 @@ namespace gandalf {
         ::testing::Values(
             TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/01-read_timing.gb" },
             TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/02-write_timing.gb" },
-            TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/03-modify_timing.gb" }
+            TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/03-modify_timing.gb" },
+            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/mem_timing.gb" }
+
         )
     );
 }
