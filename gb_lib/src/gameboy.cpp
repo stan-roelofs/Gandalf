@@ -9,9 +9,10 @@ namespace gandalf {
         if (cartridge_)
         {
             std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
-            const auto cgb_flag = header->GetCGBFlag();
-            mode_ = cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB;
+            //const auto cgb_flag = header->GetCGBFlag();
+            //mode_ = cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB;
             // TODO set mode after boot rom!
+            mode_ = GameboyMode::CGB;
         }
 
         io_ = std::make_unique<IO>(mode_, bus_, audio_handler);

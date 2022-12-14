@@ -11,9 +11,6 @@
 
 #include <gandalf/constants.h>
 
-#include <SDL.h>
-#include <SDL_timer.h>
-#include <SDL_opengl.h>
 #include <nfd.hpp>
 
 #include "audio_handler.h"
@@ -28,14 +25,10 @@
 #include "text.h"
 
 namespace {
-    const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    const std::string kSettingsFileName = "settings.json";
     const char* kDockSpaceName = "Gandalf";
     const unsigned int kWidth = 1280;
     const unsigned int kHeight = 720;
     const unsigned int kROMHistorySize = 10;
-
-    const std::filesystem::path GetSettingsPath() { return std::filesystem::current_path() / kSettingsFileName; }
 }
 
 namespace gui
@@ -57,15 +50,13 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow() :
-        sdl_gl_context_(nullptr),
-        sdl_window_(nullptr),
-        running_(false),
+    MainWindow::MainWindow(GUIContext& context) :
         step_(false),
         gb_pause_(false),
         gb_thread_run_(false),
         gb_fps_(0),
-        block_audio_(true)
+        block_audio_(true),
+        gui_context_(context)
     {
         gui_context_.AddKeyboardHandler(this);
     }
@@ -75,42 +66,10 @@ namespace gui
         gb_thread_run_ = false;
         if (gb_thread_.joinable())
             gb_thread_.join();
-
-        settings::Write(GetSettingsPath(), gui_context_.GetSettings());
-
-        NFD::Quit();
-
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplSDL2_Shutdown();
-        ImGui::DestroyContext();
-
-        SDL_GL_DeleteContext(sdl_gl_context_);
-        SDL_DestroyWindow(sdl_window_);
-
-        SDL_Quit();
-    }
+    }    
 
     bool MainWindow::Initialize()
     {
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
-        {
-            std::cerr << "Error: " << SDL_GetError() << std::endl;
-            return false;
-        }
-
-        // Setup window
-        SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL);
-        sdl_window_ = SDL_CreateWindow(text::Get(text::ID::kAppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, window_flags);
-        assert(sdl_window_);
-        sdl_gl_context_ = SDL_GL_CreateContext(sdl_window_);
-        if (!sdl_gl_context_)
-        {
-            std::cerr << "Error: " << SDL_GetError() << std::endl;
-            return false;
-        }
-        SDL_GL_MakeCurrent(sdl_window_, sdl_gl_context_);
-        SDL_GL_SetSwapInterval(1); // enable vsync
-
         gui_elements_.push_back(std::move(std::make_unique<GameboyView>()));
         gui_elements_.push_back(std::move(std::make_unique<VRAMView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<CPUView>(gui_context_.GetSettings().show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
@@ -118,26 +77,6 @@ namespace gui
         gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<APUView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<IOView>(gui_context_.GetSettings().show_debug)));
-
-        // Setup Dear ImGui context
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
-
-        // Setup Dear ImGui style
-        ImGui::StyleColorsDark();
-
-        ImGui_ImplSDL2_InitForOpenGL(sdl_window_, sdl_gl_context_);
-        ImGui_ImplOpenGL3_Init();
-
-        NFD::Init();
-        if (!settings::Read(GetSettingsPath(), gui_context_.GetSettings()))
-            std::cerr << "Error reading settings file!" << std::endl;
-
-        SDL_SetWindowSize(sdl_window_, gui_context_.GetSettings().window_width, gui_context_.GetSettings().window_height);
-
-        running_ = true;
         return true;
     }
 
@@ -150,124 +89,64 @@ namespace gui
         return "";
     }
 
-    void MainWindow::Show()
+    void MainWindow::Render()
     {
-        while (running_)
+        // Render our GUI elements
+        DockSpace();
+        //ImGui::ShowDemoWindow();
+
+        for (auto& element : gui_elements_)
+            element->Render();
+
+        if (!show_popup_.empty())
         {
-            HandleEvents();
+            ImGui::OpenPopup(show_popup_.c_str());
+            show_popup_.clear();
+        }
 
-            // Start frame
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplSDL2_NewFrame();
-            ImGui::NewFrame();
-
-            // Render our GUI elements
-            DockSpace();
-            //ImGui::ShowDemoWindow();
-
-
-            for (auto& element : gui_elements_)
-                element->Render();
-
-            if (!show_popup_.empty())
-            {
-                ImGui::OpenPopup(show_popup_.c_str());
-                show_popup_.clear();
+        if (settings_window_) {
+            settings_window_->Show();
+            gb_pause_ = true;
+            if (settings_window_->Terminated()) {
+                settings_window_.reset();
+                gb_pause_ = false;
             }
+        }
 
-            if (settings_window_) {
-                settings_window_->Show();
-                gb_pause_ = true;
-                if (settings_window_->Terminated()) {
-                    settings_window_.reset();
-                    gb_pause_ = false;
-                }
+        if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoadBootROM));
+            ImGui::Separator();
+
+            if (ImGui::Button(text::Get(text::ID::kSelectBootROM), ImVec2(120, 0))) {
+                gui_context_.GetSettings().boot_rom_location = SelectBootROM();
+                ImGui::CloseCurrentPopup();
             }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button(text::Get(text::ID::kCancel), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
+        }
 
-            if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::TextUnformatted(text::Get(text::ID::kErrorLoadBootROM));
-                ImGui::Separator();
+        if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
+            ImGui::Separator();
 
-                if (ImGui::Button(text::Get(text::ID::kSelectBootROM), ImVec2(120, 0))) {
-                    gui_context_.GetSettings().boot_rom_location = SelectBootROM();
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SetItemDefaultFocus();
-                ImGui::SameLine();
-                if (ImGui::Button(text::Get(text::ID::kCancel), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-                ImGui::EndPopup();
-            }
+            if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
+        }
 
-            if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
-                ImGui::Separator();
+        if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
+            ImGui::Separator();
 
-                if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-                ImGui::EndPopup();
-            }
-
-            if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
-                ImGui::Separator();
-
-                if (ImGui::Button(text::Get(text::ID::kOk), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-                ImGui::EndPopup();
-            }
-
-            auto& io = ImGui::GetIO();
-
-            // Now render everything
-            ImGui::Render();
-            glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-            glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-            {
-                SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-                SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
-                SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-            }
-
-            SDL_GL_SwapWindow(sdl_window_);
+            if (ImGui::Button(text::Get(text::ID::kOk), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
         }
     }
 
-    void MainWindow::HandleEvents()
-    {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-
-            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
-            {
-                if (auto handler = gui_context_.GetKeyboardHandler())
-                    handler->HandleKey(event.key.keysym.sym, event.type == SDL_KEYDOWN);
-            }
-            else if (event.type == SDL_WINDOWEVENT && event.window.windowID == SDL_GetWindowID(sdl_window_))
-            {
-                switch (event.window.event)
-                {
-                case SDL_WINDOWEVENT_CLOSE:
-                    running_ = false;
-                    break;
-                case SDL_WINDOWEVENT_RESIZED:
-                    gui_context_.GetSettings().window_width = event.window.data1;
-                    gui_context_.GetSettings().window_height = event.window.data2;
-                    break;
-                }
-            }
-            else if (event.type == SDL_QUIT)
-                running_ = false;
-        }
-    }
 
     void MainWindow::HandleKey(std::int32_t key, bool pressed)
     {
