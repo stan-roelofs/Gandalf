@@ -1,19 +1,13 @@
 #include <gandalf/gameboy.h>
 
 namespace gandalf {
-    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom, std::shared_ptr<APU::OutputHandler> audio_handler) : mode_(GameboyMode::DMG)
+    Gameboy::Gameboy(const ROM& boot_rom, const ROM& rom, std::shared_ptr<APU::OutputHandler> audio_handler): mode_(GameboyMode::DMG)
     {
         LoadROM(rom);
         LoadBootROM(boot_rom);
 
-        if (cartridge_)
-        {
-            std::shared_ptr<const Cartridge::Header> header = cartridge_->GetHeader();
-            //const auto cgb_flag = header->GetCGBFlag();
-            //mode_ = cgb_flag == Cartridge::CGBFunctionality::kNotSupported ? GameboyMode::DMG : GameboyMode::CGB;
-            // TODO set mode after boot rom!
+        if (boot_rom.size() > 0x100)
             mode_ = GameboyMode::CGB;
-        }
 
         io_ = std::make_unique<IO>(mode_, bus_, audio_handler);
         cpu_ = std::make_unique<CPU>(mode_, *io_, bus_);
@@ -50,7 +44,25 @@ namespace gandalf {
         if (boot_rom.size() < 0x100 || !cartridge_)
             return;
 
-        boot_rom_handler_ = std::make_unique<BootROMHandler>(boot_rom, *cartridge_, bus_);
+        boot_rom_handler_ = std::make_unique<BootROMHandler>(*this, boot_rom);
+        bus_.Register(*boot_rom_handler_);
+    }
+
+    void Gameboy::OnBootROMFinished()
+    {
+        bus_.Unregister(*boot_rom_handler_);
+        bus_.Register(*cartridge_);
+        byte mode = boot_rom_handler_->Read(kKEY0);
+        switch (mode)
+        {
+        case 0x0: mode_ = GameboyMode::DMG; break;
+        case 0x4: mode_ = GameboyMode::DMGCompatibility; break;
+        default: mode_ = GameboyMode::CGB; break;
+        }
+
+        io_->SetMode(mode_);
+        cpu_->SetMode(mode_);
+        wram_->SetMode(mode_);
     }
 
     bool Gameboy::Ready() const

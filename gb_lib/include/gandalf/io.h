@@ -25,6 +25,8 @@ namespace gandalf {
         APU& GetAPU() { return apu_; }
         Timer& GetTimer() { return timer_; }
 
+        void SetMode(GameboyMode mode);
+
     private:
         Bus& bus_;
         Timer timer_;

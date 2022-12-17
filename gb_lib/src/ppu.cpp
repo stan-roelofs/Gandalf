@@ -11,7 +11,7 @@ namespace {
 }
 
 namespace gandalf {
-    PPU::PPU(GameboyMode mode, Bus& bus, LCD& lcd) : Bus::AddressHandler("PPU"),
+    PPU::PPU(GameboyMode mode, Bus& bus, LCD& lcd): Bus::AddressHandler("PPU"),
         bus_(bus),
         lcd_(lcd),
         line_ticks_(0),
@@ -26,6 +26,12 @@ namespace gandalf {
     }
 
     PPU::~PPU() = default;
+
+    void PPU::SetMode(GameboyMode mode)
+    {
+        mode_ = mode;
+        pipeline_.SetMode(mode);
+    }
 
     // TODO stat interrupts can block eachother
     void PPU::Tick()
@@ -51,7 +57,6 @@ namespace gandalf {
                     sprite.tile_index = Read(address + 2);
                     sprite.attributes = Read(address + 3);
                     sprite.oam_index = (byte)(line_ticks_pre_increment / 2);
-                    //sprite.oam_index = (byte)(address - 0xFE00);//TODO
                     fetched_sprites_[sprite.x].push_back(std::move(sprite));
                 }
             }
@@ -144,7 +149,7 @@ namespace gandalf {
             return oam_[address - 0xFE00];
         else if (mode_ == GameboyMode::CGB && address == kVBK)
             return current_vram_bank_ == 0 ? 0xFE : 0xFF;
-        else if (mode_ == GameboyMode::CGB && address == kOPRI)
+        else if (mode_ != GameboyMode::DMG && address == kOPRI)
             return opri_;
         return 0xFF;
     }
@@ -160,7 +165,7 @@ namespace gandalf {
             oam_[address - 0xFE00] = value;
         else if (mode_ == GameboyMode::CGB && address == kVBK)
             current_vram_bank_ = value & 0x1;
-        else if (mode_ == GameboyMode::CGB && address == kOPRI)
+        else if (mode_ != GameboyMode::DMG && address == kOPRI)
             opri_ = value;
     }
 
@@ -183,7 +188,7 @@ namespace gandalf {
         return vram_.at(bank).at(address);
     }
 
-    PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites) :
+    PPU::Pipeline::Pipeline(GameboyMode mode, LCD& lcd, VRAM& vram, FetchedSprites& fetched_sprites):
         lcd_(lcd),
         vram_(vram),
         sprite_in_progress_(false),
@@ -230,7 +235,7 @@ namespace gandalf {
         if (!sprite_in_progress_ && lcd_.GetLCDControl() & 0x2) {
             if (fetched_sprites_.find(pixels_pushed_ + 8) != fetched_sprites_.end() && !fetched_sprites_[pixels_pushed_ + 8].empty())
             {
-                current_sprite_ = fetched_sprites_.at(pixels_pushed_ + 8).front();
+                current_sprite_ = fetched_sprites_.at(pixels_pushed_ + 8).front(); // TODO sprite priority
                 fetched_sprites_.at(pixels_pushed_ + 8).pop_front();
 
                 sprite_in_progress_ = true;
@@ -389,7 +394,7 @@ namespace gandalf {
                 pixel.palette = current_sprite_.attributes & 0x10;
             }
             // In CGB mode, replace pixel when it is transparent OR the current sprite has higher priority (lower OAM index)
-            else if (mode_ == GameboyMode::CGB && (pixel.color == 0 || current_sprite_.oam_index < pixel.sprite_priority))
+            else if (mode_ != GameboyMode::DMG && (pixel.color == 0 || (mode_ == GameboyMode::CGB && current_sprite_.oam_index < pixel.sprite_priority)))
             {
                 pixel.background_priority = !!(current_sprite_.attributes & 0x80);
                 pixel.color = color;

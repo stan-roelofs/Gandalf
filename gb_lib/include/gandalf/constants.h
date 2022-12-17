@@ -75,9 +75,10 @@ namespace gandalf {
     constexpr word kNR51 = 0xFF25;
     constexpr word kNR52 = 0xFF26;
 
-    constexpr word kBANK = 0xFF50;
 
     // CGB
+    constexpr word kBANK = 0xFF50;
+    constexpr word kKEY0 = 0xFF4C;
     constexpr word kKEY1 = 0xFF4D;
     constexpr word kRP = 0xFF56;
     constexpr word kOPRI = 0xFF6C;
@@ -106,6 +107,7 @@ namespace gandalf {
     enum class GameboyMode
     {
         DMG,
+        DMGCompatibility,
         CGB
     };
 

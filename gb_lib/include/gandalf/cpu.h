@@ -8,7 +8,7 @@
 
 namespace gandalf {
 
-  class CPU : public Bus::AddressHandler {
+  class CPU: public Bus::AddressHandler {
   public:
     CPU(GameboyMode mode, IO& io, Bus& bus);
     ~CPU();
@@ -20,6 +20,8 @@ namespace gandalf {
     std::set<word> GetAddresses() const override;
 
     Registers& GetRegisters() { return registers_; }
+
+    void SetMode(GameboyMode mode) { gameboy_mode_ = mode; }
 
   private:
     void CheckInterrupts();

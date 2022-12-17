@@ -38,6 +38,7 @@ namespace gandalf {
     GameboyMode GetMode() const { return mode_; }
 
   private:
+    void OnBootROMFinished();
     void LoadROM(const ROM& rom);
     void LoadBootROM(const ROM& boot_rom);
 
@@ -54,29 +55,29 @@ namespace gandalf {
     class BootROMHandler: public Bus::AddressHandler
     {
     public:
-      BootROMHandler(const std::vector<byte> boot_rom, Cartridge& cartridge, Bus& bus): Bus::AddressHandler("Boot ROM"), boot_rom_(boot_rom), cartridge_(cartridge), bus_(bus)
+      BootROMHandler(Gameboy& gb, const std::vector<byte> boot_rom): Bus::AddressHandler("Boot ROM"), key0_(0), boot_rom_(boot_rom), gb_(gb)
       {
-        bus_.Register(*this);
       }
       virtual ~BootROMHandler() = default;
 
       void Write(word address, byte value) override
       {
-        if (address != kBANK)
-          return;
-
-        if (value != 0)
+        if (address == kBANK && value != 0)
         {
-          bus_.Unregister(*this);
-          bus_.Register(cartridge_);
+          gb_.OnBootROMFinished();
         }
+        else if (address == kKEY0)
+          key0_ = value;
       }
 
       byte Read(word address) const override
       {
-        assert(address < boot_rom_.size() || address == kBANK);
+        assert(address < boot_rom_.size() || address == kBANK || address == kKEY0);
         if (address < boot_rom_.size())
           return boot_rom_[address];
+
+        if (address == kKEY0)
+          return key0_;
 
         return 0xFF;
       }
@@ -91,13 +92,14 @@ namespace gandalf {
           addresses.insert(i);
 
         addresses.insert(kBANK);
+        addresses.insert(kKEY0);
         return addresses;
       }
 
     private:
+      byte key0_;
       const std::vector<byte> boot_rom_;
-      Cartridge& cartridge_;
-      Bus& bus_;
+      Gameboy& gb_;
     };
     std::unique_ptr<BootROMHandler> boot_rom_handler_;
   };

@@ -7,13 +7,15 @@
 #include "constants.h"
 
 namespace gandalf {
-    class LCD : public Bus::AddressHandler {
+    class LCD: public Bus::AddressHandler {
     public:
         using ABGR1555 = word;
         using VideoBuffer = std::array<ABGR1555, kScreenWidth* kScreenHeight>;
 
         LCD(GameboyMode mode);
         virtual ~LCD();
+
+        void SetMode(GameboyMode mode) { mode_ = mode; }
 
         byte Read(word address) const override;
         void Write(word address, byte value) override;

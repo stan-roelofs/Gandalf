@@ -11,7 +11,7 @@ namespace {
 
 namespace gandalf
 {
-    LCD::LCD(GameboyMode mode) : Bus::AddressHandler("LCD"),
+    LCD::LCD(GameboyMode mode): Bus::AddressHandler("LCD"),
         lcdc_(0),
         ly_(0),
         lyc_(0),
@@ -120,11 +120,11 @@ namespace gandalf
             obp1_ = value;
             break;
         case kBCPS:
-            if (mode_ == GameboyMode::CGB)
+            if (mode_ != GameboyMode::DMG)
                 bcps_ = value;
             break;
         case kBCPD:
-            if (mode_ == GameboyMode::CGB)
+            if (mode_ != GameboyMode::DMG)
             {
                 const byte index = bcps_ & 0x3F;
                 if (index % 2 == 0)
@@ -137,11 +137,11 @@ namespace gandalf
             }
             break;
         case kOCPS:
-            if (mode_ == GameboyMode::CGB)
+            if (mode_ != GameboyMode::DMG)
                 ocps_ = value;
             break;
         case kOCPD:
-            if (mode_ == GameboyMode::CGB) {
+            if (mode_ != GameboyMode::DMG) {
                 const byte index = ocps_ & 0x3F;
                 if (index % 2 == 0)
                     ocpd_[index / 2] = (ocpd_[index / 2] & 0xFF00) | value;
@@ -180,7 +180,7 @@ namespace gandalf
             byte color = bgp_ >> (2 * (color_index)) & 0x3;
             return kColorsDMG[color];
         }
-        else if (mode_ == GameboyMode::CGB)
+        else
         {
             if (palette_index > 7)
                 throw std::invalid_argument("Palette index out of range");
@@ -202,7 +202,7 @@ namespace gandalf
             byte palette = palette_index == 0 ? obp0_ : obp1_;
             return kColorsDMG[palette >> (2 * (color_index)) & 0x3];
         }
-        else if (mode_ == GameboyMode::CGB) {
+        else {
             if (palette_index > 7)
                 throw std::invalid_argument("Palette index out of range");
 

@@ -3,7 +3,7 @@
 #include <cassert>
 
 namespace gandalf {
-    IO::IO(GameboyMode mode, Bus& bus, std::shared_ptr<APU::OutputHandler> audio_handler) :
+    IO::IO(GameboyMode mode, Bus& bus, std::shared_ptr<APU::OutputHandler> audio_handler):
         bus_(bus),
         timer_(bus),
         lcd_(mode),
@@ -32,6 +32,13 @@ namespace gandalf {
         bus_.Unregister(apu_);
         bus_.Unregister(dma_);
         bus_.Unregister(hdma_);
+    }
+
+    void IO::SetMode(GameboyMode mode)
+    {
+        mode_ = mode;
+        ppu_.SetMode(mode);
+        lcd_.SetMode(mode);
     }
 
     void IO::Tick(unsigned int cycles, bool double_speed)

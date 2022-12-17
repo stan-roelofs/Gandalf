@@ -15,7 +15,6 @@ namespace gandalf
         negate_(false),
         timer_(0)
     {
-
     }
 
     FrequencySweepUnit::~FrequencySweepUnit() = default;

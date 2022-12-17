@@ -5,7 +5,7 @@
 #include "constants.h"
 
 namespace gandalf {
-    class WRAM : public Bus::AddressHandler {
+    class WRAM: public Bus::AddressHandler {
     public:
         WRAM(GameboyMode mode);
         virtual ~WRAM();
@@ -13,6 +13,8 @@ namespace gandalf {
         byte Read(word address) const override;
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
+
+        void SetMode(GameboyMode mode) { mode_ = mode; }
 
     private:
         std::array<std::array<byte, 0x1000>, 8> data_;

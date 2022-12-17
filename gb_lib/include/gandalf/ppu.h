@@ -8,7 +8,7 @@
 #include "lcd.h"
 
 namespace gandalf {
-    class PPU : public Bus::AddressHandler {
+    class PPU: public Bus::AddressHandler {
     public:
         class VBlankListener
         {
@@ -32,8 +32,10 @@ namespace gandalf {
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
-        void AddVBlankListener(VBlankListener* listener) { vblank_listeners_.push_back(listener);  }
+        void AddVBlankListener(VBlankListener* listener) { vblank_listeners_.push_back(listener); }
         byte DebugReadVRam(int bank, word address) const;
+
+        void SetMode(GameboyMode mode);
 
     private:
         void CheckLYEqualsLYC();
@@ -73,6 +75,7 @@ namespace gandalf {
             void Process();
             void Reset();
             bool Done() const;
+            void SetMode(GameboyMode mode) { mode_ = mode; }
         private:
             void RenderPixel();
             void TileStateMachine();
