@@ -25,7 +25,7 @@ namespace
 
 namespace gandalf
 {
-    Joypad::Joypad(Bus& bus) : Bus::AddressHandler("Joypad"), bus_(bus), p1_(0xCF)
+    Joypad::Joypad(Bus& bus): Bus::AddressHandler("Joypad"), p1_(0xCF), bus_(bus)
     {
         pressed_buttons_.fill(false);
     }
