@@ -44,12 +44,12 @@ namespace gandalf {
 
 #define INC_RR(r)                                                              \
   {                                                                            \
-    ADVANCE_IO(4);                                                \
+    ADVANCE_IO(4);                                                             \
     ++(r);                                                                     \
   }
 
 #define DEC_RR(r)                                                              \
-  ADVANCE_IO(4);                                                  \
+  ADVANCE_IO(4);                                                               \
   --(r);
 
 #define INC_R(r)                                                               \
@@ -690,7 +690,7 @@ namespace gandalf {
     WRITE(registers_.hl(), value);                                             \
   }
 
-  CPU::CPU(GameboyMode mode, IO& io, Bus& bus) : Bus::AddressHandler("CPU"),
+  CPU::CPU(GameboyMode mode, IO& io, Bus& bus): Bus::AddressHandler("CPU"),
     bus_(bus),
     io_(io),
     opcode_(0),
@@ -713,7 +713,7 @@ namespace gandalf {
       return registers_.interrupt_enable;
     else if (address == kIF)
       return registers_.interrupt_flags | 0xE0;
-    else if (address == kKEY1)
+    else if (gameboy_mode_ == GameboyMode::CGB && address == kKEY1)
     {
       byte result = static_cast<byte>(prepare_speed_switch_);
       result |= static_cast<byte>(double_speed_) << 7;
@@ -730,7 +730,7 @@ namespace gandalf {
       registers_.interrupt_enable = value;
     else if (address == kIF)
       registers_.interrupt_flags = value;
-    else if (address == kKEY1)
+    else if (gameboy_mode_ == GameboyMode::CGB && address == kKEY1)
     {
       prepare_speed_switch_ = (value & 0x1) != 0;
     }
@@ -746,7 +746,7 @@ namespace gandalf {
     if (registers_.interrupt_enable & registers_.interrupt_flags & 0x1F) {
       halt_ = false;
       if (registers_.interrupt_flags & kJoypadInterruptMask)
-          stop_ = false;
+        stop_ = false;
       if (registers_.interrupt_master_enable) {
         registers_.interrupt_master_enable = false;
         InterruptServiceRoutine();

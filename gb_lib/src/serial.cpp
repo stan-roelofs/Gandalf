@@ -6,7 +6,7 @@
 
 namespace gandalf {
 
-    Serial::Serial() : Bus::AddressHandler("Serial"), sb_(0), in_progress_(false), fast_clock_speed_(false), internal_clock_(false)
+    Serial::Serial(GameboyMode mode) : Bus::AddressHandler("Serial"), sb_(0), in_progress_(false), fast_clock_speed_(false), internal_clock_(false), mode_(mode)
     {
     }
 
@@ -23,7 +23,8 @@ namespace gandalf {
             sb_ = value;
         else if (address == kSC) {
             in_progress_ = value & 0x80;
-            fast_clock_speed_ = value & 0x2;
+            if (mode_ == GameboyMode::CGB)
+                fast_clock_speed_ = value & 0x2;
             internal_clock_ = value & 0x1;
         }
     }
@@ -39,7 +40,16 @@ namespace gandalf {
         if (address == kSB)
             return sb_;
         else if (address == kSC)
-            return !!in_progress_ << 7 | !!fast_clock_speed_ << 1 | !!internal_clock_;
+        {
+            byte value = 0x7C;
+            if (in_progress_)
+                value |= 0x80;
+            if (mode_ != GameboyMode::CGB || fast_clock_speed_)
+                value |= 0x2;
+            if (internal_clock_)
+                value |= 1;
+            return value;
+        }
 
         return 0xFF;
     }

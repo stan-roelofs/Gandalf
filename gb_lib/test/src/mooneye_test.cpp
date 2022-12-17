@@ -9,7 +9,7 @@
 namespace {
     constexpr std::uint64_t kMaxCycles = static_cast<std::uint64_t>(1e8);
 
-    class MooneyeTest : public ::testing::TestWithParam<std::string>, protected ResourceHelper {
+    class MooneyeTest: public ::testing::TestWithParam<std::string>, protected ResourceHelper {
     public:
         MooneyeTest(): ResourceHelper() {
         }
@@ -24,10 +24,10 @@ namespace {
 namespace mooneye {
     using namespace gandalf;
 
-    class SerialOutputReader : public Bus::AddressHandler
+    class SerialOutputReader: public Serial
     {
     public:
-        SerialOutputReader(): Bus::AddressHandler("MooneyeTest - SerialOutputReader"), done_(false) {}
+        SerialOutputReader(): Serial(GameboyMode::DMG), done_(false) {}
 
         void Write(word address, byte value) override
         {
@@ -35,26 +35,23 @@ namespace mooneye {
                 serial_bytes_.push_back(value);
                 done_ = serial_bytes_.size() == 6;
             }
+
+            Serial::Write(address, value);
         }
 
         byte Read(word address) const override
         {
-            return 0xFF;
+            return Serial::Read(address);
         }
 
-        std::set<word> GetAddresses() const override
-        {
-            return { kSB, kSC };
-        }
-
-        bool Done() const { 
+        bool Done() const {
             return done_;
         }
 
         bool Passed() const
         {
-            return serial_bytes_.size() == 6 && serial_bytes_[0] == 3 && serial_bytes_[1] == 5 
-            && serial_bytes_[2] == 8 && serial_bytes_[3] == 13 && serial_bytes_[4] == 21 && serial_bytes_[5] == 34;
+            return serial_bytes_.size() == 6 && serial_bytes_[0] == 3 && serial_bytes_[1] == 5
+                && serial_bytes_[2] == 8 && serial_bytes_[3] == 13 && serial_bytes_[4] == 21 && serial_bytes_[5] == 34;
         }
 
     private:
@@ -91,7 +88,7 @@ namespace mooneye {
     }
 
     INSTANTIATE_TEST_SUITE_P(
-        timer,
+        acceptance_timer,
         MooneyeTest,
         ::testing::Values(
             "acceptance/timer/div_write.gb",
@@ -108,6 +105,16 @@ namespace mooneye {
             "acceptance/timer/tima_reload.gb",
             "acceptance/timer/tima_write_reloading.gb",
             "acceptance/timer/tma_write_reloading.gb"
+        )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
+        acceptance_bits,
+        MooneyeTest,
+        ::testing::Values(
+            "acceptance/bits/mem_oam.gb",
+            "acceptance/bits/reg_f.gb",
+            "acceptance/bits/unused_hwio-GS.gb"
         )
     );
 }

@@ -10,7 +10,7 @@ namespace gandalf
     class HDMA : public Bus::AddressHandler
     {
     public:
-        HDMA(Bus& bus, const LCD& lcd);
+        HDMA(GameboyMode mode, Bus& bus, const LCD& lcd);
         virtual ~HDMA();
 
         void Tick();
@@ -20,6 +20,8 @@ namespace gandalf
         std::set<word> GetAddresses() const override;
 
         word GetRemainingGDMACycles() const;
+
+        void SetMode(GameboyMode mode) { mode_ = mode; }
 
     private:
         void StartTransfer(byte value);
@@ -51,6 +53,8 @@ namespace gandalf
 
         word source_;
         word destination_;
+
+        GameboyMode mode_;
     };
 }
 

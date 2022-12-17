@@ -18,8 +18,11 @@ namespace gui
 
         ImGui::Begin(text::Get(text::ID::kWindowIO), nullptr, ImGuiWindowFlags_NoTitleBar);
 
-        ImGui::Text("DIV: %02X", gameboy_->GetTimer().GetDIV());
         ImGui::Text("DIV Internal counter: %04X", gameboy_->GetTimer().GetInternalCounter());
+        ImGui::Text("DIV: %02X", gameboy_->GetTimer().GetDIV());
+        ImGui::Text("TIMA: %02X", gameboy_->GetTimer().GetTIMA());
+        ImGui::Text("TMA: %02X", gameboy_->GetTimer().GetTMA());
+        ImGui::Text("TAC: %02X", gameboy_->GetTimer().GetTAC());
 
         ImGui::End();
     }

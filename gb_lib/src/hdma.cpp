@@ -11,7 +11,7 @@ namespace
 
 namespace gandalf
 {
-    HDMA::HDMA(Bus& bus, const LCD& lcd) : Bus::AddressHandler("HDMA"),
+    HDMA::HDMA(GameboyMode mode, Bus& bus, const LCD& lcd) : Bus::AddressHandler("HDMA"),
         bus_(bus),
         lcd_(lcd),
         hdma1_(0),
@@ -24,7 +24,8 @@ namespace gandalf
         current_byte_(0),
         state_(State::kIdle),
         source_(0),
-        destination_(0)
+        destination_(0),
+        mode_(mode)
     {
     }
 
@@ -83,6 +84,9 @@ namespace gandalf
     byte HDMA::Read(word address) const
     {
         assert(address == kHDMA1 || address == kHDMA2 || address == kHDMA3 || address == kHDMA4 || address == kHDMA5);
+            
+        if (mode_ != GameboyMode::CGB)
+            return 0xFF;
 
         switch (address)
         {
@@ -114,6 +118,9 @@ namespace gandalf
     void HDMA::Write(word address, byte value)
     {
         assert(address == kHDMA1 || address == kHDMA2 || address == kHDMA3 || address == kHDMA4 || address == kHDMA5);
+
+        if (mode_ != GameboyMode::CGB)
+            return;
 
         switch (address)
         {

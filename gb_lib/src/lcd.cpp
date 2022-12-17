@@ -28,6 +28,8 @@ namespace gandalf
         mode_(mode)
     {
         video_buffer_.fill((byte)std::rand());
+        bcpd_.fill((word)std::rand());
+        ocpd_.fill((word)std::rand());
     }
 
     LCD::~LCD() = default;
@@ -44,7 +46,7 @@ namespace gandalf
         case kLCDC:
             return lcdc_;
         case kSTAT:
-            return stat_;
+            return stat_ | 0x80;
         case kSCY:
             return scy_;
         case kSCX:
@@ -64,13 +66,13 @@ namespace gandalf
         case kOBP1:
             return obp1_;
         case kBCPS:
-            return bcps_;
+            return mode_ != GameboyMode::DMG ? bcps_ : 0xFF;
         case kOCPS:
-            return ocps_;
+            return mode_ != GameboyMode::DMG ? ocps_ : 0xFF;
         case kBCPD:
-            return static_cast<byte>(bcpd_[(bcps_ & 0x3F) / 2] & 0xFF);
+            return mode_ != GameboyMode::DMG ? static_cast<byte>(bcpd_[(bcps_ & 0x3F) / 2] & 0xFF) : 0xFF;
         case kOCPD:
-            return static_cast<byte>(ocpd_[(ocps_ & 0x3F) / 2] & 0xFF);
+            return mode_ != GameboyMode::DMG ? static_cast<byte>(ocpd_[(ocps_ & 0x3F) / 2] & 0xFF) : 0xFF;
         default:
             return 0xFF;
         }
@@ -180,16 +182,11 @@ namespace gandalf
             byte color = bgp_ >> (2 * (color_index)) & 0x3;
             return kColorsDMG[color];
         }
-        else
-        {
-            if (palette_index > 7)
-                throw std::invalid_argument("Palette index out of range");
 
-            return bcpd_[palette_index * 4 + color_index];
-        }
+        if (palette_index > 7)
+            throw std::invalid_argument("Palette index out of range");
 
-        assert(false);
-        return 0;
+        return bcpd_[palette_index * 4 + color_index];
     }
 
     LCD::ABGR1555 LCD::GetSpriteColor(byte color_index, byte palette_index) const
@@ -202,15 +199,11 @@ namespace gandalf
             byte palette = palette_index == 0 ? obp0_ : obp1_;
             return kColorsDMG[palette >> (2 * (color_index)) & 0x3];
         }
-        else {
-            if (palette_index > 7)
-                throw std::invalid_argument("Palette index out of range");
 
-            return ocpd_[palette_index * 4 + color_index];
-        }
+        if (palette_index > 7)
+            throw std::invalid_argument("Palette index out of range");
 
-        assert(false);
-        return 0;
+        return ocpd_[palette_index * 4 + color_index];
     }
 
     void LCD::RenderPixel(byte x, byte color_index, bool is_sprite, byte palette_index)

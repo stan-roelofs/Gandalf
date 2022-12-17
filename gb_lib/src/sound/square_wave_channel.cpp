@@ -9,7 +9,7 @@ namespace
 
 namespace gandalf
 {
-    SquareWaveChannel::SquareWaveChannel(FrameSequencer& frame_sequencer, bool has_frequency_sweep_unit) : SoundChannel(),
+    SquareWaveChannel::SquareWaveChannel(FrameSequencer& frame_sequencer, bool has_frequency_sweep_unit): SoundChannel(),
         pattern_duty_(0),
         duty_counter_(0),
         frequency_low_(0),
@@ -45,7 +45,7 @@ namespace gandalf
             if (frequency_sweep_unit_->GetNegate())
                 result |= 0x8;
             result |= (frequency_sweep_unit_->GetPeriod() << 4);
-            return result;
+            return result | 0x80;
         }
         case 1:
             return (pattern_duty_ << 6) | 0x3F;

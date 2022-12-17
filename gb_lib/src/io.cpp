@@ -8,10 +8,11 @@ namespace gandalf {
         timer_(bus),
         lcd_(mode),
         ppu_(mode, bus, lcd_),
+        serial_(mode),
         joypad_(bus),
         apu_(audio_handler),
         dma_(bus),
-        hdma_(bus, lcd_),
+        hdma_(mode, bus, lcd_),
         mode_(mode)
     {
         bus_.Register(ppu_);
@@ -40,6 +41,8 @@ namespace gandalf {
         mode_ = mode;
         ppu_.SetMode(mode);
         lcd_.SetMode(mode);
+        serial_.SetMode(mode);
+        hdma_.SetMode(mode);
     }
 
     void IO::Tick(unsigned int cycles, bool double_speed)
