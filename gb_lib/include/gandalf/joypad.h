@@ -21,7 +21,7 @@ namespace gandalf
             kStart,
         };
 
-        Joypad();
+        Joypad(Bus& bus);
         virtual ~Joypad();
 
         void SetButtonState(Button button, bool pressed);
@@ -35,6 +35,7 @@ namespace gandalf
 
         std::array<bool, 8> pressed_buttons_;
         byte p1_;
+        Bus& bus_;
     };
 }
 

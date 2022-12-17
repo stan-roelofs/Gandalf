@@ -8,6 +8,7 @@ namespace gandalf {
         timer_(bus),
         lcd_(mode),
         ppu_(mode, bus, lcd_),
+        joypad_(bus),
         apu_(audio_handler),
         dma_(bus),
         hdma_(bus, lcd_),

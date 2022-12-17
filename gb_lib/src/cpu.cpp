@@ -745,7 +745,8 @@ namespace gandalf {
     // Handle interrupts if two corresponding bits in IE and IF are set
     if (registers_.interrupt_enable & registers_.interrupt_flags & 0x1F) {
       halt_ = false;
-      // TODO exit stop when joypad pressed 
+      if (registers_.interrupt_flags & kJoypadInterruptMask)
+          stop_ = false;
       if (registers_.interrupt_master_enable) {
         registers_.interrupt_master_enable = false;
         InterruptServiceRoutine();
@@ -840,8 +841,8 @@ namespace gandalf {
         double_speed_ = !double_speed_;
         ADVANCE_IO(kSpeedSwitchClocks);
       }
-      else
-        stop_ = true;
+      //else
+        //stop_ = true; // TODO
       break;
     case 0x11:
       LD_RR_NN(registers_.de()) break;

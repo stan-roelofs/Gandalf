@@ -25,7 +25,7 @@ namespace
 
 namespace gandalf
 {
-    Joypad::Joypad() : Bus::AddressHandler("Joypad"), p1_(0xCF)
+    Joypad::Joypad(Bus& bus) : Bus::AddressHandler("Joypad"), bus_(bus), p1_(0xCF)
     {
         pressed_buttons_.fill(false);
     }
@@ -34,8 +34,11 @@ namespace gandalf
 
     void Joypad::SetButtonState(Button button, bool pressed)
     {
+        bool was_pressed = pressed_buttons_[button];
         pressed_buttons_[button] = pressed;
         Update();
+        if (pressed && !was_pressed)
+            bus_.Write(kIF, bus_.Read(kIF) | kJoypadInterruptMask);
     }
 
     byte Joypad::Read(word address) const
