@@ -6,7 +6,7 @@
 
 namespace gandalf
 {
-    DMA::DMA(Bus& bus) : Bus::AddressHandler("DMA"),
+    DMA::DMA(Bus& bus): Bus::AddressHandler("DMA"),
         bus_(bus),
         dma_(0),
         in_progress_(false),
@@ -55,8 +55,15 @@ namespace gandalf
     void DMA::Write(word address, byte value)
     {
         assert(address == kDMA);
-        (void)address;
+        if (address != kDMA)
+            return;
         dma_ = value;
+
+        // Unlike normal memory accesses, OAM DMA transfers interpret all accesses in the 0xA000 - 0xFFFF range as external RAM transfers.
+        // TODO not sure whether the code below is correct. If I understand correctly DMA will try to read from cartridge RAM that doesn't exist.
+        // Whatever happens is probably determined by the cartridge??
+        if (dma_ >= 0xF0)
+            dma_ -= 0x50;
 
         cycle_counter_ = 0;
         current_byte_read_ = 0;
@@ -64,6 +71,7 @@ namespace gandalf
         read_value_ = 0;
         in_progress_ = true;
         source_address_ = dma_ << 8;
+
     }
 
     std::set<word> DMA::GetAddresses() const
