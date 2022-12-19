@@ -26,7 +26,7 @@ namespace gandalf
     */
     void DMA::Tick()
     {
-        if (!in_progress_ || cycle_counter_++ < 4)
+        if (!in_progress_ || ++cycle_counter_ < 4)
             return;
 
         cycle_counter_ = 0;
