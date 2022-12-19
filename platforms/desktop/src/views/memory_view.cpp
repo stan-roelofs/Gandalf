@@ -6,7 +6,7 @@
 #include "../text.h"
 namespace gui
 {
-    MemoryView::MemoryView(const bool& debug_enabled) :
+    MemoryView::MemoryView(const bool& debug_enabled):
         debug_enabled_(debug_enabled)
     {
     }
@@ -55,7 +55,7 @@ namespace gui
                     for (int column = 0; column < 16; column++)
                     {
                         const gandalf::word address = address_start + column;
-                        const gandalf::byte value = gameboy_->GetBus().DebugRead(address);
+                        const gandalf::byte value = gameboy_->GetBus().Read(address, gandalf::Bus::AccessLevel::kDebug);
                         ImGui::TableNextColumn();
                         ImGui::Text("%02X", value);
                         if (ImGui::IsItemHovered()) {

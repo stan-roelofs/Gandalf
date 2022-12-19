@@ -35,18 +35,24 @@ namespace gui
 {
     void GameboyThread(gandalf::Gameboy* gb, const bool* thread_run, bool* gb_paused, bool* step, std::optional<gandalf::word>* breakpoint)
     {
-        while (*thread_run)
-        {
-            if (*breakpoint && *breakpoint == gb->GetCPU().GetRegisters().program_counter)
-                *gb_paused = true;
-
-            if (!*gb_paused)
-                gb->Run();
-            else if (*step)
+        try {
+            while (*thread_run)
             {
-                gb->Run();
-                *step = false;
+                if (*breakpoint && *breakpoint == gb->GetCPU().GetRegisters().program_counter)
+                    *gb_paused = true;
+
+                if (!*gb_paused)
+                    gb->Run();
+                else if (*step)
+                {
+                    gb->Run();
+                    *step = false;
+                }
             }
+        }
+        catch (std::exception& e)
+        {
+            std::cerr << e.what() << std::endl;
         }
     }
 

@@ -108,22 +108,22 @@ namespace blargg {
 
                 // 0xA000 holds the status code, check it every once in a while to detect if the test has finished.
                 // Note: 0xA000 is the cartridge RAM and it returns 0xFF when disabled. 
-                if (i % 1000 == 0 && bus.DebugRead(0xA000) != 0xFF && bus.DebugRead(0xA000) != 0x80)
+                if (i % 1000 == 0 && bus.Read(0xA000, Bus::AccessLevel::kDebug) != 0xFF && bus.Read(0xA000, Bus::AccessLevel::kDebug) != 0x80)
                     break;
 
                 ++i;
             }
 
             bool result_valid = true;
-            result_valid &= bus.DebugRead(0xA001) == 0xDE;
-            result_valid &= bus.DebugRead(0xA002) == 0xB0;
-            result_valid &= bus.DebugRead(0xA003) == 0x61;
-            byte result_code = bus.DebugRead(0xA000);
+            result_valid &= bus.Read(0xA001, Bus::AccessLevel::kDebug) == 0xDE;
+            result_valid &= bus.Read(0xA002, Bus::AccessLevel::kDebug) == 0xB0;
+            result_valid &= bus.Read(0xA003, Bus::AccessLevel::kDebug) == 0x61;
+            byte result_code = bus.Read(0xA000, Bus::AccessLevel::kDebug);
 
             word address = 0xA004;
             if (result_valid) {
-                while (bus.DebugRead(address) != 0x00)
-                    output_ += bus.DebugRead(address++);
+                while (bus.Read(address, Bus::AccessLevel::kDebug) != 0x00)
+                    output_ += bus.Read(address++, Bus::AccessLevel::kDebug);
             }
 
             return result_valid && result_code == 0;

@@ -109,7 +109,7 @@ namespace gui
                     ImGui::Text("%04X", line_no);
 
                     ImGui::TableSetColumnIndex(2);
-                    ImGui::Text("%02X", bus.DebugRead(line_no));
+                    ImGui::Text("%02X", bus.Read(line_no, gandalf::Bus::AccessLevel::kDebug));
                 }
 
                 if (clipper.ItemsHeight > 0) debugger_item_height = clipper.ItemsHeight;

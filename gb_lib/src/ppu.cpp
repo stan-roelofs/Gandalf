@@ -36,6 +36,7 @@ namespace gandalf {
     // TODO stat interrupts can block eachother
     void PPU::Tick()
     {
+        // TODO: block access to vram/oam/palettes
         ++line_ticks_;
         const byte stat = lcd_.GetLCDStatus();
 
@@ -116,8 +117,6 @@ namespace gandalf {
             }
             break;
         }
-
-        //lcd_.SetLY(ly);
     }
 
     void PPU::CheckLYEqualsLYC()

@@ -32,17 +32,20 @@ namespace gandalf
         cycle_counter_ = 0;
 
         if (current_byte_read_ > 0) {
-            bus_.Write(0xFE00 + current_byte_write_, read_value_);
+            bus_.Write(0xFE00 + current_byte_write_, read_value_, Bus::AccessLevel::kOEMDMA);
             ++current_byte_write_;
         }
 
-        if (current_byte_read_ < 0x100) {
-            read_value_ = bus_.Read(source_address_ + current_byte_read_);
+        if (current_byte_read_ < 160) {
+            read_value_ = bus_.Read(source_address_ + current_byte_read_, Bus::AccessLevel::kOEMDMA);
             ++current_byte_read_;
         }
 
-        if (current_byte_write_ == 0x100)
+        if (current_byte_write_ == 160) {
             in_progress_ = false;
+            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0x0000, 0xFF7F);
+            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0xFFFF, 0xFFFF);
+        }
     }
 
     byte DMA::Read(word address) const
@@ -59,6 +62,11 @@ namespace gandalf
             return;
         dma_ = value;
 
+        Start(); // TODO startup time?
+    }
+
+    void DMA::Start()
+    {
         // Unlike normal memory accesses, OAM DMA transfers interpret all accesses in the 0xA000 - 0xFFFF range as external RAM transfers.
         // TODO not sure whether the code below is correct. If I understand correctly DMA will try to read from cartridge RAM that doesn't exist.
         // Whatever happens is probably determined by the cartridge??
@@ -72,6 +80,8 @@ namespace gandalf
         in_progress_ = true;
         source_address_ = dma_ << 8;
 
+        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0x0000, 0xFF7F);
+        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0xFFFF, 0xFFFF);
     }
 
     std::set<word> DMA::GetAddresses() const

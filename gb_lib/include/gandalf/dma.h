@@ -5,7 +5,7 @@
 
 namespace gandalf
 {
-    class DMA : public Bus::AddressHandler
+    class DMA: public Bus::AddressHandler
     {
     public:
         DMA(Bus& bus);
@@ -20,6 +20,7 @@ namespace gandalf
         bool InProgress() const { return in_progress_; }
 
     private:
+        void Start();
         Bus& bus_;
         byte dma_;
 

@@ -46,6 +46,13 @@ namespace gandalf {
       std::string name_;
     };
 
+    enum AccessLevel: byte
+    {
+      kNormal,
+      kOEMDMA,
+      kDebug // Always has access
+    };
+
     Bus();
     ~Bus();
 
@@ -54,25 +61,18 @@ namespace gandalf {
      *
      * @param address address that will be written
      * @param value value that will be written
+     * @param access_level In some cases a memory region may be blocked for certain components, this parameter determines whether the callee gets access or not.
      */
-    void Write(word address, byte value);
+    void Write(word address, byte value, AccessLevel access_level = kNormal);
 
     /**
      * Reads the value at the specified address.
      *
      * @param address the address that will be read.
-     * @return Value
+     * @param access_level In some cases a memory region may be blocked for certain components, this parameter determines whether the callee gets access or not.
+     * @return byte The value of the given address. If no access is granted this returns 0xFF.
      */
-    byte Read(word address) const;
-
-    /**
-     * Returns the true value of the specified address, only for debugging!
-     * The normal Read() method may return 0xFF when the bus is occupied.
-     *
-     * @param address
-     * @return byte
-     */
-    byte DebugRead(word address) const;
+    byte Read(word address, AccessLevel access_level = kNormal) const;
 
     /**
      * Registers an address handler to the bus.
@@ -94,8 +94,21 @@ namespace gandalf {
      */
     std::string GetAddressHandlerName(word address) const;
 
+    /**
+     * Sets the access level of a memory region. This can be used to block reads/writes to a region, for example when DMA is active the CPU can only access HRAM.
+     * @param level The required level to be able to read/write to the specified region
+     * @param start_address The first address that should be blocked
+     * @param end_address The last address that should be blocked
+    */
+    void SetAccessLevel(AccessLevel level, word start_address, word end_address);
+
   private:
-    std::array<AddressHandler*, 0x10000> address_space_;
+    struct AddressWrapper
+    {
+      AddressHandler* handler;
+      AccessLevel access_level;
+    };
+    std::array<AddressWrapper, 0x10000> address_space_;
   };
 
 } // namespace gandalf
