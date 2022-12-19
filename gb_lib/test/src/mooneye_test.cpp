@@ -117,4 +117,30 @@ namespace mooneye {
             "acceptance/bits/unused_hwio-GS.gb"
         )
     );
+
+    INSTANTIATE_TEST_SUITE_P(
+        acceptance_instr,
+        MooneyeTest,
+        ::testing::Values(
+            "acceptance/instr/daa.gb"
+        )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
+        acceptance_interrupts,
+        MooneyeTest,
+        ::testing::Values(
+            "acceptance/interrupts/ie_push.gb"
+        )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
+        acceptance_oem_dma,
+        MooneyeTest,
+        ::testing::Values(
+            "acceptance/oem_dma/basic.gb",
+            "acceptance/oem_dma/reg_read.gb",
+            "acceptance/oem_dma/sources-GS.gb"
+        )
+    );
 }
