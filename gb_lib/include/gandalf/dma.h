@@ -17,8 +17,6 @@ namespace gandalf
         void Write(word address, byte value) override;
         std::set<word> GetAddresses() const override;
 
-        bool InProgress() const { return in_progress_; }
-
     private:
         void Start();
         Bus& bus_;

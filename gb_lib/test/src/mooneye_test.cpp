@@ -138,9 +138,9 @@ namespace mooneye {
         acceptance_oem_dma,
         MooneyeTest,
         ::testing::Values(
-            "acceptance/oem_dma/basic.gb",
-            "acceptance/oem_dma/reg_read.gb",
-            "acceptance/oem_dma/sources-GS.gb"
+            "acceptance/oam_dma/basic.gb",
+            "acceptance/oam_dma/reg_read.gb",
+            "acceptance/oam_dma/sources-GS.gb"
         )
     );
 }

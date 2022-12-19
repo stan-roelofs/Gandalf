@@ -28,7 +28,6 @@ namespace gandalf
     {
         if (!in_progress_ || ++cycle_counter_ < 4)
             return;
-
         cycle_counter_ = 0;
 
         if (current_byte_read_ > 0) {
@@ -43,7 +42,8 @@ namespace gandalf
 
         if (current_byte_write_ == 160) {
             in_progress_ = false;
-            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0x0000, 0xFF7F);
+            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0x0000, 0xFF45);
+            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0xFF47, 0xFF80);
             bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0xFFFF, 0xFFFF);
         }
     }
@@ -71,7 +71,7 @@ namespace gandalf
         // TODO not sure whether the code below is correct. If I understand correctly DMA will try to read from cartridge RAM that doesn't exist.
         // Whatever happens is probably determined by the cartridge??
         if (dma_ >= 0xF0)
-            dma_ -= 0x50;
+            dma_ -= 0x20;
 
         cycle_counter_ = 0;
         current_byte_read_ = 0;
@@ -80,7 +80,8 @@ namespace gandalf
         in_progress_ = true;
         source_address_ = dma_ << 8;
 
-        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0x0000, 0xFF7F);
+        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0x0000, 0xFF45);
+        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0xFF47, 0xFF7F);
         bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0xFFFF, 0xFFFF);
     }
 
