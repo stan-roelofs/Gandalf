@@ -56,8 +56,9 @@ set(HEADERS
   src/settings.h
   src/settings_window.h
   src/text.h
-  src/views/gui_element.h
   src/views/cpu_view.h
+  src/views/debugger.h
+  src/views/gui_element.h
   src/views/gameboy_view.h
   src/views/io_view.h
   src/views/memory_view.h
@@ -74,12 +75,13 @@ set(SOURCES
   src/settings.cpp
   src/settings_window.cpp
   src/text.cpp
+  src/views/apu_view.cpp
   src/views/cpu_view.cpp
+  src/views/debugger.cpp
   src/views/gameboy_view.cpp
   src/views/io_view.cpp
   src/views/memory_view.cpp
   src/views/cartridge_view.cpp
-  src/views/apu_view.cpp
   src/views/vram_view.cpp
 )
 

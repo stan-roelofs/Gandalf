@@ -5,4 +5,4 @@ project(Gandalf)
 enable_testing()
  
 add_subdirectory(gb_lib)
-add_subdirectory(platforms)
+add_subdirectory(gb_app)

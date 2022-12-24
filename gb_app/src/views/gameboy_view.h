@@ -18,7 +18,7 @@ namespace gui
         GameboyView();
         ~GameboyView();
 
-        void SetGameboy(std::shared_ptr<gandalf::Gameboy> gameboy) override;
+        void OnGameboyChanged() override;
         void Render() override;
 
     private:

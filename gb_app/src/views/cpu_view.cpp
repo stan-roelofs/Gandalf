@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 
+#include "debugger.h"
 #include "../text.h"
 
 namespace gui
@@ -75,47 +76,68 @@ namespace gui
         gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
         if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
             static gandalf::word last_pc = registers.program_counter;
-            static float debugger_item_height = 0.f;
-            if (last_pc != registers.program_counter && debugger_item_height > 0) {
-                ImGui::SetScrollY(registers.program_counter * debugger_item_height);
+            if (last_pc != registers.program_counter) {
+                ImGui::SetScrollY(registers.program_counter * ImGui::GetTextLineHeightWithSpacing());
                 last_pc = registers.program_counter;
             }
 
-            ImGuiListClipper clipper;
-            clipper.Begin(0x10000);
+            ImGuiListClipper clipper(0x10000, ImGui::GetTextLineHeightWithSpacing());
             while (clipper.Step())
             {
-                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                gandalf::word current_address = clipper.DisplayStart;
+                for (int line_no = clipper.DisplayStart; line_no <= clipper.DisplayEnd; ++line_no)
                 {
-                    // TODO: decode instructions, show name with operand values, group them (e.g. LD_RR_NN should combine into one line)
                     ImGui::TableNextRow();
-
-                    if (line_no == registers.program_counter)
-                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
 
                     ImGui::TableSetColumnIndex(0);
 
-                    bool dummy = false;
-                    std::string label = "##b" + std::to_string(line_no);
-                    if (ImGui::Selectable(label.c_str(), breakpoint_ && *breakpoint_ == line_no)) {
-                        if (breakpoint_ && *breakpoint_ == line_no)
+                    if (current_address == registers.program_counter)
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 0.5f)));
+
+                    char address[5];
+                    address[4] = '\0';
+                    snprintf(address, 5, "%04X##b", current_address);
+                    if (ImGui::Selectable(address, breakpoint_ && *breakpoint_ == current_address, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns)) {
+                        if (breakpoint_ && *breakpoint_ == current_address)
                             breakpoint_ = std::nullopt;
                         else
-                            breakpoint_ = line_no;
+                            breakpoint_ = current_address;
+                    }
+                    ImGui::TableNextColumn();
+
+                    auto opcode = bus.Read(current_address++, gandalf::Bus::AccessLevel::kDebug);
+                    const debugger::Instruction& instruction = debugger::DecodeInstruction(opcode);
+
+                    gandalf::byte op1, op2;
+                    if (instruction.length > 0) op1 = bus.Read(current_address++, gandalf::Bus::AccessLevel::kDebug);
+                    if (instruction.length > 1) op2 = bus.Read(current_address++, gandalf::Bus::AccessLevel::kDebug);
+
+                    switch (instruction.length) {
+                    case 0:
+                        ImGui::Text("02X", opcode);
+                        break;
+                    case 1:
+                        ImGui::Text("%02X %02X", opcode, op1);
+                        break;
+                    case 2:
+                        ImGui::Text("%02X %02X %02X", opcode, op1, op2);
+                        break;
                     }
 
-                    ImGui::TableSetColumnIndex(1);
-
-                    ImGui::Text("%04X", line_no);
-
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::Text("%02X", bus.Read(line_no, gandalf::Bus::AccessLevel::kDebug));
+                    ImGui::TableNextColumn();
+                    switch (instruction.length) {
+                    case 0:
+                        ImGui::TextUnformatted(instruction.name);
+                        break;
+                    case 1:
+                        ImGui::Text(instruction.name, op1);
+                        break;
+                    case 2:
+                        ImGui::Text(instruction.name, op1, op2);
+                        break;
+                    }
                 }
-
-                if (clipper.ItemsHeight > 0) debugger_item_height = clipper.ItemsHeight;
             }
-            clipper.End();
-
             ImGui::EndTable();
         }
 

@@ -27,9 +27,8 @@ namespace gui
         glDeleteTextures(1, &texture_);
     }
 
-    void GameboyView::SetGameboy(std::shared_ptr<gandalf::Gameboy> gameboy)
+    void GameboyView::OnGameboyChanged()
     {
-        GUIElement::SetGameboy(gameboy);
         gameboy_->GetPPU().AddVBlankListener(this);
     }
 
