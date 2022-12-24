@@ -143,4 +143,21 @@ namespace mooneye {
             "acceptance/oam_dma/sources-GS.gb"
         )
     );
+    
+    INSTANTIATE_TEST_SUITE_P(
+        acceptance,
+        MooneyeTest,
+        ::testing::Values(
+            "acceptance/boot_regs-dmgABC.gb",
+			"acceptance/div_timing.gb",
+            "acceptance/ei_timing.gb",
+            "acceptance/ei_sequence.gb",
+            "acceptance/halt_ime0_ei.gb",
+            "acceptance/halt_ime1_timing.gb",
+            "acceptance/if_ie_registers.gb",
+            "acceptance/pop_timing.gb",
+            "acceptance/rapid_di_ei.gb",
+            "acceptance/reti_intr_timing.gb"
+        )
+    );
 }
