@@ -114,13 +114,13 @@ namespace gui
 
                     switch (instruction.length) {
                     case 0:
-                        ImGui::Text("02X", opcode);
+                        ImGui::Text("%02X", opcode);
                         break;
                     case 1:
                         ImGui::Text("%02X %02X", opcode, op1);
                         break;
                     case 2:
-                        ImGui::Text("%02X %02X %02X", opcode, op1, op2);
+                        ImGui::Text("%02X %04X", opcode, op1 | (op2 << 8));
                         break;
                     }
 
@@ -133,7 +133,7 @@ namespace gui
                         ImGui::Text(instruction.name, op1);
                         break;
                     case 2:
-                        ImGui::Text(instruction.name, op1, op2);
+                        ImGui::Text(instruction.name, op1 | (op2 << 8));
                         break;
                     }
                 }
