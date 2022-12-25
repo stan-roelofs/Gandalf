@@ -14,7 +14,8 @@ namespace gandalf
         current_byte_write_(0),
         source_address_(0),
         read_value_(0),
-        cycle_counter_(0)
+        cycle_counter_(0),
+        bus_(Memory::Bus::kExternal)
     {
     }
 
@@ -31,20 +32,18 @@ namespace gandalf
         cycle_counter_ = 0;
 
         if (current_byte_read_ > 0) {
-            memory_.Write(0xFE00 + current_byte_write_, read_value_, Memory::AccessLevel::kOEMDMA);
+            memory_.Write(0xFE00 + current_byte_write_, read_value_);
             ++current_byte_write_;
         }
 
         if (current_byte_read_ < 160) {
-            read_value_ = memory_.Read(source_address_ + current_byte_read_, Memory::AccessLevel::kOEMDMA);
+            read_value_ = memory_.DebugRead(source_address_ + current_byte_read_);
             ++current_byte_read_;
         }
 
         if (current_byte_write_ == 160) {
             in_progress_ = false;
-            memory_.SetAccessLevel(Memory::AccessLevel::kNormal, 0x0000, 0xFF45);
-            memory_.SetAccessLevel(Memory::AccessLevel::kNormal, 0xFF47, 0xFF80);
-            memory_.SetAccessLevel(Memory::AccessLevel::kNormal, 0xFFFF, 0xFFFF);
+            memory_.Block(bus_, false);
         }
     }
 
@@ -79,10 +78,9 @@ namespace gandalf
         read_value_ = 0;
         in_progress_ = true;
         source_address_ = dma_ << 8;
+        bus_ = Memory::GetBus(dma_);
 
-        memory_.SetAccessLevel(Memory::AccessLevel::kOEMDMA, 0x0000, 0xFF45);
-        memory_.SetAccessLevel(Memory::AccessLevel::kOEMDMA, 0xFF47, 0xFF7F);
-        memory_.SetAccessLevel(Memory::AccessLevel::kOEMDMA, 0xFFFF, 0xFFFF);
+        memory_.Block(bus_);
     }
 
     std::set<word> DMA::GetAddresses() const

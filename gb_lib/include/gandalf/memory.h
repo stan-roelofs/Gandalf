@@ -46,11 +46,10 @@ namespace gandalf {
       std::string name_;
     };
 
-    enum AccessLevel : byte
+    enum Bus: byte
     {
-      kNormal,
-      kOEMDMA,
-      kDebug // Always has access
+      kExternal,
+      kVideoRAM,
     };
 
     Memory();
@@ -61,18 +60,24 @@ namespace gandalf {
      *
      * @param address address that will be written
      * @param value value that will be written
-     * @param access_level In some cases a memory region may be blocked for certain components, this parameter determines whether the callee gets access or not.
      */
-    void Write(word address, byte value, AccessLevel access_level = kNormal);
+    void Write(word address, byte value);
 
     /**
      * Reads the value at the specified address.
      *
      * @param address the address that will be read.
-     * @param access_level In some cases a memory region may be blocked for certain components, this parameter determines whether the callee gets access or not.
      * @return byte The value of the given address. If no access is granted this returns 0xFF.
      */
-    byte Read(word address, AccessLevel access_level = kNormal) const;
+    byte Read(word address) const;
+
+    /**
+     * Reads the value at the specified address without checking for access.
+     *
+     * @param address the address that will be read.
+     * @return byte The value of the given address.
+     */
+    byte DebugRead(word address) const;
 
     /**
      * Registers an address handler to the memory.
@@ -87,26 +92,25 @@ namespace gandalf {
     */
     void Unregister(AddressHandler& handler);
 
-
     /**
      * @param address Address for which the name is requested.
      * @returns The name of the object that owns the specified address.
      */
     std::string GetAddressHandlerName(word address) const;
 
-    /**
-     * Sets the access level of a memory region. This can be used to block reads/writes to a region, for example when DMA is active the CPU can only access HRAM.
-     * @param level The required level to be able to read/write to the specified region
-     * @param start_address The first address that should be blocked
-     * @param end_address The last address that should be blocked
-    */
-    void SetAccessLevel(AccessLevel level, word start_address, word end_address);
+	/**
+	 * @param address Address for which the bus is requested.
+	 * @returns Which Bus handles reads/writes of the given address.
+	 */
+    static Bus GetBus(word address);
+
+    void Block(Bus bus, bool block = true);
 
   private:
     struct AddressWrapper
     {
       AddressHandler* handler;
-      AccessLevel access_level;
+      bool blocked;
     };
     std::array<AddressWrapper, 0x10000> address_space_;
   };

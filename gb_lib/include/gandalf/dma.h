@@ -28,6 +28,7 @@ namespace gandalf
         word source_address_;
         byte read_value_;
         int cycle_counter_;
+        Memory::Bus bus_;
     };
 }
 

@@ -105,12 +105,12 @@ namespace gui
                     }
                     ImGui::TableNextColumn();
 
-                    auto opcode = memory.Read(current_address++, gandalf::Memory::AccessLevel::kDebug);
+                    auto opcode = memory.DebugRead(current_address++);
                     const debugger::Instruction& instruction = debugger::DecodeInstruction(opcode);
 
                     gandalf::byte op1, op2;
-                    if (instruction.length > 0) op1 = memory.Read(current_address++, gandalf::Memory::AccessLevel::kDebug);
-                    if (instruction.length > 1) op2 = memory.Read(current_address++, gandalf::Memory::AccessLevel::kDebug);
+                    if (instruction.length > 0) op1 = memory.DebugRead(current_address++);
+                    if (instruction.length > 1) op2 = memory.DebugRead(current_address++);
 
                     switch (instruction.length) {
                     case 0:
