@@ -381,7 +381,7 @@ namespace gandalf {
             return "None";
     }
 
-    Cartridge::Cartridge() : Bus::AddressHandler("Cartridge"), header_() {}
+    Cartridge::Cartridge() : Memory::AddressHandler("Cartridge"), header_() {}
 
     Cartridge::~Cartridge() = default;
 

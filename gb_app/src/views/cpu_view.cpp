@@ -72,7 +72,7 @@ namespace gui
 
         ImGui::Separator();
 
-        gandalf::Bus& bus = gameboy_->GetBus();
+        gandalf::Memory& memory = gameboy_->GetMemory();
         gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
         if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
             static gandalf::word last_pc = registers.program_counter;
@@ -105,12 +105,12 @@ namespace gui
                     }
                     ImGui::TableNextColumn();
 
-                    auto opcode = bus.Read(current_address++, gandalf::Bus::AccessLevel::kDebug);
+                    auto opcode = memory.Read(current_address++, gandalf::Memory::AccessLevel::kDebug);
                     const debugger::Instruction& instruction = debugger::DecodeInstruction(opcode);
 
                     gandalf::byte op1, op2;
-                    if (instruction.length > 0) op1 = bus.Read(current_address++, gandalf::Bus::AccessLevel::kDebug);
-                    if (instruction.length > 1) op2 = bus.Read(current_address++, gandalf::Bus::AccessLevel::kDebug);
+                    if (instruction.length > 0) op1 = memory.Read(current_address++, gandalf::Memory::AccessLevel::kDebug);
+                    if (instruction.length > 1) op2 = memory.Read(current_address++, gandalf::Memory::AccessLevel::kDebug);
 
                     switch (instruction.length) {
                     case 0:

@@ -1,11 +1,11 @@
 #ifndef __GANDALF_SERIAL_H
 #define __GANDALF_SERIAL_H
 
-#include "bus.h"
+#include "memory.h"
 #include "constants.h"
 
 namespace gandalf {
-    class Serial : public Bus::AddressHandler {
+    class Serial : public Memory::AddressHandler {
     public:
         Serial(GameboyMode mode);
         virtual ~Serial();

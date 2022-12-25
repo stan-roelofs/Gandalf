@@ -13,7 +13,7 @@ namespace gandalf {
   /**
    * Gives access to the Game Boy's 16-bit address space.
    */
-  class Bus {
+  class Memory {
   public:
     class AddressHandler
     {
@@ -46,15 +46,15 @@ namespace gandalf {
       std::string name_;
     };
 
-    enum AccessLevel: byte
+    enum AccessLevel : byte
     {
       kNormal,
       kOEMDMA,
       kDebug // Always has access
     };
 
-    Bus();
-    ~Bus();
+    Memory();
+    ~Memory();
 
     /**
      * Writes the value to the specified address.
@@ -75,13 +75,13 @@ namespace gandalf {
     byte Read(word address, AccessLevel access_level = kNormal) const;
 
     /**
-     * Registers an address handler to the bus.
+     * Registers an address handler to the memory.
      * @param handler the handler
      */
     void Register(AddressHandler& handler);
 
     /**
-     * Removes the specified address handler from the bus.
+     * Removes the specified address handler from the memory.
      *
      * @param handler the handler
     */

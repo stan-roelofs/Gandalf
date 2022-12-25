@@ -24,11 +24,11 @@ namespace gandalf {
 
 #define READ(address, destination)                                             \
   ADVANCE_IO(4);                                                  \
-  (destination) = bus_.Read(address);
+  (destination) = memory_.Read(address);
 
 #define WRITE(address, value)                                                  \
   ADVANCE_IO(4);                                                  \
-  bus_.Write(address, value);
+  memory_.Write(address, value);
 
 #define READ_PC(destination) READ(registers_.program_counter++, destination)
 #define READ_SP(destination) READ(registers_.stack_pointer++, destination)
@@ -690,8 +690,8 @@ namespace gandalf {
     WRITE(registers_.hl(), value);                                             \
   }
 
-  CPU::CPU(GameboyMode mode, IO& io, Bus& bus): Bus::AddressHandler("CPU"),
-    bus_(bus),
+  CPU::CPU(GameboyMode mode, IO& io, Memory& memory): Memory::AddressHandler("CPU"),
+    memory_(memory),
     io_(io),
     opcode_(0),
     halt_(false),

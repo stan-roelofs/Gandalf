@@ -5,7 +5,7 @@
 #include <gandalf/util.h>
 
 namespace gandalf {
-    HRAM::HRAM() : Bus::AddressHandler("HRAM") {
+    HRAM::HRAM() : Memory::AddressHandler("HRAM") {
         data_.fill((byte)std::rand());
     }
 

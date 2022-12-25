@@ -1,13 +1,13 @@
 #ifndef __GANDALF_APU_H
 #define __GANDALF_APU_H
 
-#include "bus.h"
+#include "memory.h"
 #include "sound/frame_sequencer.h"
 #include "sound/sound_channel.h"
 
 namespace gandalf
 {
-    class APU : public Bus::AddressHandler
+    class APU : public Memory::AddressHandler
     {
     public:
         class OutputHandler

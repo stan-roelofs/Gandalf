@@ -6,7 +6,7 @@
 #include <gandalf/util.h>
 
 namespace gandalf {
-    WRAM::WRAM(GameboyMode mode) : Bus::AddressHandler("WRAM"),
+    WRAM::WRAM(GameboyMode mode) : Memory::AddressHandler("WRAM"),
         wram_bank_(1),
         mode_(mode)
     {

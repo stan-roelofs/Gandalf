@@ -11,8 +11,8 @@ namespace {
 }
 
 namespace gandalf {
-    PPU::PPU(GameboyMode mode, Bus& bus, LCD& lcd): Bus::AddressHandler("PPU"),
-        bus_(bus),
+    PPU::PPU(GameboyMode mode, Memory& memory, LCD& lcd): Memory::AddressHandler("PPU"),
+        memory_(memory),
         lcd_(lcd),
         line_ticks_(0),
         mode_(mode),
@@ -74,7 +74,7 @@ namespace gandalf {
                 //assert(BETWEEN(line_ticks_, 252, 369));
                 lcd_.SetMode(LCD::Mode::HBlank);
                 if (stat & 0x8)
-                    bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
+                    memory_.Write(kIF, memory_.Read(kIF) | kLCDInterruptMask);
             }
             break;
         case LCD::Mode::HBlank:
@@ -84,10 +84,10 @@ namespace gandalf {
                 if (lcd_.GetLY() >= kScreenHeight) {
                     lcd_.SetMode(LCD::Mode::VBlank);
 
-                    bus_.Write(kIF, bus_.Read(kIF) | kVBlankInterruptMask);
+                    memory_.Write(kIF, memory_.Read(kIF) | kVBlankInterruptMask);
 
                     if (stat & 0x10)
-                        bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
+                        memory_.Write(kIF, memory_.Read(kIF) | kLCDInterruptMask);
 
                     for (auto listener : vblank_listeners_)
                         listener->OnVBlank();
@@ -127,7 +127,7 @@ namespace gandalf {
             stat |= 0x4;
 
             if (stat & 0x40) {
-                bus_.Write(kIF, bus_.Read(kIF) | kLCDInterruptMask);
+                memory_.Write(kIF, memory_.Read(kIF) | kLCDInterruptMask);
             }
         }
         else {

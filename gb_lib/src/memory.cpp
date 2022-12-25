@@ -1,23 +1,23 @@
-#include <gandalf/bus.h>
+#include <gandalf/memory.h>
 
 namespace gandalf {
-  Bus::AddressHandler::AddressHandler(const std::string& name): name_(name) {
+  Memory::AddressHandler::AddressHandler(const std::string& name): name_(name) {
 
   }
 
-  Bus::AddressHandler::~AddressHandler() = default;
+  Memory::AddressHandler::~AddressHandler() = default;
 
-  Bus::Bus() {
+  Memory::Memory() {
     AddressWrapper w;
     w.access_level = AccessLevel::kNormal;
     w.handler = nullptr;
     address_space_.fill(w);
   }
 
-  Bus::~Bus() = default;
+  Memory::~Memory() = default;
 
-  void Bus::Write(word address, byte value, AccessLevel level) {
-    if (address_space_[address].access_level != kNormal && address_space_[address].access_level != level && level != Bus::AccessLevel::kDebug)
+  void Memory::Write(word address, byte value, AccessLevel level) {
+    if (address_space_[address].access_level != kNormal && address_space_[address].access_level != level && level != Memory::AccessLevel::kDebug)
       return;
 
     if (address_space_[address].handler != nullptr) {
@@ -25,8 +25,8 @@ namespace gandalf {
     }
   }
 
-  byte Bus::Read(word address, AccessLevel level) const {
-    if (address_space_[address].access_level != kNormal && address_space_[address].access_level != level && level != Bus::AccessLevel::kDebug)
+  byte Memory::Read(word address, AccessLevel level) const {
+    if (address_space_[address].access_level != kNormal && address_space_[address].access_level != level && level != Memory::AccessLevel::kDebug)
       return 0xFF;
 
     if (address_space_[address].handler != nullptr) {
@@ -36,20 +36,20 @@ namespace gandalf {
     return 0xFF;
   }
 
-  void Bus::Register(AddressHandler& handler) {
+  void Memory::Register(AddressHandler& handler) {
     for (const word address : handler.GetAddresses()) {
       address_space_[address].handler = &handler;
     }
   }
 
-  void Bus::Unregister(AddressHandler& handler)
+  void Memory::Unregister(AddressHandler& handler)
   {
     for (const word address : handler.GetAddresses()) {
       address_space_[address].handler = nullptr;
     }
   }
 
-  std::string Bus::GetAddressHandlerName(word address) const
+  std::string Memory::GetAddressHandlerName(word address) const
   {
     if (!address_space_[address].handler)
       return "";
@@ -57,7 +57,7 @@ namespace gandalf {
     return address_space_[address].handler->GetName();
   }
 
-  void Bus::SetAccessLevel(AccessLevel level, word first, word last)
+  void Memory::SetAccessLevel(AccessLevel level, word first, word last)
   {
     // TODO what if this overlaps? e.g. dma blocks access to OAM, as well as PPU
     if (first > last)

@@ -4,7 +4,7 @@
 #include <memory>
 #include <cassert>
 
-#include "bus.h"
+#include "memory.h"
 #include "cpu.h"
 #include "cartridge.h"
 #include "constants.h"
@@ -28,7 +28,7 @@ namespace gandalf {
     const std::unique_ptr<Cartridge>& GetCartridge() const { return cartridge_; }
 
     CPU& GetCPU() { return *cpu_; }
-    Bus& GetBus() { return bus_; }
+    Memory& GetMemory() { return memory_; }
     LCD& GetLCD() { return io_->GetLCD(); }
     PPU& GetPPU() { return io_->GetPPU(); }
     Joypad& GetJoypad() { return io_->GetJoypad(); }
@@ -44,18 +44,18 @@ namespace gandalf {
 
     GameboyMode mode_;
 
-    // Keep in this order! The bus needs to be destroyed last, and io needs to be destroyed before cpu.
-    Bus bus_;
+    // Keep in this order! The memory needs to be destroyed last, and io needs to be destroyed before cpu.
+    Memory memory_;
     std::unique_ptr<IO> io_;
     std::unique_ptr<CPU> cpu_;
     std::unique_ptr<WRAM> wram_;
     std::unique_ptr<HRAM> hram_;
     std::unique_ptr<Cartridge> cartridge_;
 
-    class BootROMHandler: public Bus::AddressHandler
+    class BootROMHandler: public Memory::AddressHandler
     {
     public:
-      BootROMHandler(Gameboy& gb, const std::vector<byte> boot_rom): Bus::AddressHandler("Boot ROM"), key0_(0), boot_rom_(boot_rom), gb_(gb)
+      BootROMHandler(Gameboy& gb, const std::vector<byte> boot_rom): Memory::AddressHandler("Boot ROM"), key0_(0), boot_rom_(boot_rom), gb_(gb)
       {
       }
       virtual ~BootROMHandler() = default;

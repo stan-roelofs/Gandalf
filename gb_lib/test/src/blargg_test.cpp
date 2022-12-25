@@ -45,10 +45,10 @@ namespace {
 namespace blargg {
     using namespace gandalf;
     // Test will write its output to serial, this class overrides the default serial address handler and stores the output from the test in a string
-    class SerialOutputValidator: public Bus::AddressHandler, public TestRunner
+    class SerialOutputValidator: public Memory::AddressHandler, public TestRunner
     {
     public:
-        SerialOutputValidator(): Bus::AddressHandler("BlarggTest - SerialOutputReader"), done_(false), last_character_(false) {}
+        SerialOutputValidator(): Memory::AddressHandler("BlarggTest - SerialOutputReader"), done_(false), last_character_(false) {}
         void Write(word address, byte value) override
         {
             if (address == kSC) {
@@ -77,7 +77,7 @@ namespace blargg {
 
         bool RunTestROM(Gameboy& gb) override
         {
-            gb.GetBus().Register(*this);
+            gb.GetMemory().Register(*this);
 
             std::size_t ticks = 0;
             while (!done_ && ++ticks < kMaxCycles)
@@ -101,29 +101,29 @@ namespace blargg {
         bool RunTestROM(Gameboy& gb)
         {
             std::uint64_t i = 0;
-            auto& bus = gb.GetBus();
+            auto& memory = gb.GetMemory();
             while (i < kMaxCycles)
             {
                 gb.Run();
 
                 // 0xA000 holds the status code, check it every once in a while to detect if the test has finished.
                 // Note: 0xA000 is the cartridge RAM and it returns 0xFF when disabled. 
-                if (i % 1000 == 0 && bus.Read(0xA000, Bus::AccessLevel::kDebug) != 0xFF && bus.Read(0xA000, Bus::AccessLevel::kDebug) != 0x80)
+                if (i % 1000 == 0 && memory.Read(0xA000, Memory::AccessLevel::kDebug) != 0xFF && memory.Read(0xA000, Memory::AccessLevel::kDebug) != 0x80)
                     break;
 
                 ++i;
             }
 
             bool result_valid = true;
-            result_valid &= bus.Read(0xA001, Bus::AccessLevel::kDebug) == 0xDE;
-            result_valid &= bus.Read(0xA002, Bus::AccessLevel::kDebug) == 0xB0;
-            result_valid &= bus.Read(0xA003, Bus::AccessLevel::kDebug) == 0x61;
-            byte result_code = bus.Read(0xA000, Bus::AccessLevel::kDebug);
+            result_valid &= memory.Read(0xA001, Memory::AccessLevel::kDebug) == 0xDE;
+            result_valid &= memory.Read(0xA002, Memory::AccessLevel::kDebug) == 0xB0;
+            result_valid &= memory.Read(0xA003, Memory::AccessLevel::kDebug) == 0x61;
+            byte result_code = memory.Read(0xA000, Memory::AccessLevel::kDebug);
 
             word address = 0xA004;
             if (result_valid) {
-                while (bus.Read(address, Bus::AccessLevel::kDebug) != 0x00)
-                    output_ += bus.Read(address++, Bus::AccessLevel::kDebug);
+                while (memory.Read(address, Memory::AccessLevel::kDebug) != 0x00)
+                    output_ += memory.Read(address++, Memory::AccessLevel::kDebug);
             }
 
             return result_valid && result_code == 0;

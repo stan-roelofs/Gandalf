@@ -75,9 +75,9 @@ namespace mooneye {
         std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(bootrom_bytes, rom_bytes, nullptr);
 
         ASSERT_TRUE(gb->Ready());
-        auto& bus = gb->GetBus();
+        auto& memory = gb->GetMemory();
         SerialOutputReader p;
-        bus.Register(p);
+        memory.Register(p);
 
         std::size_t ticks = 0;
         while (!p.Done() && ++ticks < kMaxCycles) {

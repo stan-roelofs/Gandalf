@@ -6,7 +6,7 @@
 
 namespace gandalf {
 
-    Serial::Serial(GameboyMode mode) : Bus::AddressHandler("Serial"), sb_(0), in_progress_(false), fast_clock_speed_(false), internal_clock_(false), mode_(mode)
+    Serial::Serial(GameboyMode mode) : Memory::AddressHandler("Serial"), sb_(0), in_progress_(false), fast_clock_speed_(false), internal_clock_(false), mode_(mode)
     {
     }
 

@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(HEADERS
     include/gandalf/apu.h
-    include/gandalf/bus.h
+    include/gandalf/memory.h
     include/gandalf/cartridge.h
     include/gandalf/cpu.h
     include/gandalf/cpu_registers.h
@@ -42,7 +42,7 @@ set(HEADERS
 set(SOURCES
     src/apu.cpp
     src/bootrom.cpp
-    src/bus.cpp
+    src/memory.cpp
     src/cartridge.cpp
     src/cartridge/mbc.cpp
     src/cartridge/mbc1.cpp

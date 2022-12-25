@@ -2,7 +2,7 @@
 #define __GANDALF_IO_H
 
 #include "apu.h"
-#include "bus.h"
+#include "memory.h"
 #include "dma.h"
 #include "joypad.h"
 #include "lcd.h"
@@ -14,7 +14,7 @@
 namespace gandalf {
     class IO {
     public:
-        IO(GameboyMode mode, Bus& bus, std::shared_ptr<APU::OutputHandler> audio_handler);
+        IO(GameboyMode mode, Memory& memory, std::shared_ptr<APU::OutputHandler> audio_handler);
         ~IO();
 
         void Tick(unsigned int cycles, bool double_speed);
@@ -28,7 +28,7 @@ namespace gandalf {
         void SetMode(GameboyMode mode);
 
     private:
-        Bus& bus_;
+        Memory& memory_;
         Timer timer_;
         LCD lcd_;
         PPU ppu_;

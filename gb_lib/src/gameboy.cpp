@@ -9,22 +9,22 @@ namespace gandalf {
         if (boot_rom.size() > 0x100)
             mode_ = GameboyMode::CGB;
 
-        io_ = std::make_unique<IO>(mode_, bus_, audio_handler);
-        cpu_ = std::make_unique<CPU>(mode_, *io_, bus_);
+        io_ = std::make_unique<IO>(mode_, memory_, audio_handler);
+        cpu_ = std::make_unique<CPU>(mode_, *io_, memory_);
         wram_ = std::make_unique<WRAM>(mode_);
         hram_ = std::make_unique<HRAM>();
-        bus_.Register(*cpu_);
-        bus_.Register(*wram_);
-        bus_.Register(*hram_);
+        memory_.Register(*cpu_);
+        memory_.Register(*wram_);
+        memory_.Register(*hram_);
     }
 
     Gameboy::~Gameboy()
     {
-        bus_.Unregister(*cpu_);
-        bus_.Unregister(*wram_);
-        bus_.Unregister(*hram_);
+        memory_.Unregister(*cpu_);
+        memory_.Unregister(*wram_);
+        memory_.Unregister(*hram_);
         if (cartridge_)
-            bus_.Unregister(*cartridge_);
+            memory_.Unregister(*cartridge_);
     }
 
     void Gameboy::LoadROM(const ROM& rom)
@@ -36,7 +36,7 @@ namespace gandalf {
             cartridge_ = std::move(cartridge);
         }
 
-        bus_.Register(*cartridge_);
+        memory_.Register(*cartridge_);
     }
 
     void Gameboy::LoadBootROM(const ROM& boot_rom)
@@ -45,13 +45,13 @@ namespace gandalf {
             return;
 
         boot_rom_handler_ = std::make_unique<BootROMHandler>(*this, boot_rom);
-        bus_.Register(*boot_rom_handler_);
+        memory_.Register(*boot_rom_handler_);
     }
 
     void Gameboy::OnBootROMFinished()
     {
-        bus_.Unregister(*boot_rom_handler_);
-        bus_.Register(*cartridge_);
+        memory_.Unregister(*boot_rom_handler_);
+        memory_.Register(*cartridge_);
         byte mode = boot_rom_handler_->Read(kKEY0);
         switch (mode)
         {

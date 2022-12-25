@@ -10,7 +10,7 @@
 
 namespace gandalf
 {
-    APU::APU(std::shared_ptr<APU::OutputHandler> audio_handler) : Bus::AddressHandler("APU"),
+    APU::APU(std::shared_ptr<APU::OutputHandler> audio_handler) : Memory::AddressHandler("APU"),
         output_handler_(audio_handler),
         ticks_until_sample_(audio_handler ? audio_handler->GetNextSampleTime() : 0),
         vin_left_(false),

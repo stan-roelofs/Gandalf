@@ -11,7 +11,7 @@ namespace {
 
 namespace gandalf
 {
-    LCD::LCD(GameboyMode mode): Bus::AddressHandler("LCD"),
+    LCD::LCD(GameboyMode mode): Memory::AddressHandler("LCD"),
         lcdc_(0),
         ly_(0),
         lyc_(0),

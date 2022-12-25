@@ -1,16 +1,16 @@
 #ifndef __GANDALF_CPU_H
 #define __GANDALF_CPU_H
 
-#include "bus.h"
+#include "memory.h"
 #include "constants.h"
 #include "cpu_registers.h"
 #include "io.h"
 
 namespace gandalf {
 
-  class CPU: public Bus::AddressHandler {
+  class CPU: public Memory::AddressHandler {
   public:
-    CPU(GameboyMode mode, IO& io, Bus& bus);
+    CPU(GameboyMode mode, IO& io, Memory& memory);
     ~CPU();
 
     void Tick();
@@ -29,7 +29,7 @@ namespace gandalf {
     void InterruptServiceRoutine();
 
     Registers registers_;
-    Bus& bus_;
+    Memory& memory_;
     IO& io_;
     byte opcode_;
     bool halt_;

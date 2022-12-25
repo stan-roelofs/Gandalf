@@ -3,11 +3,11 @@
 
 #include <array>
 
-#include "bus.h"
+#include "memory.h"
 #include "constants.h"
 
 namespace gandalf {
-    class LCD: public Bus::AddressHandler {
+    class LCD: public Memory::AddressHandler {
     public:
         using ABGR1555 = word;
         using VideoBuffer = std::array<ABGR1555, kScreenWidth* kScreenHeight>;

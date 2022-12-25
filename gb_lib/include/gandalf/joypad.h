@@ -3,11 +3,11 @@
 
 #include <set>
 
-#include <gandalf/bus.h>
+#include <gandalf/memory.h>
 
 namespace gandalf
 {
-    class Joypad : public Bus::AddressHandler
+    class Joypad : public Memory::AddressHandler
     {
     public:
         enum Button {
@@ -21,7 +21,7 @@ namespace gandalf
             kStart,
         };
 
-        Joypad(Bus& bus);
+        Joypad(Memory& memory);
         virtual ~Joypad();
 
         void SetButtonState(Button button, bool pressed);
@@ -35,7 +35,7 @@ namespace gandalf
 
         std::array<bool, 8> pressed_buttons_;
         byte p1_;
-        Bus& bus_;
+        Memory& memory_;
     };
 }
 

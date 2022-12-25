@@ -6,8 +6,8 @@
 
 namespace gandalf
 {
-    DMA::DMA(Bus& bus): Bus::AddressHandler("DMA"),
-        bus_(bus),
+    DMA::DMA(Memory& memory): Memory::AddressHandler("DMA"),
+        memory_(memory),
         dma_(0),
         in_progress_(false),
         current_byte_read_(0),
@@ -31,20 +31,20 @@ namespace gandalf
         cycle_counter_ = 0;
 
         if (current_byte_read_ > 0) {
-            bus_.Write(0xFE00 + current_byte_write_, read_value_, Bus::AccessLevel::kOEMDMA);
+            memory_.Write(0xFE00 + current_byte_write_, read_value_, Memory::AccessLevel::kOEMDMA);
             ++current_byte_write_;
         }
 
         if (current_byte_read_ < 160) {
-            read_value_ = bus_.Read(source_address_ + current_byte_read_, Bus::AccessLevel::kOEMDMA);
+            read_value_ = memory_.Read(source_address_ + current_byte_read_, Memory::AccessLevel::kOEMDMA);
             ++current_byte_read_;
         }
 
         if (current_byte_write_ == 160) {
             in_progress_ = false;
-            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0x0000, 0xFF45);
-            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0xFF47, 0xFF80);
-            bus_.SetAccessLevel(Bus::AccessLevel::kNormal, 0xFFFF, 0xFFFF);
+            memory_.SetAccessLevel(Memory::AccessLevel::kNormal, 0x0000, 0xFF45);
+            memory_.SetAccessLevel(Memory::AccessLevel::kNormal, 0xFF47, 0xFF80);
+            memory_.SetAccessLevel(Memory::AccessLevel::kNormal, 0xFFFF, 0xFFFF);
         }
     }
 
@@ -80,9 +80,9 @@ namespace gandalf
         in_progress_ = true;
         source_address_ = dma_ << 8;
 
-        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0x0000, 0xFF45);
-        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0xFF47, 0xFF7F);
-        bus_.SetAccessLevel(Bus::AccessLevel::kOEMDMA, 0xFFFF, 0xFFFF);
+        memory_.SetAccessLevel(Memory::AccessLevel::kOEMDMA, 0x0000, 0xFF45);
+        memory_.SetAccessLevel(Memory::AccessLevel::kOEMDMA, 0xFF47, 0xFF7F);
+        memory_.SetAccessLevel(Memory::AccessLevel::kOEMDMA, 0xFFFF, 0xFFFF);
     }
 
     std::set<word> DMA::GetAddresses() const

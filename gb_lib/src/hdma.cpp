@@ -11,8 +11,8 @@ namespace
 
 namespace gandalf
 {
-    HDMA::HDMA(GameboyMode mode, Bus& bus, const LCD& lcd) : Bus::AddressHandler("HDMA"),
-        bus_(bus),
+    HDMA::HDMA(GameboyMode mode, Memory& memory, const LCD& lcd) : Memory::AddressHandler("HDMA"),
+        memory_(memory),
         lcd_(lcd),
         hdma1_(0),
         hdma2_(0),
@@ -38,13 +38,13 @@ namespace gandalf
         case State::kTerminated:
             break;
         case State::kRead:
-            current_byte_ = bus_.Read(source_);
+            current_byte_ = memory_.Read(source_);
             ++source_;
             state_ = State::kWrite;
             break;
         case State::kWrite:
             assert(remaining_length_ > 0);
-            bus_.Write(destination_, current_byte_);
+            memory_.Write(destination_, current_byte_);
             ++destination_;
             --remaining_length_;
 

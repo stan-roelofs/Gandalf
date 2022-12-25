@@ -1,7 +1,7 @@
 #ifndef __GB_APP_DEBUGGER_H
 #define __GB_APP_DEBUGGER_H
 
-#include <gandalf/bus.h>
+#include <gandalf/memory.h>
 
 namespace gui
 {

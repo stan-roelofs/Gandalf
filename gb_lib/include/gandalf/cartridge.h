@@ -5,13 +5,13 @@
 #include <string>
 #include <vector>
 
-#include <gandalf/bus.h>
+#include <gandalf/memory.h>
 #include <gandalf/types.h>
 
 #include "mbc.h"
 
 namespace gandalf {
-  class Cartridge : public Bus::AddressHandler {
+  class Cartridge : public Memory::AddressHandler {
   public:
     Cartridge();
     virtual ~Cartridge();

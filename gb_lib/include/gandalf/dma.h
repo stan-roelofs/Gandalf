@@ -1,14 +1,14 @@
 #ifndef __GANDALF_DMA_H
 #define __GANDALF_DMA_H
 
-#include "bus.h"
+#include "memory.h"
 
 namespace gandalf
 {
-    class DMA: public Bus::AddressHandler
+    class DMA: public Memory::AddressHandler
     {
     public:
-        DMA(Bus& bus);
+        DMA(Memory& memory);
         virtual ~DMA();
 
         void Tick();
@@ -19,7 +19,7 @@ namespace gandalf
 
     private:
         void Start();
-        Bus& bus_;
+        Memory& memory_;
         byte dma_;
 
         bool in_progress_;

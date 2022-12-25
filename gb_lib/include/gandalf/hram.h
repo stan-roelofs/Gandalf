@@ -1,10 +1,10 @@
 #ifndef __GANDALF_HRAM_H
 #define __GANDALF_HRAM_H
 
-#include "bus.h"
+#include "memory.h"
 
 namespace gandalf {
-    class HRAM : public Bus::AddressHandler {
+    class HRAM : public Memory::AddressHandler {
     public:
         HRAM();
         virtual ~HRAM();

@@ -41,7 +41,7 @@ namespace gui
             if (scroll_target)
                 ImGui::SetScrollY((*scroll_target / 16) * memory_item_height);
 
-            gandalf::Bus& bus = gameboy_->GetBus();
+            gandalf::Memory& memory = gameboy_->GetMemory();
             ImGuiListClipper clipper;
             clipper.Begin(0x10000 / 16);
             while (clipper.Step())
@@ -55,12 +55,12 @@ namespace gui
                     for (int column = 0; column < 16; column++)
                     {
                         const gandalf::word address = address_start + column;
-                        const gandalf::byte value = gameboy_->GetBus().Read(address, gandalf::Bus::AccessLevel::kDebug);
+                        const gandalf::byte value = gameboy_->GetMemory().Read(address, gandalf::Memory::AccessLevel::kDebug);
                         ImGui::TableNextColumn();
                         ImGui::Text("%02X", value);
                         if (ImGui::IsItemHovered()) {
                             ImGui::BeginTooltip();
-                            ImGui::Text("%s: %s", text::Get(text::ID::kWindowMemoryViewerAddressOwner), gameboy_->GetBus().GetAddressHandlerName(address).c_str());
+                            ImGui::Text("%s: %s", text::Get(text::ID::kWindowMemoryViewerAddressOwner), gameboy_->GetMemory().GetAddressHandlerName(address).c_str());
                             ImGui::Text("%s: %04X", text::Get(text::ID::kWindowMemoryViewerAddress), address);
                             ImGui::Text("%s: %02X", text::Get(text::ID::kWindowMemoryViewerAddressValue), value);
                             ImGui::EndTooltip();

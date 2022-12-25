@@ -1,16 +1,16 @@
 #ifndef __GANDALF_HDMA_H
 #define __GANDALF_HDMA_H
 
-#include "bus.h"
+#include "memory.h"
 
 #include "lcd.h"
 
 namespace gandalf
 {
-    class HDMA : public Bus::AddressHandler
+    class HDMA : public Memory::AddressHandler
     {
     public:
-        HDMA(GameboyMode mode, Bus& bus, const LCD& lcd);
+        HDMA(GameboyMode mode, Memory& memory, const LCD& lcd);
         virtual ~HDMA();
 
         void Tick();
@@ -25,7 +25,7 @@ namespace gandalf
 
     private:
         void StartTransfer(byte value);
-        Bus& bus_;
+        Memory& memory_;
         const LCD& lcd_;
 
         byte hdma1_;

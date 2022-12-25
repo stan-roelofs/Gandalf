@@ -1,11 +1,11 @@
 #ifndef __GANDALF_WRAM_H
 #define __GANDALF_WRAM_H
 
-#include "bus.h"
+#include "memory.h"
 #include "constants.h"
 
 namespace gandalf {
-    class WRAM: public Bus::AddressHandler {
+    class WRAM: public Memory::AddressHandler {
     public:
         WRAM(GameboyMode mode);
         virtual ~WRAM();

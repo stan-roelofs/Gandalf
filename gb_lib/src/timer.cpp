@@ -13,7 +13,7 @@ namespace {
 namespace gandalf
 {
     // TODO is initial value correct? verify using tests
-    Timer::Timer(Bus& bus): Bus::AddressHandler("Timer"), div_(0xAB00), tma_(0), tima_(0), tac_(0), bus_(bus), reload_counter_(0), selected_bit_(0), enabled_(false)
+    Timer::Timer(Memory& memory): Memory::AddressHandler("Timer"), div_(0xAB00), tma_(0), tima_(0), tac_(0), memory_(memory), reload_counter_(0), selected_bit_(0), enabled_(false)
     {
     }
 
@@ -35,7 +35,7 @@ namespace gandalf
             --reload_counter_;
             if (reload_counter_ <= 4) {
                 tima_ = tma_;
-                bus_.Write(kIF, bus_.Read(kIF) | kTimerInterruptMask);
+                memory_.Write(kIF, memory_.Read(kIF) | kTimerInterruptMask);
             }
         }
 
@@ -64,7 +64,7 @@ namespace gandalf
                 ++tima_;
                 if (tima_ == 0) {
                     tima_ = tma_;
-                    bus_.Write(kIF, bus_.Read(kIF) | kTimerInterruptMask);
+                    memory_.Write(kIF, memory_.Read(kIF) | kTimerInterruptMask);
                 }
             }
 

@@ -4,11 +4,11 @@
 #include <deque>
 #include <map>
 
-#include "bus.h"
+#include "memory.h"
 #include "lcd.h"
 
 namespace gandalf {
-    class PPU: public Bus::AddressHandler {
+    class PPU: public Memory::AddressHandler {
     public:
         class VBlankListener
         {
@@ -23,7 +23,7 @@ namespace gandalf {
             PixelTransfer
         };
 
-        PPU(GameboyMode mode, Bus& bus, LCD& lcd);
+        PPU(GameboyMode mode, Memory& memory, LCD& lcd);
         virtual ~PPU();
 
         void Tick();
@@ -39,7 +39,7 @@ namespace gandalf {
 
     private:
         void CheckLYEqualsLYC();
-        Bus& bus_;
+        Memory& memory_;
         LCD& lcd_;
         int line_ticks_;
 

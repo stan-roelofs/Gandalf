@@ -1,13 +1,13 @@
 #ifndef __GANDALF_TIMER_H
 #define __GANDALF_TIMER_H
 
-#include "bus.h"
+#include "memory.h"
 
 namespace gandalf {
-    class Timer: public Bus::AddressHandler
+    class Timer: public Memory::AddressHandler
     {
     public:
-        Timer(Bus& bus);
+        Timer(Memory& memory);
         virtual ~Timer();
 
         void Write(word address, byte value) override;
@@ -28,7 +28,7 @@ namespace gandalf {
         byte tma_;
         byte tima_;
         byte tac_;
-        Bus& bus_;
+        Memory& memory_;
         byte reload_counter_;
         byte selected_bit_;
 

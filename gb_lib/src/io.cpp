@@ -3,37 +3,37 @@
 #include <cassert>
 
 namespace gandalf {
-    IO::IO(GameboyMode mode, Bus& bus, std::shared_ptr<APU::OutputHandler> audio_handler):
-        bus_(bus),
-        timer_(bus),
+    IO::IO(GameboyMode mode, Memory& memory, std::shared_ptr<APU::OutputHandler> audio_handler):
+        memory_(memory),
+        timer_(memory),
         lcd_(mode),
-        ppu_(mode, bus, lcd_),
+        ppu_(mode, memory, lcd_),
         serial_(mode),
-        joypad_(bus),
+        joypad_(memory),
         apu_(audio_handler),
-        dma_(bus),
-        hdma_(mode, bus, lcd_),
+        dma_(memory),
+        hdma_(mode, memory, lcd_),
         mode_(mode)
     {
-        bus_.Register(ppu_);
-        bus_.Register(lcd_);
-        bus_.Register(timer_);
-        bus_.Register(serial_);
-        bus_.Register(joypad_);
-        bus_.Register(apu_);
-        bus_.Register(dma_);
-        bus_.Register(hdma_);
+        memory_.Register(ppu_);
+        memory_.Register(lcd_);
+        memory_.Register(timer_);
+        memory_.Register(serial_);
+        memory_.Register(joypad_);
+        memory_.Register(apu_);
+        memory_.Register(dma_);
+        memory_.Register(hdma_);
     }
 
     IO::~IO() {
-        bus_.Unregister(ppu_);
-        bus_.Unregister(lcd_);
-        bus_.Unregister(timer_);
-        bus_.Unregister(serial_);
-        bus_.Unregister(joypad_);
-        bus_.Unregister(apu_);
-        bus_.Unregister(dma_);
-        bus_.Unregister(hdma_);
+        memory_.Unregister(ppu_);
+        memory_.Unregister(lcd_);
+        memory_.Unregister(timer_);
+        memory_.Unregister(serial_);
+        memory_.Unregister(joypad_);
+        memory_.Unregister(apu_);
+        memory_.Unregister(dma_);
+        memory_.Unregister(hdma_);
     }
 
     void IO::SetMode(GameboyMode mode)
