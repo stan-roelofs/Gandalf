@@ -50,7 +50,7 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow(GUIContext& context) :
+    MainWindow::MainWindow(GUIContext& context):
         step_(false),
         gb_pause_(false),
         gb_thread_run_(false),
@@ -66,12 +66,12 @@ namespace gui
         gb_thread_run_ = false;
         if (gb_thread_.joinable())
             gb_thread_.join();
-    }    
+    }
 
     bool MainWindow::Initialize()
     {
-        gui_elements_.push_back(std::move(std::make_unique<GameboyView>()));
-        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(gui_context_.GetSettings().show_debug)));
+        gui_elements_.push_back(std::move(std::make_unique<GameboyView>(gui_context_)));
+        gui_elements_.push_back(std::move(std::make_unique<VRAMView>(gui_context_.GetSettings().show_debug))); // TODO pass context
         gui_elements_.push_back(std::move(std::make_unique<CPUView>(gui_context_.GetSettings().show_debug, gb_pause_, block_audio_, step_, breakpoint_)));
         gui_elements_.push_back(std::move(std::make_unique<MemoryView>(gui_context_.GetSettings().show_debug)));
         gui_elements_.push_back(std::move(std::make_unique<CartridgeView>(gui_context_.GetSettings().show_debug)));

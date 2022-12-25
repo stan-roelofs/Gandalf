@@ -7,15 +7,16 @@
 #include <gandalf/ppu.h>
 
 #include "gui_element.h"
+#include "../gui_context.h"
 
 #include <SDL_opengl.h>
 
 namespace gui
 {
-    class GameboyView : public GUIElement, public gandalf::PPU::VBlankListener
+    class GameboyView: public GUIElement, public gandalf::PPU::VBlankListener
     {
     public:
-        GameboyView();
+        GameboyView(GUIContext& context);
         ~GameboyView();
 
         void OnGameboyChanged() override;
@@ -28,6 +29,7 @@ namespace gui
         std::unique_ptr<gandalf::LCD::VideoBuffer> back_buffer_;
         GLuint texture_;
         int scale_;
+        GUIContext& context_;
     };
 }
 

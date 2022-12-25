@@ -19,7 +19,8 @@ namespace gui
             {"key_start", s.key_start},
             {"key_select", s.key_select},
             {"window_width", s.window_width},
-            {"window_height", s.window_height}
+            {"window_height", s.window_height},
+            {"scale", s.scale}
         };
     }
 
@@ -40,6 +41,7 @@ namespace gui
         s.key_select = j.value("key_select", default_settings.key_select);
         s.window_width = j.value("window_width", default_settings.window_width);
         s.window_height = j.value("window_height", default_settings.window_height);
+        s.scale = j.value("scale", default_settings.scale);
     }
 
     Settings::Settings()
@@ -57,6 +59,7 @@ namespace gui
         key_select = SDLK_TAB;
         window_width = 800;
         window_height = 800;
+        scale = 5;
     }
 
     namespace settings {

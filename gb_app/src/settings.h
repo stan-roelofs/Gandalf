@@ -29,9 +29,8 @@ namespace gui
         std::int32_t key_select;
         std::uint16_t window_width;
         std::uint16_t window_height;
+        int scale;
     };
-
-    Settings DefaultSettings();
 
     namespace settings
     {

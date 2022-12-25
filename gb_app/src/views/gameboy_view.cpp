@@ -6,10 +6,11 @@
 
 namespace gui
 {
-    GameboyView::GameboyView() :
+    GameboyView::GameboyView(GUIContext& context):
         back_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
         front_buffer_(std::make_unique<gandalf::LCD::VideoBuffer>()),
-        scale_(5)
+        scale_(5),
+        context_(context)
     {
         glGenTextures(1, &texture_);
         glBindTexture(GL_TEXTURE_2D, texture_);
@@ -39,8 +40,8 @@ namespace gui
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin(text::Get(text::ID::kWindowGameboy));
-        ImGui::SliderInt(text::Get(text::ID::kWindowGameboyScale), &scale_, 1, 5);
-        ImGui::Image((void*)(intptr_t)texture_, ImVec2(gandalf::kScreenWidth * scale_, gandalf::kScreenHeight * scale_));
+        ImGui::SliderInt(text::Get(text::ID::kWindowGameboyScale), &context_.GetSettings().scale, 1, 5);
+        ImGui::Image((void*)(intptr_t)texture_, ImVec2(gandalf::kScreenWidth * context_.GetSettings().scale, gandalf::kScreenHeight * context_.GetSettings().scale));
         ImGui::End();
         ImGui::PopStyleVar();
     }
