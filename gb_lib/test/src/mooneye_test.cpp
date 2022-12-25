@@ -156,6 +156,8 @@ namespace mooneye {
             "acceptance/halt_ime1_timing.gb",
             "acceptance/if_ie_registers.gb",
             "acceptance/oam_dma_start.gb",
+            "acceptance/oam_dma_timing.gb",
+            "acceptance/oam_dma_restart.gb",
             "acceptance/pop_timing.gb",
             "acceptance/rapid_di_ei.gb",
             "acceptance/reti_intr_timing.gb"

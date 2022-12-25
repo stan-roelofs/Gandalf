@@ -30,6 +30,12 @@ namespace gandalf
             return;
         cycle_counter_ = 0;
 
+        if (current_byte_write_ == 160) {
+            in_progress_ = false;
+            memory_.Block(Memory::Bus::kOAM, false);
+            return;
+        }
+
         if (current_byte_read_ > 0) {
             if (current_byte_write_ == 0)
                 memory_.Block(Memory::Bus::kOAM, true);
@@ -37,11 +43,6 @@ namespace gandalf
             memory_.Write(0xFE00 + current_byte_write_, read_value_);
             ++current_byte_write_;
 
-            if (current_byte_write_ == 160) {
-                in_progress_ = false;
-                memory_.Block(Memory::Bus::kOAM, false);
-                return;
-            }
         }
 
         if (current_byte_read_ < 160) {
