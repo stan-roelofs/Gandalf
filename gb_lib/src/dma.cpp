@@ -14,8 +14,7 @@ namespace gandalf
         current_byte_write_(0),
         source_address_(0),
         read_value_(0),
-        cycle_counter_(0),
-        bus_(Memory::Bus::kExternal)
+        cycle_counter_(0)
     {
     }
 
@@ -32,19 +31,30 @@ namespace gandalf
         cycle_counter_ = 0;
 
         if (current_byte_read_ > 0) {
+            if (current_byte_write_ == 0)
+                memory_.Block(Memory::Bus::kOAM, true);
+
             memory_.Write(0xFE00 + current_byte_write_, read_value_);
             ++current_byte_write_;
+
+            if (current_byte_write_ == 160) {
+                in_progress_ = false;
+                memory_.Block(Memory::Bus::kOAM, false);
+                return;
+            }
         }
 
         if (current_byte_read_ < 160) {
+            if (current_byte_read_ == 0)
+                memory_.Block(Memory::GetBus(source_address_), true);
+
             read_value_ = memory_.DebugRead(source_address_ + current_byte_read_);
             ++current_byte_read_;
+
+            if (current_byte_read_ == 160)
+                memory_.Block(Memory::GetBus(source_address_), false);
         }
 
-        if (current_byte_write_ == 160) {
-            in_progress_ = false;
-            memory_.Block(bus_, false);
-        }
     }
 
     byte DMA::Read(word address) const
@@ -78,9 +88,6 @@ namespace gandalf
         read_value_ = 0;
         in_progress_ = true;
         source_address_ = dma_ << 8;
-        bus_ = Memory::GetBus(dma_);
-
-        memory_.Block(bus_);
     }
 
     std::set<word> DMA::GetAddresses() const

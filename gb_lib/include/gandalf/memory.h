@@ -50,6 +50,7 @@ namespace gandalf {
     {
       kExternal,
       kVideoRAM,
+      kOAM,
     };
 
     Memory();
