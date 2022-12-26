@@ -55,7 +55,7 @@ namespace gui
                     for (int column = 0; column < 16; column++)
                     {
                         const gandalf::word address = address_start + column;
-                        const gandalf::byte value = gameboy_->GetMemory().DebugRead(address);
+                        const gandalf::byte value = gameboy_->GetMemory().Read(address, false);
                         ImGui::TableNextColumn();
                         ImGui::Text("%02X", value);
                         if (ImGui::IsItemHovered()) {

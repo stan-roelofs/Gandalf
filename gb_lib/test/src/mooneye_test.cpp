@@ -151,7 +151,9 @@ namespace mooneye {
             "acceptance/add_sp_e_timing.gb",
             "acceptance/boot_regs-dmgABC.gb",
             "acceptance/call_cc_timing.gb",
+            "acceptance/call_cc_timing2.gb",
             "acceptance/call_timing.gb",
+            "acceptance/call_timing2.gb",
             "acceptance/div_timing.gb",
             "acceptance/ei_timing.gb",
             "acceptance/ei_sequence.gb",
@@ -165,11 +167,13 @@ namespace mooneye {
             "acceptance/oam_dma_timing.gb",
             "acceptance/oam_dma_restart.gb",
             "acceptance/pop_timing.gb",
+            "acceptance/push_timing.gb",
             "acceptance/rapid_di_ei.gb",
-            "acceptance/ret_timing.gb",
             "acceptance/ret_cc_timing.gb",
+            "acceptance/ret_timing.gb",
             "acceptance/reti_intr_timing.gb",
-            "acceptance/reti_timing.gb"
+            "acceptance/reti_timing.gb",
+            "acceptance/rst_timing.gb"
         )
     );
 }

@@ -40,7 +40,7 @@ namespace gandalf
             if (current_byte_write_ == 0)
                 memory_.Block(Memory::Bus::kOAM, true);
 
-            memory_.Write(0xFE00 + current_byte_write_, read_value_);
+            memory_.Write(0xFE00 + current_byte_write_, read_value_, false);
             ++current_byte_write_;
 
         }
@@ -49,7 +49,7 @@ namespace gandalf
             if (current_byte_read_ == 0)
                 memory_.Block(Memory::GetBus(source_address_), true);
 
-            read_value_ = memory_.DebugRead(source_address_ + current_byte_read_);
+            read_value_ = memory_.Read(source_address_ + current_byte_read_, false);
             ++current_byte_read_;
 
             if (current_byte_read_ == 160)

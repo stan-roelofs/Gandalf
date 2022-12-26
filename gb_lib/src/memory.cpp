@@ -16,27 +16,19 @@ namespace gandalf {
 
   Memory::~Memory() = default;
 
-  void Memory::Write(word address, byte value) {
-    //if (address_space_[address].blocked) // TODO ?
-      //return;
+  void Memory::Write(word address, byte value, bool check_access) {
+    if (check_access && address_space_[address].blocked) // TODO ?
+      return;
 
     if (address_space_[address].handler != nullptr) {
       address_space_[address].handler->Write(address, value);
     }
   }
 
-  byte Memory::Read(word address) const {
-    if (address_space_[address].blocked)
+  byte Memory::Read(word address, bool check_access) const {
+    if (check_access && address_space_[address].blocked)
       return 0xFF; // TODO this is not correct. It should return the value of the last read.
 
-    if (address_space_[address].handler != nullptr) {
-      return address_space_[address].handler->Read(address);
-    }
-
-    return 0xFF;
-  }
-
-  byte Memory::DebugRead(word address) const {
     if (address_space_[address].handler != nullptr) {
       return address_space_[address].handler->Read(address);
     }

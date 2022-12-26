@@ -61,24 +61,18 @@ namespace gandalf {
      *
      * @param address address that will be written
      * @param value value that will be written
+     * @param check_access If true, writing to blocked regions will fail. 
      */
-    void Write(word address, byte value);
+    void Write(word address, byte value, bool check_access = true);
 
     /**
      * Reads the value at the specified address.
      *
      * @param address the address that will be read.
+     * @param check_access If true, blocked regions return 0xFF.
      * @return byte The value of the given address. If no access is granted this returns 0xFF.
      */
-    byte Read(word address) const;
-
-    /**
-     * Reads the value at the specified address without checking for access.
-     *
-     * @param address the address that will be read.
-     * @return byte The value of the given address.
-     */
-    byte DebugRead(word address) const;
+    byte Read(word address, bool check_access = true) const;
 
     /**
      * Registers an address handler to the memory.

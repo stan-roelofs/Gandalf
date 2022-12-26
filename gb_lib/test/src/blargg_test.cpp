@@ -108,22 +108,22 @@ namespace blargg {
 
                 // 0xA000 holds the status code, check it every once in a while to detect if the test has finished.
                 // Note: 0xA000 is the cartridge RAM and it returns 0xFF when disabled. 
-                if (i % 1000 == 0 && memory.DebugRead(0xA000) != 0xFF && memory.DebugRead(0xA000) != 0x80)
+                if (i % 1000 == 0 && memory.Read(0xA000, false) != 0xFF && memory.Read(0xA000, false) != 0x80)
                     break;
 
                 ++i;
             }
 
             bool result_valid = true;
-            result_valid &= memory.DebugRead(0xA001) == 0xDE;
-            result_valid &= memory.DebugRead(0xA002) == 0xB0;
-            result_valid &= memory.DebugRead(0xA003) == 0x61;
-            byte result_code = memory.DebugRead(0xA000);
+            result_valid &= memory.Read(0xA001, false) == 0xDE;
+            result_valid &= memory.Read(0xA002, false) == 0xB0;
+            result_valid &= memory.Read(0xA003, false) == 0x61;
+            byte result_code = memory.Read(0xA000, false);
 
             word address = 0xA004;
             if (result_valid) {
-                while (memory.DebugRead(address) != 0x00)
-                    output_ += memory.DebugRead(address++);
+                while (memory.Read(address, false) != 0x00)
+                    output_ += memory.Read(address++, false);
             }
 
             return result_valid && result_code == 0;
