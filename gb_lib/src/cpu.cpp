@@ -590,6 +590,7 @@ namespace gandalf {
   {                                                                            \
     signed_byte value;                                                         \
     READ_PC(value);                                                            \
+    ADVANCE_IO(4)                                                              \
     registers_.hl() = registers_.stack_pointer + value;                        \
     registers_.f() = 0;                                                        \
     if ((registers_.stack_pointer & 0xFF) + (value & 0xFF) > 0xFF)             \
@@ -1858,6 +1859,7 @@ namespace gandalf {
     case 0xF8:
       LD_HL_SP_N() break;
     case 0xF9:
+      ADVANCE_IO(4);
       registers_.stack_pointer = registers_.hl();
       break;
     case 0xFA:

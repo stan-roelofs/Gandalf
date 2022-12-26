@@ -175,8 +175,7 @@ namespace blargg {
             TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/08-misc instrs.gb" },
             TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/09-op r,r.gb" },
             TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/10-bit ops.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/11-op a,(hl).gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/cpu_instrs.gb" }
+            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/11-op a,(hl).gb" }
         )
     );
 
@@ -186,8 +185,7 @@ namespace blargg {
         ::testing::Values(
             TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/01-read_timing.gb" },
             TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/02-write_timing.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/03-modify_timing.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/mem_timing.gb" }
+            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/03-modify_timing.gb" }
         )
     );
 
@@ -197,9 +195,16 @@ namespace blargg {
         ::testing::Values(
             TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/01-read_timing.gb" },
             TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/02-write_timing.gb" },
-            TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/03-modify_timing.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/mem_timing.gb" }
+            TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/03-modify_timing.gb" }
 
+        )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
+        instr_timing,
+        BlarggTest,
+        ::testing::Values(
+            TestProperties{ std::make_shared<SerialOutputValidator>(), "instr_timing/instr_timing.gb" }
         )
     );
 }
