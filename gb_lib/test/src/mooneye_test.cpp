@@ -148,19 +148,28 @@ namespace mooneye {
         acceptance,
         MooneyeTest,
         ::testing::Values(
+            "acceptance/add_sp_e_timing.gb",
             "acceptance/boot_regs-dmgABC.gb",
+            "acceptance/call_cc_timing.gb",
+            "acceptance/call_timing.gb",
             "acceptance/div_timing.gb",
             "acceptance/ei_timing.gb",
             "acceptance/ei_sequence.gb",
             "acceptance/halt_ime0_ei.gb",
             "acceptance/halt_ime1_timing.gb",
             "acceptance/if_ie_registers.gb",
+            "acceptance/jp_cc_timing.gb",
+            "acceptance/jp_timing.gb",
+            "acceptance/ld_hl_sp_e_timing.gb",
             "acceptance/oam_dma_start.gb",
             "acceptance/oam_dma_timing.gb",
             "acceptance/oam_dma_restart.gb",
             "acceptance/pop_timing.gb",
             "acceptance/rapid_di_ei.gb",
-            "acceptance/reti_intr_timing.gb"
+            "acceptance/ret_timing.gb",
+            "acceptance/ret_cc_timing.gb",
+            "acceptance/reti_intr_timing.gb",
+            "acceptance/reti_timing.gb"
         )
     );
 }
