@@ -96,7 +96,7 @@ namespace gui
 
                     char address[5];
                     address[4] = '\0';
-                    snprintf(address, 5, "%04X##b", current_address);
+                    snprintf(address, 5, "%04X", current_address);
                     if (ImGui::Selectable(address, breakpoint_ && *breakpoint_ == current_address, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns)) {
                         if (breakpoint_ && *breakpoint_ == current_address)
                             breakpoint_ = std::nullopt;
