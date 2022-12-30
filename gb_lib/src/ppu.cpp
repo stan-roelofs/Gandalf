@@ -386,14 +386,14 @@ namespace gandalf {
 
             Pixel& pixel = sprite_fifo_.at(i);
             // In DMG mode, only replace pixel if it is transparent
-            if (mode_ == GameboyMode::DMG && pixel.color == 0)
+            if (mode_ != GameboyMode::CGB && pixel.color == 0)
             {
                 pixel.background_priority = !!(current_sprite_.attributes & 0x80);
                 pixel.color = color;
-                pixel.palette = current_sprite_.attributes & 0x10;
+                pixel.palette = (current_sprite_.attributes & 0b10000) >> 4;
             }
             // In CGB mode, replace pixel when it is transparent OR the current sprite has higher priority (lower OAM index)
-            else if (mode_ != GameboyMode::DMG && (pixel.color == 0 || (mode_ == GameboyMode::CGB && current_sprite_.oam_index < pixel.sprite_priority)))
+            else if (mode_ == GameboyMode::CGB && (pixel.color == 0 || current_sprite_.oam_index < pixel.sprite_priority))
             {
                 pixel.background_priority = !!(current_sprite_.attributes & 0x80);
                 pixel.color = color;
