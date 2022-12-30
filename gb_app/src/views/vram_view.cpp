@@ -9,36 +9,49 @@ namespace
     constexpr int kScale = 2;
     constexpr int kTileSizePx = kTileSize * kScale;
     constexpr int kScaleTooltip = 8;
+    constexpr int kSpriteScale = 4;
 }
 
 namespace gui
 {
-    VRAMView::VRAMView(const bool& debug_enabled) : debug_enabled_(debug_enabled), visible_(false)
+    VRAMView::VRAMView(const bool& debug_enabled): debug_enabled_(debug_enabled), current_tab_(Tab::Background)
     {
-        glGenTextures(1, &texture_);
-        glBindTexture(GL_TEXTURE_2D, texture_);
+        glGenTextures(1, &background_texture_);
+        glBindTexture(GL_TEXTURE_2D, background_texture_);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        for (auto& row : tile_data_)
-            row.fill(TileData());
-
         vram_buffer_.fill(0);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
+
+        glGenTextures(1, &sprite_texture_);
+        glBindTexture(GL_TEXTURE_2D, sprite_texture_);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        sprite_buffer_.fill(0);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, 40 * 8, 16, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, sprite_buffer_.data());
     }
 
     VRAMView::~VRAMView()
     {
-        glDeleteTextures(1, &texture_);
+        glDeleteTextures(1, &background_texture_);
+        glDeleteTextures(1, &sprite_texture_);
     }
 
     void VRAMView::OnGameboyChanged()
     {
         gameboy_->GetPPU().AddVBlankListener(this);
+        sprite_buffer_.fill(0);
+        vram_buffer_.fill(0);
     }
 
     void VRAMView::Render()
@@ -53,13 +66,14 @@ namespace gui
         {
             if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUBackgroundMap)))
             {
-                glBindTexture(GL_TEXTURE_2D, texture_);
+                current_tab_ = Tab::Background;
+
+                glBindTexture(GL_TEXTURE_2D, background_texture_);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
 
-                visible_ = true;
                 ImVec2 pos = ImGui::GetCursorScreenPos();
 
-                ImGui::Image((void*)(intptr_t)texture_, ImVec2(gandalf::kTotalScreenWidth * kScale, gandalf::kTotalScreenHeight * kScale));
+                ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(gandalf::kTotalScreenWidth * kScale, gandalf::kTotalScreenHeight * kScale));
 
                 if (ImGui::IsItemHovered())
                 {
@@ -81,7 +95,7 @@ namespace gui
 
                     ImVec2 uv0 = ImVec2(region_x / kTextureSize, region_y / kTextureSize);
                     ImVec2 uv1 = ImVec2((region_x + kTileSize) / kTextureSize, (region_y + kTileSize) / kTextureSize);
-                    ImGui::Image((void*)(intptr_t)texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
+                    ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
 
                     ImGui::Separator();
                     assert(tile_x < 32 && tile_y < 32);
@@ -125,12 +139,79 @@ namespace gui
 
                 ImGui::EndTabItem();
             }
-            else
-                visible_ = false;
 
             if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUTiles)))
             {
+                current_tab_ = Tab::Tiles;
 
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUSprites)))
+            {
+                current_tab_ = Tab::Sprites;
+
+                glBindTexture(GL_TEXTURE_2D, sprite_texture_);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 40 * 8, 16, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, sprite_buffer_.data());
+                
+                constexpr int kNrColumns = 16;
+                if (ImGui::BeginTable(text::Get(text::ID::kWindowPPUSprites), kNrColumns, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit))
+                {
+                    for (int sprite_index = 0; sprite_index < 40; ++sprite_index)
+                    {
+                        auto& sprite = sprite_data_.at(sprite_index);
+
+                        ImGui::TableNextColumn();
+                        ImGui::Image((void*)(intptr_t)sprite_texture_, ImVec2(8 * kSpriteScale, 16 * kSpriteScale), ImVec2(sprite_index * 8 / 320.0f, 0), ImVec2((sprite_index + 1) * 8 / 320.0f, 1.0f));
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGuiIO& io = ImGui::GetIO();
+                            ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+                            ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
+
+                            ImGui::BeginTooltip();
+
+                            ImGui::Image((void*)(intptr_t)sprite_texture_, ImVec2(8 * kScaleTooltip, 16 * kScaleTooltip), ImVec2(sprite_index * 8 / 320.0f, 0), ImVec2((sprite_index + 1) * 8 / 320.0f, 1.0f));
+
+                            ImGui::Separator();
+                            ImGui::BeginTable("Tile data", 2);
+                            ImGui::TableNextColumn();
+                            ImGui::TextUnformatted("X");
+                            ImGui::TableNextColumn();
+                            ImGui::Text("%d", sprite.x);
+
+                            ImGui::TableNextColumn();
+                            ImGui::TextUnformatted("Y");
+                            ImGui::TableNextColumn();
+                            ImGui::Text("%d", sprite.y);
+
+                            ImGui::TableNextColumn();
+                            ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileNumber));
+                            ImGui::TableNextColumn();
+                            ImGui::Text("%2.2X", sprite.tile_number);
+                            ImGui::TableNextColumn();
+
+                            ImGui::Text("%s: %X", text::Get(text::ID::kWindowPPUTileAttributes), sprite.attributes);
+                            ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipX), &sprite.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipY), &sprite.y_flip);
+                            ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTilePalette), sprite.palette);
+                            ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTileVRAMBank), sprite.vram_bank);
+                            ImGui::Checkbox(text::Get(text::ID::kWindowPPUTilePriority), &sprite.priority);
+
+                            ImGui::EndTable();
+
+                            ImGui::EndTooltip();
+                        }
+
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%2X", sprite.y);
+                        ImGui::Text("%2X", sprite.x);
+                        ImGui::Text("%2X", sprite.tile_number);
+                        ImGui::Text("%2X", sprite.attributes);
+                    }
+                    ImGui::EndTable();
+                }
+
+                ImGui::EndTabItem();
             }
 
             ImGui::EndTabBar();
@@ -141,9 +222,19 @@ namespace gui
 
     void VRAMView::OnVBlank()
     {
-        if (!visible_ || !gameboy_)
+        if (!gameboy_)
             return;
 
+        switch (current_tab_)
+        {
+        case Tab::Background: UpdateBackground(); break;
+        case Tab::Tiles: UpdateTiles(); break;
+        case Tab::Sprites: UpdateSprites(); break;
+        }
+    }
+
+    void VRAMView::UpdateBackground()
+    {
         const auto& lcd = gameboy_->GetLCD();
         const auto& ppu = gameboy_->GetPPU();
         const gandalf::byte lcdc = gameboy_->GetLCD().GetLCDControl();
@@ -181,7 +272,7 @@ namespace gui
                         const gandalf::byte color_bit_1 = tile_data.x_flip ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
                         const gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
 
-                        const gandalf::LCD::ABGR1555 abgr_color = lcd.GetBackgroundColor(color, tile_data.palette) | 0x8000;
+                        const gandalf::LCD::ABGR1555 abgr_color = lcd.GetBackgroundColor(color, tile_data.palette);
                         vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = abgr_color;
                     }
                 }
@@ -205,6 +296,57 @@ namespace gui
         {
             vram_buffer_[gandalf::kTotalScreenWidth * (gandalf::byte)(top + y) + left] = color;
             vram_buffer_[gandalf::kTotalScreenWidth * (gandalf::byte)(top + y) + right] = color;
+        }
+    }
+
+    void VRAMView::UpdateTiles()
+    {
+
+    }
+
+    void VRAMView::UpdateSprites()
+    {
+        const auto& lcd = gameboy_->GetLCD();
+        const auto& ppu = gameboy_->GetPPU();
+        const auto& memory = gameboy_->GetMemory();
+
+        for (int sprite_index = 0; sprite_index < 40; ++sprite_index)
+        {
+            SpriteData& data = sprite_data_.at(sprite_index);
+            data.y = memory.Read(0xFE00 + sprite_index * 4);
+            data.x = memory.Read(0xFE00 + sprite_index * 4 + 1);
+            data.tile_number = memory.Read(0xFE00 + sprite_index * 4 + 2);
+            data.attributes = memory.Read(0xFE00 + sprite_index * 4 + 3);
+            data.priority = (data.attributes & 0x80) != 0;
+            data.y_flip = (data.attributes & 0b1000000) != 0;
+            data.x_flip = (data.attributes & 0b100000) != 0;
+            data.palette = gameboy_->GetMode() == gandalf::GameboyMode::CGB ? data.attributes & 0b111 : (data.attributes & 0b10000) >> 4;
+            data.vram_bank = (data.attributes & 0b1000) >> 3;
+
+            const bool sprite_size = lcd.GetLCDControl() & 0b100;
+            for (int line = 0; line < 16; ++line)
+            {
+				std::uint8_t tile = line > 7 ? data.tile_number + 1 : data.tile_number;
+                std::uint8_t tile_line = line % 8;
+                
+                const gandalf::byte tile_data_low = ppu.DebugReadVRam(data.vram_bank, tile * 16 + (data.y_flip ? (7 - tile_line) : tile_line) * 2);
+                const gandalf::byte tile_data_high = ppu.DebugReadVRam(data.vram_bank, tile * 16 + (data.y_flip ? (7 - tile_line) : tile_line) * 2 + 1);
+
+                for (int x = 0; x < 8; ++x)
+                {
+                    gandalf::LCD::ABGR1555 abgr_color = 0;
+                    if (line < 7 || sprite_size)
+                    {
+                        const gandalf::byte color_bit_0 = data.x_flip ? !!((tile_data_low) & (1 << x)) : !!(tile_data_low & (1 << (7 - x)));
+                        const gandalf::byte color_bit_1 = data.x_flip ? !!((tile_data_high) & (1 << x)) : !!(tile_data_high & (1 << (7 - x)));
+                        const gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
+
+                        if (color != 0)
+                            abgr_color = lcd.GetSpriteColor(color, data.palette);
+                    }
+                    sprite_buffer_[(line * (40 * 8)) + (sprite_index * 8) + x] = abgr_color;
+                }
+            }            
         }
     }
 }

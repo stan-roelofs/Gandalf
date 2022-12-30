@@ -83,6 +83,7 @@ namespace gui
             {ID::kWindowPPUTileVRAMBank, "VRAM bank"},
             {ID::kWindowPPUTilePriority, "Priority"},
             {ID::kWindowPPUTiles, "Tiles"},
+            {ID::kWindowPPUSprites, "Sprites"},
 
             {ID::kWindowIO, "IO"},
         };

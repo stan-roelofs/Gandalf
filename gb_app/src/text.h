@@ -91,6 +91,7 @@ namespace gui
             kWindowPPUTileVRAMBank,
             kWindowPPUTilePriority,
             kWindowPPUTiles,
+            kWindowPPUSprites,
 
             // IO window
             kWindowIO,
