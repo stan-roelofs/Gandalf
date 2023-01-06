@@ -49,7 +49,7 @@ namespace gui
 
     void VRAMView::OnGameboyChanged()
     {
-        gameboy_->GetPPU().AddVBlankListener(this);
+        gameboy_->AddVBlankListener(this);
         sprite_buffer_.fill(0);
         vram_buffer_.fill(0);
     }

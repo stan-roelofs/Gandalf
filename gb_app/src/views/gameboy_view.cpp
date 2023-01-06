@@ -30,7 +30,7 @@ namespace gui
 
     void GameboyView::OnGameboyChanged()
     {
-        gameboy_->GetPPU().AddVBlankListener(this);
+        gameboy_->AddVBlankListener(this);
     }
 
     void GameboyView::Render()

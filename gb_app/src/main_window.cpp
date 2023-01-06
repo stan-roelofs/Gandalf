@@ -113,21 +113,6 @@ namespace gui
             }
         }
 
-        if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::TextUnformatted(text::Get(text::ID::ErrorLoadBootROM));
-            ImGui::Separator();
-
-            if (ImGui::Button(text::Get(text::ID::SelectBootROM), ImVec2(120, 0))) {
-                gui_context_.GetSettings().boot_rom_location = SelectBootROM();
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
-            if (ImGui::Button(text::Get(text::ID::Cancel), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-            ImGui::EndPopup();
-        }
-
         if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::TextUnformatted(text::Get(text::ID::ErrorLoad));
@@ -137,7 +122,7 @@ namespace gui
             ImGui::EndPopup();
         }
 
-        if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Error##GameboyLoadROMFailed", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::TextUnformatted(text::Get(text::ID::ErrorLoad));
             ImGui::Separator();
@@ -153,25 +138,23 @@ namespace gui
         if (!gameboy_)
             return;
 
-        auto& joypad = gameboy_->GetJoypad();
-
         const auto& settings = gui_context_.GetSettings();
         if (key == settings.key_a)
-            joypad.SetButtonState(gandalf::Joypad::Button::kA, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kA, pressed);
         else if (key == settings.key_b)
-            joypad.SetButtonState(gandalf::Joypad::Button::kB, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kB, pressed);
         else if (key == settings.key_start)
-            joypad.SetButtonState(gandalf::Joypad::Button::kStart, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kStart, pressed);
         else if (key == settings.key_select)
-            joypad.SetButtonState(gandalf::Joypad::Button::kSelect, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kSelect, pressed);
         else if (key == settings.key_up)
-            joypad.SetButtonState(gandalf::Joypad::Button::kUp, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kUp, pressed);
         else if (key == settings.key_down)
-            joypad.SetButtonState(gandalf::Joypad::Button::kDown, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kDown, pressed);
         else if (key == settings.key_left)
-            joypad.SetButtonState(gandalf::Joypad::Button::kLeft, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kLeft, pressed);
         else if (key == settings.key_right)
-            joypad.SetButtonState(gandalf::Joypad::Button::kRight, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kRight, pressed);
     }
 
     void MainWindow::DockSpace()
@@ -294,19 +277,13 @@ namespace gui
         std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
             std::istreambuf_iterator<char>());
 
-        auto boot_rom = LoadBootROM(settings.boot_rom_location);
-        if (!boot_rom)
-        {
-            show_popup_ = "Error##LoadBootROM";
-            return;
-        }
-
         std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_, gb_thread_run_);
-        std::shared_ptr<gandalf::Gameboy> gameboy = std::make_shared<gandalf::Gameboy>(*boot_rom, file, handler);
-        gameboy->GetPPU().AddVBlankListener(this);
+        std::shared_ptr<gandalf::Gameboy> gameboy = std::make_shared<gandalf::Gameboy>(static_cast<gandalf::Model>(gui_context_.GetSettings().emulated_model));
+        gameboy->AddVBlankListener(this);
+        gameboy->SetAudioHandler(handler);
 
-        if (!gameboy->Ready()) {
-            show_popup_ = "Error##GameboyNotReady";
+        if (!gameboy->LoadROM(file)) {
+            show_popup_ = "Error##LoadROM";
             return;
         }
 

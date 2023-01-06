@@ -41,7 +41,7 @@ namespace gui
             if (scroll_target)
                 ImGui::SetScrollY((*scroll_target / 16) * memory_item_height);
 
-            gandalf::Memory& memory = gameboy_->GetMemory();
+            const gandalf::Memory& memory = gameboy_->GetMemory();
             ImGuiListClipper clipper;
             clipper.Begin(0x10000 / 16);
             while (clipper.Step())

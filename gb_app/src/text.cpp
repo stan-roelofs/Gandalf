@@ -16,8 +16,6 @@ namespace gui
             {ID::Cancel, "Cancel"},
             {ID::Pause, "Pause"},
 
-            {ID::SelectBootROM, "Select Boot ROM"},
-            {ID::ErrorLoadBootROM, "Error while loading Gameboy Boot ROM"},
             {ID::ErrorLoad, "Error loading file"},
 
             {ID::MenuFile, "File"},
@@ -35,8 +33,7 @@ namespace gui
             {ID::SettingsWindowKeys, "Keys"},
             {ID::SettingsWindowPressKey, "Press a key or escape to cancel"},
             {ID::SettingsWindowGeneral, "General"},
-            {ID::SettingsWindowBootROMLocation, "Boot ROM location"},
-            {ID::SettingsWindowBootROMSelect, "Select"},
+            {ID::SettingsWindowEmulatedModel, "Emulated model"},
 
             {ID::WindowAPU, "APU"},
             {ID::WindowAPUSquare1Enable, "Enable Square wave 1 channel"},

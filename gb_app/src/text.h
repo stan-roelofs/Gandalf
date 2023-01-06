@@ -13,8 +13,6 @@ namespace gui
             Pause,
 
             // Errors
-            ErrorLoadBootROM,
-            SelectBootROM,
             ErrorLoad,
 
             // File Menu
@@ -37,8 +35,7 @@ namespace gui
             SettingsWindowKeys,
             SettingsWindowPressKey,
             SettingsWindowGeneral,
-            SettingsWindowBootROMLocation,
-            SettingsWindowBootROMSelect,
+            SettingsWindowEmulatedModel,
 
             // APU window
             WindowAPU,

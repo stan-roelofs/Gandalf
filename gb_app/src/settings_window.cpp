@@ -5,7 +5,6 @@
 
 #include <gandalf/model.h>
 #include <SDL.h>
-#include <nfd.hpp>
 
 namespace gui
 {
@@ -70,7 +69,7 @@ namespace gui
             {
                 if (ImGui::BeginTabItem(text::Get(text::ID::SettingsWindowGeneral)))
                 {
-                    if (ImGui::BeginCombo(text::Get(text::ID::kSettingsEmulatedModel), gandalf::GetModelName(static_cast<gandalf::Model>(settings_copy_.emulated_model)).c_str()))
+                    if (ImGui::BeginCombo(text::Get(text::ID::SettingsWindowEmulatedModel), gandalf::GetModelName(static_cast<gandalf::Model>(settings_copy_.emulated_model)).c_str()))
                     {
                         for (int model = 0; model < static_cast<int>(gandalf::Model::LAST); ++model)
                         {
@@ -84,19 +83,6 @@ namespace gui
                         }
                         ImGui::EndCombo();
                     }
-
-                    ImGui::TextUnformatted(text::Get(text::ID::SettingsWindowBootROMLocation));
-                    ImGui::SameLine();
-                    ImGui::TextUnformatted(settings_copy_.boot_rom_location.c_str());
-                    ImGui::SameLine();
-
-                    if (ImGui::Button(text::Get(text::ID::SettingsWindowBootROMSelect), ImVec2(120, 0)))
-                    {
-                        NFD::UniquePath path;
-                        auto result = NFD::OpenDialog(path);
-                        if (result == NFD_OKAY)
-                            settings_copy_.boot_rom_location = path.get();
-                    };
 
                     ImGui::EndTabItem();
                 }

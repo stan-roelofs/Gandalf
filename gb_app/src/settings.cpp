@@ -11,7 +11,6 @@ namespace gui
         j = json{
             {"recent_roms", s.recent_roms},
             {"emulated_model", s.emulated_model},
-            {"boot_rom_location", s.boot_rom_location},
             {"show_debug", s.show_debug},
             {"key_up", s.key_up},
             {"key_down", s.key_down},
@@ -33,7 +32,6 @@ namespace gui
 
         s.recent_roms = j.value("recent_roms", default_settings.recent_roms);
         s.emulated_model = j.value("emulated_model", default_settings.emulated_model);
-        s.boot_rom_location = j.value("boot_rom_location", default_settings.boot_rom_location);
         s.show_debug = j.value("show_debug", default_settings.show_debug);
         s.key_up = j.value("key_up", default_settings.key_up);
         s.key_down = j.value("key_down", default_settings.key_down);
@@ -52,7 +50,6 @@ namespace gui
     {
         recent_roms = {};
         emulated_model = static_cast<std::uint8_t>(gandalf::Model::CGB);
-        boot_rom_location = "";
         show_debug = false;
         key_up = SDLK_UP;
         key_down = SDLK_DOWN;

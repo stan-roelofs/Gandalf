@@ -17,40 +17,50 @@
 namespace gandalf {
   class Gameboy {
   public:
-    Gameboy(const ROM& boot_rom, const ROM& rom, std::shared_ptr<APU::OutputHandler> audio_handler);
+    /// @param emulated_model The model of the Gameboy to emulate
+    Gameboy(Model emulated_model);
     ~Gameboy();
 
-    /// @returns Whether the Gameboy is ready to run (ROM is loaded and Boot ROM is loaded)
-    bool Ready() const;
+    /**
+     * Loads a ROM into the Gameboy
+     * @param rom The raw ROM data
+     * @returns Whether the ROM was loaded successfully
+    */
+    bool LoadROM(const ROM& rom);
 
+    void SetAudioHandler(std::shared_ptr<APU::OutputHandler> output_handler);
+    void AddVBlankListener(PPU::VBlankListener* listener);
+    void SetButtonState(Joypad::Button button, bool pressed);
+    void MuteAudioChannel(APU::Channel channel, bool mute);
+    void RegisterAddressHandler(Memory::AddressHandler& handler);
+
+    /// @brief Executes a single instruction
     void Run();
 
-    const std::unique_ptr<Cartridge>& GetCartridge() const { return cartridge_; }
-
-    CPU& GetCPU() { return *cpu_; }
-    Memory& GetMemory() { return memory_; }
-    LCD& GetLCD() { return io_->GetLCD(); }
-    PPU& GetPPU() { return io_->GetPPU(); }
-    Joypad& GetJoypad() { return io_->GetJoypad(); }
-    APU& GetAPU() { return io_->GetAPU(); }
-    Timer& GetTimer() { return io_->GetTimer(); }
+    const Cartridge& GetCartridge() const { return cartridge_; }
+    const CPU& GetCPU() const { return cpu_; }
+    const Memory& GetMemory() const { return memory_; }
+    const LCD& GetLCD() const { return io_.GetLCD(); }
+    const PPU& GetPPU() const { return io_.GetPPU(); }
+    const Joypad& GetJoypad() const { return io_.GetJoypad(); }
+    const APU& GetAPU() const { return io_.GetAPU(); }
+    const Timer& GetTimer() const { return io_.GetTimer(); }
 
     GameboyMode GetMode() const { return mode_; }
 
   private:
     void OnBootROMFinished();
-    void LoadROM(const ROM& rom);
-    void LoadBootROM(const ROM& boot_rom);
 
     GameboyMode mode_;
+    Model model_;
 
     // Keep in this order! The memory needs to be destroyed last, and io needs to be destroyed before cpu.
     Memory memory_;
-    std::unique_ptr<IO> io_;
-    std::unique_ptr<CPU> cpu_;
-    std::unique_ptr<WRAM> wram_;
-    std::unique_ptr<HRAM> hram_;
-    std::unique_ptr<Cartridge> cartridge_;
+    IO io_;
+    CPU cpu_;
+    WRAM wram_;
+    HRAM hram_;
+    Cartridge cartridge_;
 
     class BootROMHandler: public Memory::AddressHandler
     {

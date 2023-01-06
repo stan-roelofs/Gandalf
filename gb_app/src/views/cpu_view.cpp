@@ -67,13 +67,15 @@ namespace gui
         }
 
         ImGui::BeginDisabled();
-        ImGui::Checkbox("IME", &gameboy_->GetCPU().GetRegisters().interrupt_master_enable);
+        static bool ime = false;
+        ime = gameboy_->GetCPU().GetRegisters().interrupt_master_enable;
+        ImGui::Checkbox("IME", &ime);
         ImGui::EndDisabled();
 
         ImGui::Separator();
 
-        gandalf::Memory& memory = gameboy_->GetMemory();
-        gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
+        const gandalf::Memory& memory = gameboy_->GetMemory();
+        const gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
         if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
             static gandalf::word last_pc = registers.program_counter;
             if (last_pc != registers.program_counter) {

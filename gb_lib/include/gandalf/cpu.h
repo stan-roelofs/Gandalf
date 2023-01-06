@@ -19,7 +19,7 @@ namespace gandalf {
     void Write(word address, byte value) override;
     std::set<word> GetAddresses() const override;
 
-    Registers& GetRegisters() { return registers_; }
+    const Registers& GetRegisters() const { return registers_; }
 
     void SetMode(GameboyMode mode) { gameboy_mode_ = mode; }
 
