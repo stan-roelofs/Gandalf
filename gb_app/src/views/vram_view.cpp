@@ -59,12 +59,12 @@ namespace gui
         if (!gameboy_ || !debug_enabled_)
             return;
 
-        ImGui::Begin(text::Get(text::ID::kWindowPPU));
+        ImGui::Begin(text::Get(text::ID::WindowPPU));
 
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
         if (ImGui::BeginTabBar("PPUTabBar", tab_bar_flags))
         {
-            if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUBackgroundMap)))
+            if (ImGui::BeginTabItem(text::Get(text::ID::WindowPPUBackgroundMap)))
             {
                 current_tab_ = Tab::Background;
 
@@ -112,27 +112,27 @@ namespace gui
                     ImGui::Text("%d", tile_y);
 
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileNumber));
+                    ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileNumber));
                     ImGui::TableNextColumn();
                     ImGui::Text("%2.2X", tile_data.tile_number);
 
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileMap));
+                    ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileMap));
                     ImGui::TableNextColumn();
                     ImGui::Text("%4.4X", tile_data.map_address);
 
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileAddress));
+                    ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileAddress));
                     ImGui::TableNextColumn();
                     ImGui::Text("%4.4X", tile_data.tile_address);
                     ImGui::EndTable();
 
                     ImGui::Separator();
-                    ImGui::Text("%s: %X", text::Get(text::ID::kWindowPPUTileAttributes), tile_data.attributes);
-                    ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipX), &tile_data.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipY), &tile_data.y_flip);
-                    ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTilePalette), tile_data.palette);
-                    ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTileVRAMBank), tile_data.vram_bank);
-                    ImGui::Checkbox(text::Get(text::ID::kWindowPPUTilePriority), &tile_data.priority);
+                    ImGui::Text("%s: %X", text::Get(text::ID::WindowPPUTileAttributes), tile_data.attributes);
+                    ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipX), &tile_data.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipY), &tile_data.y_flip);
+                    ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTilePalette), tile_data.palette);
+                    ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTileVRAMBank), tile_data.vram_bank);
+                    ImGui::Checkbox(text::Get(text::ID::WindowPPUTilePriority), &tile_data.priority);
 
                     ImGui::EndTooltip();
                 }
@@ -140,22 +140,22 @@ namespace gui
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUTiles)))
+            if (ImGui::BeginTabItem(text::Get(text::ID::WindowPPUTiles)))
             {
                 current_tab_ = Tab::Tiles;
 
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem(text::Get(text::ID::kWindowPPUSprites)))
+            if (ImGui::BeginTabItem(text::Get(text::ID::WindowPPUSprites)))
             {
                 current_tab_ = Tab::Sprites;
 
                 glBindTexture(GL_TEXTURE_2D, sprite_texture_);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 40 * 8, 16, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, sprite_buffer_.data());
-                
+
                 constexpr int kNrColumns = 16;
-                if (ImGui::BeginTable(text::Get(text::ID::kWindowPPUSprites), kNrColumns, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit))
+                if (ImGui::BeginTable(text::Get(text::ID::WindowPPUSprites), kNrColumns, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit))
                 {
                     for (int sprite_index = 0; sprite_index < 40; ++sprite_index)
                     {
@@ -186,16 +186,16 @@ namespace gui
                             ImGui::Text("%d", sprite.y);
 
                             ImGui::TableNextColumn();
-                            ImGui::TextUnformatted(text::Get(text::ID::kWindowPPUTileNumber));
+                            ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileNumber));
                             ImGui::TableNextColumn();
                             ImGui::Text("%2.2X", sprite.tile_number);
                             ImGui::TableNextColumn();
 
-                            ImGui::Text("%s: %X", text::Get(text::ID::kWindowPPUTileAttributes), sprite.attributes);
-                            ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipX), &sprite.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::kWindowPPUTileFlipY), &sprite.y_flip);
-                            ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTilePalette), sprite.palette);
-                            ImGui::Text("%s: %d", text::Get(text::ID::kWindowPPUTileVRAMBank), sprite.vram_bank);
-                            ImGui::Checkbox(text::Get(text::ID::kWindowPPUTilePriority), &sprite.priority);
+                            ImGui::Text("%s: %X", text::Get(text::ID::WindowPPUTileAttributes), sprite.attributes);
+                            ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipX), &sprite.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipY), &sprite.y_flip);
+                            ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTilePalette), sprite.palette);
+                            ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTileVRAMBank), sprite.vram_bank);
+                            ImGui::Checkbox(text::Get(text::ID::WindowPPUTilePriority), &sprite.priority);
 
                             ImGui::EndTable();
 
@@ -326,9 +326,9 @@ namespace gui
             const bool sprite_size = lcd.GetLCDControl() & 0b100;
             for (int line = 0; line < 16; ++line)
             {
-				std::uint8_t tile = line > 7 ? data.tile_number + 1 : data.tile_number;
+                std::uint8_t tile = line > 7 ? data.tile_number + 1 : data.tile_number;
                 std::uint8_t tile_line = line % 8;
-                
+
                 const gandalf::byte tile_data_low = ppu.DebugReadVRam(data.vram_bank, tile * 16 + (data.y_flip ? (7 - tile_line) : tile_line) * 2);
                 const gandalf::byte tile_data_high = ppu.DebugReadVRam(data.vram_bank, tile * 16 + (data.y_flip ? (7 - tile_line) : tile_line) * 2 + 1);
 
@@ -346,7 +346,7 @@ namespace gui
                     }
                     sprite_buffer_[(line * (40 * 8)) + (sprite_index * 8) + x] = abgr_color;
                 }
-            }            
+            }
         }
     }
 }

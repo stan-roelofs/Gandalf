@@ -93,7 +93,7 @@ namespace gui
     {
         // Render our GUI elements
         DockSpace();
-        //ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
 
         for (auto& element : gui_elements_)
             element->Render();
@@ -115,22 +115,22 @@ namespace gui
 
         if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoadBootROM));
+            ImGui::TextUnformatted(text::Get(text::ID::ErrorLoadBootROM));
             ImGui::Separator();
 
-            if (ImGui::Button(text::Get(text::ID::kSelectBootROM), ImVec2(120, 0))) {
+            if (ImGui::Button(text::Get(text::ID::SelectBootROM), ImVec2(120, 0))) {
                 gui_context_.GetSettings().boot_rom_location = SelectBootROM();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SetItemDefaultFocus();
             ImGui::SameLine();
-            if (ImGui::Button(text::Get(text::ID::kCancel), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            if (ImGui::Button(text::Get(text::ID::Cancel), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
             ImGui::EndPopup();
         }
 
         if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
+            ImGui::TextUnformatted(text::Get(text::ID::ErrorLoad));
             ImGui::Separator();
 
             if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
@@ -139,10 +139,10 @@ namespace gui
 
         if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
+            ImGui::TextUnformatted(text::Get(text::ID::ErrorLoad));
             ImGui::Separator();
 
-            if (ImGui::Button(text::Get(text::ID::kOk), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            if (ImGui::Button(text::Get(text::ID::Ok), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
             ImGui::EndPopup();
         }
     }
@@ -218,9 +218,9 @@ namespace gui
     {
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuFile)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuFile)))
             {
-                if (ImGui::MenuItem(text::Get(text::ID::kMenuFileOpenROM)))
+                if (ImGui::MenuItem(text::Get(text::ID::MenuFileOpenROM)))
                 {
                     NFD::UniquePath path;
                     nfdfilteritem_t filter_item[] = { {"ROM", "gb,gbc"} };
@@ -229,7 +229,7 @@ namespace gui
                         LoadROM(path.get());
                 }
 
-                if (ImGui::BeginMenu(text::Get(text::ID::kMenuFileRecentROMs)))
+                if (ImGui::BeginMenu(text::Get(text::ID::MenuFileRecentROMs)))
                 {
                     std::string rom_to_load;
                     for (const auto& path : gui_context_.GetSettings().recent_roms)
@@ -246,23 +246,23 @@ namespace gui
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuSettings)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuSettings)))
             {
-                if (ImGui::MenuItem(text::Get(text::ID::kMenuSettings)))
+                if (ImGui::MenuItem(text::Get(text::ID::MenuSettings)))
                     settings_window_ = std::make_unique<SettingsWindow>(gui_context_);
 
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuEmulation)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuEmulation)))
             {
-                ImGui::MenuItem(text::Get(text::ID::kPause), nullptr, &gb_pause_);
+                ImGui::MenuItem(text::Get(text::ID::Pause), nullptr, &gb_pause_);
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuView)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuView)))
             {
-                ImGui::MenuItem(text::Get(text::ID::kMenuViewDebug), nullptr, &gui_context_.GetSettings().show_debug);
+                ImGui::MenuItem(text::Get(text::ID::MenuViewDebug), nullptr, &gui_context_.GetSettings().show_debug);
                 ImGui::EndMenu();
             }
 

@@ -43,11 +43,11 @@ namespace gandalf {
     Cartridge::CGBFunctionality Cartridge::Header::GetCGBFlag() const
     {
         if (cgb_flag == 0x80)
-            return Cartridge::CGBFunctionality::kSupported;
+            return Cartridge::CGBFunctionality::Supported;
         else if (cgb_flag == 0xC0)
-            return Cartridge::CGBFunctionality::kOnly;
+            return Cartridge::CGBFunctionality::Only;
         else
-            return Cartridge::CGBFunctionality::kNotSupported;
+            return Cartridge::CGBFunctionality::NotSupported;
     }
 
     std::string Cartridge::Header::GetTitleString() const

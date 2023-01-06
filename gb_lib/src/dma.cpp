@@ -32,13 +32,13 @@ namespace gandalf
 
         if (current_byte_write_ == 160) {
             in_progress_ = false;
-            memory_.Block(Memory::Bus::kOAM, false);
+            memory_.Block(Memory::Bus::OAM, false);
             return;
         }
 
         if (current_byte_read_ > 0) {
             if (current_byte_write_ == 0)
-                memory_.Block(Memory::Bus::kOAM, true);
+                memory_.Block(Memory::Bus::OAM, true);
 
             memory_.Write(0xFE00 + current_byte_write_, read_value_, false);
             ++current_byte_write_;

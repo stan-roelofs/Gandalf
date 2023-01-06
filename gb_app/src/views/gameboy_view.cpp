@@ -39,9 +39,9 @@ namespace gui
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::kScreenWidth, gandalf::kScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, front_buffer_->data());
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin(text::Get(text::ID::kWindowGameboy));
-        ImGui::SliderInt(text::Get(text::ID::kWindowGameboyScale), &context_.GetSettings().scale, 1, 5);
-        ImGui::Image((void*)(intptr_t)texture_, ImVec2(gandalf::kScreenWidth * context_.GetSettings().scale, gandalf::kScreenHeight * context_.GetSettings().scale));
+        ImGui::Begin(text::Get(text::ID::WindowGameboy));
+        ImGui::SliderInt(text::Get(text::ID::WindowGameboyScale), &context_.GetSettings().scale, 1, 5);
+        ImGui::Image((void*)(intptr_t)texture_, ImVec2(static_cast<float>(gandalf::kScreenWidth * context_.GetSettings().scale), static_cast<float>(gandalf::kScreenHeight * context_.GetSettings().scale)));
         ImGui::End();
         ImGui::PopStyleVar();
     }

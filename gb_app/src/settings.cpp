@@ -51,7 +51,7 @@ namespace gui
     Settings::Settings()
     {
         recent_roms = {};
-        emulated_model = gandalf::Model::CGB;
+        emulated_model = static_cast<std::uint8_t>(gandalf::Model::CGB);
         boot_rom_location = "";
         show_debug = false;
         key_up = SDLK_UP;

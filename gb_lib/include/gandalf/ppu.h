@@ -85,23 +85,23 @@ namespace gandalf {
 
             enum class FetcherState
             {
-                kFetchTileSleep,
-                kFetchTile,
-                kFetchDataLowSleep,
-                kFetchDataLow,
-                kFetchDataHighSleep,
-                kFetchDataHigh,
-                kPush
+                FetchTileSleep,
+                FetchTile,
+                FetchDataLowSleep,
+                FetchDataLow,
+                FetchDataHighSleep,
+                FetchDataHigh,
+                Push
             };
 
             enum class SpriteState
             {
-                kReadOAMSleep,
-                kReadOAM,
-                kReadDataLowSleep,
-                kReadDataLow,
-                kReadDataHighSleep,
-                kReadDataHigh,
+                ReadOAMSleep,
+                ReadOAM,
+                ReadDataLowSleep,
+                ReadDataLow,
+                ReadDataHighSleep,
+                ReadDataHigh,
             };
 
             struct Pixel

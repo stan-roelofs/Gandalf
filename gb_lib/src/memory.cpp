@@ -1,5 +1,7 @@
 #include <gandalf/memory.h>
 
+#include <gandalf/exception.h>
+
 namespace gandalf {
   Memory::AddressHandler::AddressHandler(const std::string& name): name_(name) {
 
@@ -60,36 +62,36 @@ namespace gandalf {
   Memory::Bus Memory::GetBus(word address)
   {
     if (address <= 0x7FFF)
-      return Bus::kExternal;
+      return Bus::External;
     else if (address <= 0x9FFF)
-      return Bus::kVideoRAM;
+      return Bus::VideoRAM;
     else if (address <= 0xFDFF)
-      return Bus::kExternal;
+      return Bus::External;
     else if (address >= 0xFE00 && address <= 0xFE9F)
-      return Bus::kOAM;
+      return Bus::OAM;
     else
-      throw std::runtime_error("Invalid address");
+      throw Exception("Invalid address");
   }
 
   void Memory::Block(Bus bus, bool block)
   {
     switch (bus) {
-    case Bus::kExternal:
+    case Bus::External:
       for (std::uint32_t start = 0; start <= 0x7FFF; ++start)
         address_space_[start].blocked = block;
       for (std::uint32_t start = 0xA000; start <= 0xFDFF; ++start)
         address_space_[start].blocked = block;
       break;
-    case Bus::kVideoRAM:
+    case Bus::VideoRAM:
       for (std::uint32_t start = 0x8000; start <= 0x9FFF; ++start)
         address_space_[start].blocked = block;
       break;
-    case Bus::kOAM:
+    case Bus::OAM:
       for (std::uint32_t start = 0xFE00; start <= 0xFE9F; ++start)
         address_space_[start].blocked = block;
       break;
     default:
-      throw std::runtime_error("Invalid bus");
+      throw Exception("Invalid bus");
     }
   }
 

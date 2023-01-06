@@ -3,14 +3,16 @@
 #include <cassert>
 
 #include <gandalf/constants.h>
+#include <gandalf/exception.h>
+#include <gandalf/util.h>
+
 #include "sound/square_wave_channel.h"
 #include "sound/noise_channel.h"
 #include "sound/wave_channel.h"
-#include <gandalf/util.h>
 
 namespace gandalf
 {
-    APU::APU(std::shared_ptr<APU::OutputHandler> audio_handler) : Memory::AddressHandler("APU"),
+    APU::APU(std::shared_ptr<APU::OutputHandler> audio_handler): Memory::AddressHandler("APU"),
         output_handler_(audio_handler),
         ticks_until_sample_(audio_handler ? audio_handler->GetNextSampleTime() : 0),
         vin_left_(false),
@@ -153,7 +155,7 @@ namespace gandalf
 
         ticks_until_sample_ = output_handler_->GetNextSampleTime();
         if (ticks_until_sample_ == 0)
-            throw std::invalid_argument("Next sample time must be greater than 0");
+            throw Exception("Next sample time must be greater than 0");
 
         for (int i = 0; i < 4; ++i)
         {

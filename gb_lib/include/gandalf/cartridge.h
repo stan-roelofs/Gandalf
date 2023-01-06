@@ -11,16 +11,16 @@
 #include "mbc.h"
 
 namespace gandalf {
-  class Cartridge : public Memory::AddressHandler {
+  class Cartridge: public Memory::AddressHandler {
   public:
     Cartridge();
     virtual ~Cartridge();
 
     enum class CGBFunctionality
     {
-        kOnly,
-        kSupported,
-        kNotSupported
+      Only,
+      Supported,
+      NotSupported
     };
 
     struct Header {

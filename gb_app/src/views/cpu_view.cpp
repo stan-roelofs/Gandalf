@@ -21,22 +21,22 @@ namespace gui
         if (!gameboy_ || !debug_enabled_)
             return;
 
-        ImGui::Begin(text::Get(text::ID::kWindowCPU), nullptr, ImGuiWindowFlags_NoTitleBar);
-        ImGui::Checkbox(text::Get(text::ID::kPause), &gb_pause_);
-        ImGui::Checkbox(text::Get(text::ID::kWindowCPULimitFPS), &block_audio_);
+        ImGui::Begin(text::Get(text::ID::WindowCPU), nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Checkbox(text::Get(text::ID::Pause), &gb_pause_);
+        ImGui::Checkbox(text::Get(text::ID::WindowCPULimitFPS), &block_audio_);
         ImGui::SameLine();
 
         if (!gb_pause_)
             ImGui::BeginDisabled();
 
-        if (ImGui::Button(text::Get(text::ID::kWindowCPUStep))) {
+        if (ImGui::Button(text::Get(text::ID::WindowCPUStep))) {
             step_ = true;
         }
 
         if (!gb_pause_)
             ImGui::EndDisabled();
 
-        if (ImGui::BeginTable(text::Get(text::ID::kWindowCPURegisters), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        if (ImGui::BeginTable(text::Get(text::ID::WindowCPURegisters), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
             gandalf::Registers registers = gameboy_->GetCPU().GetRegisters();
             ImGui::TableNextColumn();

@@ -48,9 +48,9 @@ namespace gandalf {
 
     enum Bus: byte
     {
-      kExternal,
-      kVideoRAM,
-      kOAM,
+      External,
+      VideoRAM,
+      OAM,
     };
 
     Memory();
@@ -61,7 +61,7 @@ namespace gandalf {
      *
      * @param address address that will be written
      * @param value value that will be written
-     * @param check_access If true, writing to blocked regions will fail. 
+     * @param check_access If true, writing to blocked regions will fail.
      */
     void Write(word address, byte value, bool check_access = true);
 
@@ -93,10 +93,10 @@ namespace gandalf {
      */
     std::string GetAddressHandlerName(word address) const;
 
-	/**
-	 * @param address Address for which the bus is requested.
-	 * @returns Which Bus handles reads/writes of the given address.
-	 */
+    /**
+     * @param address Address for which the bus is requested.
+     * @returns Which Bus handles reads/writes of the given address.
+     */
     static Bus GetBus(word address);
 
     void Block(Bus bus, bool block = true);
