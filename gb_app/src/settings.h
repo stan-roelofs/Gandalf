@@ -17,6 +17,7 @@ namespace gui
     {
         Settings();
         std::list<std::string> recent_roms;
+        std::uint8_t emulated_model;
         std::string boot_rom_location;
         bool show_debug;
         std::int32_t key_up;

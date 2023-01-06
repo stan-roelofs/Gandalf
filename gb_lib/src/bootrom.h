@@ -6,8 +6,6 @@
 #include <gandalf/model.h>
 
 namespace gandalf {
-
-    void SimulateBootROM(Model model, Registers& registers, Memory& memory);
-
+    std::vector<byte> GetBootROM(Model model);
 } // namespace gandalf
 #endif

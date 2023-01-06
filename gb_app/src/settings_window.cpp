@@ -3,12 +3,13 @@
 #include "imgui.h"
 #include "text.h"
 
+#include <gandalf/model.h>
 #include <SDL.h>
 #include <nfd.hpp>
 
 namespace gui
 {
-    SettingsWindow::SettingsWindow(GUIContext& ctx) : ctx_(ctx), show_(true), terminated_(false), settings_copy_(ctx.GetSettings()), last_key_(std::nullopt)
+    SettingsWindow::SettingsWindow(GUIContext& ctx): ctx_(ctx), show_(true), terminated_(false), settings_copy_(ctx.GetSettings()), last_key_(std::nullopt)
     {
         ctx_.AddKeyboardHandler(this);
     }
@@ -69,6 +70,21 @@ namespace gui
             {
                 if (ImGui::BeginTabItem(text::Get(text::ID::kSettingsWindowGeneral)))
                 {
+                    if (ImGui::BeginCombo("emulated model", gandalf::GetModelName(settings_copy_.emulated_model).c_str()))
+                    {
+                        for (int model = 0; model < static_cast<int>(gandalf::Model::LAST); ++model)
+                        {
+                            const bool is_selected = (static_cast<int>(settings_copy_.emulated_model) == n);
+                            if (ImGui::Selectable(gandalf::GetModelName(static_cast<gandalf::Model>(model)).c_str(), is_selected))
+                                settings_copy_.emulated_model = static_cast<gandalf::Model>(model);
+
+                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
                     ImGui::TextUnformatted(text::Get(text::ID::kSettingsWindowBootROMLocation));
                     ImGui::SameLine();
                     ImGui::TextUnformatted(settings_copy_.boot_rom_location.c_str());
