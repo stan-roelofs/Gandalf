@@ -23,10 +23,23 @@ namespace gui
     private:
         void OnVBlank() override;
 
+        void UpdateBackground();
+        void UpdateTiles();
+        void UpdateSprites();
+
+        enum class Tab
+        {
+            Background,
+            Tiles,
+            Sprites
+        };
+
         std::array<gandalf::LCD::ABGR1555, gandalf::kTotalScreenHeight* gandalf::kTotalScreenWidth> vram_buffer_;
-        bool visible_;
+        std::array<gandalf::LCD::ABGR1555, 40 * 8 * 16> sprite_buffer_;
+        Tab current_tab_;
         const bool& debug_enabled_;
-        GLuint texture_;
+        GLuint background_texture_;
+        GLuint sprite_texture_;
 
         struct TileData
         {
@@ -41,7 +54,14 @@ namespace gui
             bool priority;
         };
 
+        struct SpriteData: TileData
+        {
+            std::uint8_t y;
+            std::uint8_t x;
+        };
+
         std::array<std::array<TileData, 32>, 32> tile_data_;
+        std::array<SpriteData, 40> sprite_data_;
     };
 }
 

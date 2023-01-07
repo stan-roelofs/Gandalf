@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 
     // Setup window
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL);
-    SDL_Window* sdl_window = SDL_CreateWindow(text::Get(text::ID::kAppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, window_flags);
+    SDL_Window* sdl_window = SDL_CreateWindow(text::Get(text::ID::AppName), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, window_flags);
     assert(sdl_window);
     SDL_GLContext gl_context = SDL_GL_CreateContext(sdl_window);
     if (!gl_context)

@@ -3,16 +3,16 @@
 #include <cassert>
 
 #include <gandalf/constants.h>
+#include <gandalf/exception.h>
+#include <gandalf/util.h>
+
 #include "sound/square_wave_channel.h"
 #include "sound/noise_channel.h"
 #include "sound/wave_channel.h"
-#include <gandalf/util.h>
 
 namespace gandalf
 {
-    APU::APU(std::shared_ptr<APU::OutputHandler> audio_handler) : Memory::AddressHandler("APU"),
-        output_handler_(audio_handler),
-        ticks_until_sample_(audio_handler ? audio_handler->GetNextSampleTime() : 0),
+    APU::APU(): Memory::AddressHandler("APU"),
         vin_left_(false),
         vin_right_(false),
         left_volume_(0),
@@ -37,6 +37,13 @@ namespace gandalf
     }
 
     APU::~APU() = default;
+
+    void APU::SetAudioHandler(std::shared_ptr<OutputHandler> audio_handler)
+    {
+        output_handler_ = audio_handler;
+        if (audio_handler)
+            ticks_until_sample_ = audio_handler->GetNextSampleTime();
+    }
 
     void APU::Write(word address, byte value)
     {
@@ -153,7 +160,7 @@ namespace gandalf
 
         ticks_until_sample_ = output_handler_->GetNextSampleTime();
         if (ticks_until_sample_ == 0)
-            throw std::invalid_argument("Next sample time must be greater than 0");
+            throw Exception("Next sample time must be greater than 0");
 
         for (int i = 0; i < 4; ++i)
         {
@@ -178,11 +185,8 @@ namespace gandalf
         output_handler_->Play(left, right);
     }
 
-    void APU::MuteChannel(int channel, bool mute)
+    void APU::MuteChannel(Channel channel, bool mute)
     {
-        if (channel >= 4)
-            return;
-
-        mute_channel_[channel] = mute;
+        mute_channel_[static_cast<unsigned>(channel)] = mute;
     }
 } // namespace gandalf

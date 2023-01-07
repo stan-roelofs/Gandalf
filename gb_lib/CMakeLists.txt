@@ -10,6 +10,7 @@ set(HEADERS
     include/gandalf/cpu_registers.h
     include/gandalf/constants.h
     include/gandalf/dma.h
+    include/gandalf/exception.h
     include/gandalf/gameboy.h
     include/gandalf/hdma.h
     include/gandalf/hram.h
@@ -57,6 +58,7 @@ set(SOURCES
     src/io.cpp
     src/joypad.cpp
     src/lcd.cpp
+    src/model.cpp
     src/ppu.cpp
     src/serial.cpp
     src/sound/frame_sequencer.cpp

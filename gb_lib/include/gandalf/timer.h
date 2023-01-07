@@ -16,11 +16,11 @@ namespace gandalf {
 
         void Tick();
 
-        word GetInternalCounter() { return div_; }
-        word GetDIV() { return div_ >> 8; }
-        word GetTMA() { return tma_; }
-        word GetTIMA() { return tima_; }
-        word GetTAC() { return tac_; }
+        word GetInternalCounter() const { return div_; }
+        word GetDIV() const { return div_ >> 8; }
+        word GetTMA() const { return tma_; }
+        word GetTIMA() const { return tima_; }
+        word GetTAC() const { return tac_; }
 
     private:
         void OnDIVChanged(word old_div);

@@ -77,7 +77,7 @@ namespace blargg {
 
         bool RunTestROM(Gameboy& gb) override
         {
-            gb.GetMemory().Register(*this);
+            gb.RegisterAddressHandler(*this);
 
             std::size_t ticks = 0;
             while (!done_ && ++ticks < kMaxCycles)
@@ -150,11 +150,8 @@ namespace blargg {
         ROM rom_bytes;
         ASSERT_TRUE(ReadFileBytes("/blargg/" + file_name, rom_bytes));
 
-        ROM bootrom_bytes;
-        ASSERT_TRUE(ReadFileBytes("/bootrom/boot.bin", bootrom_bytes));
-        std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(bootrom_bytes, rom_bytes, nullptr);
-
-        ASSERT_TRUE(gb->Ready());
+        std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(Model::DMG);
+        ASSERT_TRUE(gb->LoadROM(rom_bytes));
 
         EXPECT_TRUE(p.runner->RunTestROM(*gb));
 

@@ -205,7 +205,7 @@ namespace gandalf {
 
     void PPU::Pipeline::Reset()
     {
-        fetcher_state_ = FetcherState::kFetchTileSleep;
+        fetcher_state_ = FetcherState::FetchTileSleep;
         pixels_pushed_ = 0;
         fetch_x_ = (lcd_.GetSCX() / 8) & 0x1F;
         fetch_y_ = lcd_.GetLY() + lcd_.GetSCY();
@@ -238,7 +238,7 @@ namespace gandalf {
                 fetched_sprites_.at(pixels_pushed_ + 8).pop_front();
 
                 sprite_in_progress_ = true;
-                sprite_state_ = SpriteState::kReadOAM;
+                sprite_state_ = SpriteState::ReadOAM;
             }
         }
 
@@ -248,11 +248,11 @@ namespace gandalf {
             drop_pixels_ = (lcd_.GetWX() - 7) % 8;
             fetch_x_ = 0;
             fetch_y_ = lcd_.GetLY() - lcd_.GetWY();
-            fetcher_state_ = FetcherState::kFetchTile;
+            fetcher_state_ = FetcherState::FetchTile;
         }
 
         const bool sprite_was_in_progress = sprite_in_progress_;
-        if (!sprite_in_progress_ || fetcher_state_ != FetcherState::kPush || background_fifo_.empty())
+        if (!sprite_in_progress_ || fetcher_state_ != FetcherState::Push || background_fifo_.empty())
             TileStateMachine();
         else {
             SpriteStateMachine();
@@ -266,10 +266,10 @@ namespace gandalf {
     {
         switch (fetcher_state_)
         {
-        case FetcherState::kFetchTileSleep:
-            fetcher_state_ = FetcherState::kFetchTile;
+        case FetcherState::FetchTileSleep:
+            fetcher_state_ = FetcherState::FetchTile;
             break;
-        case FetcherState::kFetchTile:
+        case FetcherState::FetchTile:
         {
             const bool tile_map = (window_triggered_) ? lcd_.GetLCDControl() & 0x40 : lcd_.GetLCDControl() & 0x8;
             const word tile_map_offset = tile_map ? 0x1C00 : 0x1800;
@@ -278,14 +278,14 @@ namespace gandalf {
 
             if (mode_ == GameboyMode::CGB)
                 tile_attributes_ = vram_[1].at(tile_address);
-            fetcher_state_ = FetcherState::kFetchDataLowSleep;
+            fetcher_state_ = FetcherState::FetchDataLowSleep;
             break;
         }
         break;
-        case FetcherState::kFetchDataLowSleep:
-            fetcher_state_ = FetcherState::kFetchDataLow;
+        case FetcherState::FetchDataLowSleep:
+            fetcher_state_ = FetcherState::FetchDataLow;
             break;
-        case FetcherState::kFetchDataLow:
+        case FetcherState::FetchDataLow:
         {
             const bool tile_data_select = lcd_.GetLCDControl() & 0x10;
             const word tile_base_address = tile_data_select ? 0 : 0x1000;
@@ -296,13 +296,13 @@ namespace gandalf {
                 line = 7 - line;
             const int total_offset = tile_base_address + tile_offset + (line * 2);
             tile_data_low_ = vram_[mode_ == GameboyMode::CGB ? (tile_attributes_ >> 3) & 0x1 : 0].at(total_offset);
-            fetcher_state_ = FetcherState::kFetchDataHighSleep;
+            fetcher_state_ = FetcherState::FetchDataHighSleep;
         }
         break;
-        case FetcherState::kFetchDataHighSleep:
-            fetcher_state_ = FetcherState::kFetchDataHigh;
+        case FetcherState::FetchDataHighSleep:
+            fetcher_state_ = FetcherState::FetchDataHigh;
             break;
-        case FetcherState::kFetchDataHigh:
+        case FetcherState::FetchDataHigh:
         {
             const bool tile_data_select = lcd_.GetLCDControl() & 0x10;
             const word tile_base_address = tile_data_select ? 0 : 0x1000;
@@ -312,12 +312,12 @@ namespace gandalf {
                 line = 7 - line;
             const int total_offset = tile_base_address + tile_offset + (line * 2 + 1);
             tile_data_high_ = vram_[mode_ == GameboyMode::CGB ? (tile_attributes_ >> 3) & 0x1 : 0].at(total_offset);
-            fetcher_state_ = FetcherState::kPush;
+            fetcher_state_ = FetcherState::Push;
 
             TryPush();
             break;
         }
-        case FetcherState::kPush:
+        case FetcherState::Push:
             TryPush();
             break;
         }
@@ -327,16 +327,16 @@ namespace gandalf {
     {
         switch (sprite_state_)
         {
-        case SpriteState::kReadOAMSleep:
-            sprite_state_ = SpriteState::kReadOAM;
+        case SpriteState::ReadOAMSleep:
+            sprite_state_ = SpriteState::ReadOAM;
             break;
-        case SpriteState::kReadOAM:
-            sprite_state_ = SpriteState::kReadDataLowSleep;
+        case SpriteState::ReadOAM:
+            sprite_state_ = SpriteState::ReadDataLowSleep;
             break;
-        case SpriteState::kReadDataLowSleep:
-            sprite_state_ = SpriteState::kReadDataLow;
+        case SpriteState::ReadDataLowSleep:
+            sprite_state_ = SpriteState::ReadDataLow;
             break;
-        case SpriteState::kReadDataLow:
+        case SpriteState::ReadDataLow:
         {
             int sprite_height = 8;
             if (lcd_.GetLCDControl() & 0x4)
@@ -349,13 +349,13 @@ namespace gandalf {
             sprite_line_ = flip_y ? sprite_height - 1 - (lcd_.GetLY() + 16 - current_sprite_.y) : lcd_.GetLY() + 16 - current_sprite_.y;
 
             current_sprite_.tile_data_low = vram_[mode_ == GameboyMode::CGB ? (current_sprite_.attributes >> 3) & 0x1 : 0][current_sprite_.tile_index * 16 + sprite_line_ * 2];
-            sprite_state_ = SpriteState::kReadDataHighSleep;
+            sprite_state_ = SpriteState::ReadDataHighSleep;
             break;
         }
-        case SpriteState::kReadDataHighSleep:
-            sprite_state_ = SpriteState::kReadDataHigh;
+        case SpriteState::ReadDataHighSleep:
+            sprite_state_ = SpriteState::ReadDataHigh;
             break;
-        case SpriteState::kReadDataHigh:
+        case SpriteState::ReadDataHigh:
             current_sprite_.tile_data_high = vram_[mode_ == GameboyMode::CGB ? (current_sprite_.attributes >> 3) & 0x1 : 0][current_sprite_.tile_index * 16 + sprite_line_ * 2 + 1];
             sprite_in_progress_ = false;
             PushSprite();
@@ -386,14 +386,14 @@ namespace gandalf {
 
             Pixel& pixel = sprite_fifo_.at(i);
             // In DMG mode, only replace pixel if it is transparent
-            if (mode_ == GameboyMode::DMG && pixel.color == 0)
+            if (mode_ != GameboyMode::CGB && pixel.color == 0)
             {
                 pixel.background_priority = !!(current_sprite_.attributes & 0x80);
                 pixel.color = color;
-                pixel.palette = current_sprite_.attributes & 0x10;
+                pixel.palette = (current_sprite_.attributes & 0b10000) >> 4;
             }
             // In CGB mode, replace pixel when it is transparent OR the current sprite has higher priority (lower OAM index)
-            else if (mode_ != GameboyMode::DMG && (pixel.color == 0 || (mode_ == GameboyMode::CGB && current_sprite_.oam_index < pixel.sprite_priority)))
+            else if (mode_ == GameboyMode::CGB && (pixel.color == 0 || current_sprite_.oam_index < pixel.sprite_priority))
             {
                 pixel.background_priority = !!(current_sprite_.attributes & 0x80);
                 pixel.color = color;
@@ -418,7 +418,7 @@ namespace gandalf {
                 background_fifo_.push_back({ color, palette, 0, 0 });
             }
             fetch_x_ = (fetch_x_ + 1) & 0x1F;
-            fetcher_state_ = FetcherState::kFetchTile;
+            fetcher_state_ = FetcherState::FetchTile;
         }
     }
 

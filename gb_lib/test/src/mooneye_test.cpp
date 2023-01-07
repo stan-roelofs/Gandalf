@@ -70,14 +70,12 @@ namespace mooneye {
         ROM rom_bytes;
         ASSERT_TRUE(ReadFileBytes("/mooneye/" + file_name, rom_bytes));
 
-        ROM bootrom_bytes;
-        ASSERT_TRUE(ReadFileBytes("/bootrom/boot.bin", bootrom_bytes));
-        std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(bootrom_bytes, rom_bytes, nullptr);
-
-        ASSERT_TRUE(gb->Ready());
+        std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(Model::DMG);
+        
+		ASSERT_TRUE(gb->LoadROM(rom_bytes));
         auto& memory = gb->GetMemory();
         SerialOutputReader p;
-        memory.Register(p);
+        gb->RegisterAddressHandler(p);
 
         std::size_t ticks = 0;
         while (!p.Done() && ++ticks < kMaxCycles) {

@@ -7,9 +7,17 @@
 
 namespace gandalf
 {
-    class APU : public Memory::AddressHandler
+    class APU: public Memory::AddressHandler
     {
     public:
+        enum class Channel
+        {
+            CH1,
+            CH2,
+            CH3,
+            CH4,
+        };
+
         class OutputHandler
         {
         public:
@@ -25,20 +33,22 @@ namespace gandalf
             virtual void Play(float left, float right) = 0;
         };
 
-        APU(std::shared_ptr<OutputHandler> audio_handler);
-        virtual ~APU();
+        APU();
+        ~APU();
+
+        void SetAudioHandler(std::shared_ptr<APU::OutputHandler> audio_handler);
 
         void Write(word address, byte value) override;
         byte Read(word address) const override;
         std::set<word> GetAddresses() const override;
 
-        void Tick();        
+        void Tick();
 
         /** Enables / disables sound of the given channel
-        * @param channel channel index (0-3)
+        * @param channel channel to enable / disable
         * @param mute whether to enable or disable sound for the given channel
         */
-        void MuteChannel(int channel, bool mute);
+        void MuteChannel(Channel channel, bool mute);
 
     private:
         std::shared_ptr<OutputHandler> output_handler_;

@@ -16,7 +16,7 @@ namespace gui
         if (!gameboy_ || !debug_enabled_)
             return;
 
-        ImGui::Begin(text::Get(text::ID::kWindowMemory), nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin(text::Get(text::ID::WindowMemory), nullptr, ImGuiWindowFlags_NoTitleBar);
 
         static char address[5];
         address[4] = '\0';
@@ -25,7 +25,7 @@ namespace gui
 
         std::optional<gandalf::word> scroll_target;
         bool should_scroll = false;
-        if (ImGui::Button(text::Get(text::ID::kWindowMemoryScrollToAddress))) {
+        if (ImGui::Button(text::Get(text::ID::WindowMemoryScrollToAddress))) {
             auto address_value = std::strtoul(address, nullptr, 16);
             if (address_value < 0)
                 address_value = 0;
@@ -35,13 +35,13 @@ namespace gui
             scroll_target = static_cast<gandalf::word>(address_value);
         }
 
-        if (ImGui::BeginTable(text::Get(text::ID::kWindowMemoryViewer), 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
+        if (ImGui::BeginTable(text::Get(text::ID::WindowMemoryViewer), 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp)) {
             static float memory_item_height = 0.f;
 
             if (scroll_target)
                 ImGui::SetScrollY((*scroll_target / 16) * memory_item_height);
 
-            gandalf::Memory& memory = gameboy_->GetMemory();
+            const gandalf::Memory& memory = gameboy_->GetMemory();
             ImGuiListClipper clipper;
             clipper.Begin(0x10000 / 16);
             while (clipper.Step())
@@ -60,9 +60,9 @@ namespace gui
                         ImGui::Text("%02X", value);
                         if (ImGui::IsItemHovered()) {
                             ImGui::BeginTooltip();
-                            ImGui::Text("%s: %s", text::Get(text::ID::kWindowMemoryViewerAddressOwner), gameboy_->GetMemory().GetAddressHandlerName(address).c_str());
-                            ImGui::Text("%s: %04X", text::Get(text::ID::kWindowMemoryViewerAddress), address);
-                            ImGui::Text("%s: %02X", text::Get(text::ID::kWindowMemoryViewerAddressValue), value);
+                            ImGui::Text("%s: %s", text::Get(text::ID::WindowMemoryViewerAddressOwner), gameboy_->GetMemory().GetAddressHandlerName(address).c_str());
+                            ImGui::Text("%s: %04X", text::Get(text::ID::WindowMemoryViewerAddress), address);
+                            ImGui::Text("%s: %02X", text::Get(text::ID::WindowMemoryViewerAddressValue), value);
                             ImGui::EndTooltip();
                         }
                     }

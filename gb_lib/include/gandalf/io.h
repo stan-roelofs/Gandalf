@@ -14,16 +14,19 @@
 namespace gandalf {
     class IO {
     public:
-        IO(GameboyMode mode, Memory& memory, std::shared_ptr<APU::OutputHandler> audio_handler);
+        IO(GameboyMode mode, Memory& memory);
         ~IO();
 
         void Tick(unsigned int cycles, bool double_speed);
 
-        LCD& GetLCD() { return lcd_; }
+        const LCD& GetLCD() const { return lcd_; }
+        const PPU& GetPPU() const { return ppu_; }
         PPU& GetPPU() { return ppu_; }
+        const Joypad& GetJoypad() const { return joypad_; }
         Joypad& GetJoypad() { return joypad_; }
+        const APU& GetAPU() const { return apu_; }
         APU& GetAPU() { return apu_; }
-        Timer& GetTimer() { return timer_; }
+        const Timer& GetTimer() const { return timer_; }
 
         void SetMode(GameboyMode mode);
 

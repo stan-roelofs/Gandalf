@@ -1,5 +1,7 @@
 #include "settings.h"
 
+#include <gandalf/model.h>
+
 #include "SDL_keycode.h"
 
 namespace gui
@@ -8,7 +10,7 @@ namespace gui
     {
         j = json{
             {"recent_roms", s.recent_roms},
-            {"boot_rom_location", s.boot_rom_location},
+            {"emulated_model", s.emulated_model},
             {"show_debug", s.show_debug},
             {"key_up", s.key_up},
             {"key_down", s.key_down},
@@ -29,10 +31,10 @@ namespace gui
         Settings default_settings;
 
         s.recent_roms = j.value("recent_roms", default_settings.recent_roms);
-        s.boot_rom_location = j.value("boot_rom_location", default_settings.boot_rom_location);
+        s.emulated_model = j.value("emulated_model", default_settings.emulated_model);
         s.show_debug = j.value("show_debug", default_settings.show_debug);
         s.key_up = j.value("key_up", default_settings.key_up);
-        s.key_down = j.value("key_down",default_settings.key_down);
+        s.key_down = j.value("key_down", default_settings.key_down);
         s.key_left = j.value("key_left", default_settings.key_left);
         s.key_right = j.value("key_right", default_settings.key_right);
         s.key_a = j.value("key_a", default_settings.key_a);
@@ -47,7 +49,7 @@ namespace gui
     Settings::Settings()
     {
         recent_roms = {};
-        boot_rom_location = "";
+        emulated_model = static_cast<std::uint8_t>(gandalf::Model::CGB);
         show_debug = false;
         key_up = SDLK_UP;
         key_down = SDLK_DOWN;

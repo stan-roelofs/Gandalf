@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include <gandalf/constants.h>
+#include <gandalf/exception.h>
 #include <gandalf/util.h>
 
 namespace {
@@ -177,14 +178,14 @@ namespace gandalf
         if (mode_ == GameboyMode::DMG)
         {
             if (palette_index > 0)
-                throw std::invalid_argument("Palette index out of range");
+                throw InvalidArgument("Palette index out of range");
 
             byte color = bgp_ >> (2 * (color_index)) & 0x3;
             return kColorsDMG[color];
         }
 
         if (palette_index > 7)
-            throw std::invalid_argument("Palette index out of range");
+            throw InvalidArgument("Palette index out of range");
 
         return bcpd_[palette_index * 4 + color_index];
     }
@@ -194,14 +195,14 @@ namespace gandalf
         if (mode_ == GameboyMode::DMG)
         {
             if (palette_index > 1)
-                throw std::invalid_argument("Palette index out of range");
+                throw InvalidArgument("Palette index out of range");
 
             byte palette = palette_index == 0 ? obp0_ : obp1_;
             return kColorsDMG[palette >> (2 * (color_index)) & 0x3];
         }
 
         if (palette_index > 7)
-            throw std::invalid_argument("Palette index out of range");
+            throw InvalidArgument("Palette index out of range");
 
         return ocpd_[palette_index * 4 + color_index];
     }

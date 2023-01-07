@@ -93,7 +93,7 @@ namespace gui
     {
         // Render our GUI elements
         DockSpace();
-        //ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
 
         for (auto& element : gui_elements_)
             element->Render();
@@ -113,36 +113,21 @@ namespace gui
             }
         }
 
-        if (ImGui::BeginPopupModal("Error##LoadBootROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoadBootROM));
-            ImGui::Separator();
-
-            if (ImGui::Button(text::Get(text::ID::kSelectBootROM), ImVec2(120, 0))) {
-                gui_context_.GetSettings().boot_rom_location = SelectBootROM();
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
-            if (ImGui::Button(text::Get(text::ID::kCancel), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-            ImGui::EndPopup();
-        }
-
         if (ImGui::BeginPopupModal("Error##LoadROM", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
+            ImGui::TextUnformatted(text::Get(text::ID::ErrorLoad));
             ImGui::Separator();
 
             if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
             ImGui::EndPopup();
         }
 
-        if (ImGui::BeginPopupModal("Error##GameboyNotReady", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Error##GameboyLoadROMFailed", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::TextUnformatted(text::Get(text::ID::kErrorLoad));
+            ImGui::TextUnformatted(text::Get(text::ID::ErrorLoad));
             ImGui::Separator();
 
-            if (ImGui::Button(text::Get(text::ID::kOk), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            if (ImGui::Button(text::Get(text::ID::Ok), ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
             ImGui::EndPopup();
         }
     }
@@ -153,25 +138,23 @@ namespace gui
         if (!gameboy_)
             return;
 
-        auto& joypad = gameboy_->GetJoypad();
-
         const auto& settings = gui_context_.GetSettings();
         if (key == settings.key_a)
-            joypad.SetButtonState(gandalf::Joypad::Button::kA, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kA, pressed);
         else if (key == settings.key_b)
-            joypad.SetButtonState(gandalf::Joypad::Button::kB, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kB, pressed);
         else if (key == settings.key_start)
-            joypad.SetButtonState(gandalf::Joypad::Button::kStart, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kStart, pressed);
         else if (key == settings.key_select)
-            joypad.SetButtonState(gandalf::Joypad::Button::kSelect, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kSelect, pressed);
         else if (key == settings.key_up)
-            joypad.SetButtonState(gandalf::Joypad::Button::kUp, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kUp, pressed);
         else if (key == settings.key_down)
-            joypad.SetButtonState(gandalf::Joypad::Button::kDown, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kDown, pressed);
         else if (key == settings.key_left)
-            joypad.SetButtonState(gandalf::Joypad::Button::kLeft, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kLeft, pressed);
         else if (key == settings.key_right)
-            joypad.SetButtonState(gandalf::Joypad::Button::kRight, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::kRight, pressed);
     }
 
     void MainWindow::DockSpace()
@@ -218,9 +201,9 @@ namespace gui
     {
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuFile)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuFile)))
             {
-                if (ImGui::MenuItem(text::Get(text::ID::kMenuFileOpenROM)))
+                if (ImGui::MenuItem(text::Get(text::ID::MenuFileOpenROM)))
                 {
                     NFD::UniquePath path;
                     nfdfilteritem_t filter_item[] = { {"ROM", "gb,gbc"} };
@@ -229,7 +212,7 @@ namespace gui
                         LoadROM(path.get());
                 }
 
-                if (ImGui::BeginMenu(text::Get(text::ID::kMenuFileRecentROMs)))
+                if (ImGui::BeginMenu(text::Get(text::ID::MenuFileRecentROMs)))
                 {
                     std::string rom_to_load;
                     for (const auto& path : gui_context_.GetSettings().recent_roms)
@@ -246,23 +229,23 @@ namespace gui
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuSettings)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuSettings)))
             {
-                if (ImGui::MenuItem(text::Get(text::ID::kMenuSettings)))
+                if (ImGui::MenuItem(text::Get(text::ID::MenuSettings)))
                     settings_window_ = std::make_unique<SettingsWindow>(gui_context_);
 
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuEmulation)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuEmulation)))
             {
-                ImGui::MenuItem(text::Get(text::ID::kPause), nullptr, &gb_pause_);
+                ImGui::MenuItem(text::Get(text::ID::Pause), nullptr, &gb_pause_);
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu(text::Get(text::ID::kMenuView)))
+            if (ImGui::BeginMenu(text::Get(text::ID::MenuView)))
             {
-                ImGui::MenuItem(text::Get(text::ID::kMenuViewDebug), nullptr, &gui_context_.GetSettings().show_debug);
+                ImGui::MenuItem(text::Get(text::ID::MenuViewDebug), nullptr, &gui_context_.GetSettings().show_debug);
                 ImGui::EndMenu();
             }
 
@@ -294,19 +277,13 @@ namespace gui
         std::vector<gandalf::byte> file = std::vector<gandalf::byte>(std::istreambuf_iterator<char>(input),
             std::istreambuf_iterator<char>());
 
-        auto boot_rom = LoadBootROM(settings.boot_rom_location);
-        if (!boot_rom)
-        {
-            show_popup_ = "Error##LoadBootROM";
-            return;
-        }
-
         std::shared_ptr<SDLAudioHandler> handler = std::make_shared<SDLAudioHandler>(block_audio_, gb_thread_run_);
-        std::shared_ptr<gandalf::Gameboy> gameboy = std::make_shared<gandalf::Gameboy>(*boot_rom, file, handler);
-        gameboy->GetPPU().AddVBlankListener(this);
+        std::shared_ptr<gandalf::Gameboy> gameboy = std::make_shared<gandalf::Gameboy>(static_cast<gandalf::Model>(gui_context_.GetSettings().emulated_model));
+        gameboy->AddVBlankListener(this);
+        gameboy->SetAudioHandler(handler);
 
-        if (!gameboy->Ready()) {
-            show_popup_ = "Error##GameboyNotReady";
+        if (!gameboy->LoadROM(file)) {
+            show_popup_ = "Error##LoadROM";
             return;
         }
 

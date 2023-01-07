@@ -7,93 +7,91 @@ namespace gui
     {
         enum class ID
         {
-            kAppName,
-            kOk,
-            kCancel,
-            kPause,
+            AppName,
+            Ok,
+            Cancel,
+            Pause,
 
             // Errors
-            kErrorLoadBootROM,
-            kSelectBootROM,
-            kErrorLoad,
+            ErrorLoad,
 
             // File Menu
-            kMenuFile,
-            kMenuFileOpenROM,
-            kMenuFileRecentROMs,
+            MenuFile,
+            MenuFileOpenROM,
+            MenuFileRecentROMs,
 
             // Settings Menu
-            kMenuSettings,
-            kMenuSettingsOpen,
+            MenuSettings,
+            MenuSettingsOpen,
 
             // Emulation Menu
-            kMenuEmulation,
+            MenuEmulation,
 
             // View Menu
-            kMenuView,
-            kMenuViewDebug,
+            MenuView,
+            MenuViewDebug,
 
             // Settings window
-            kSettingsWindowKeys,
-            kSettingsWindowPressKey,
-            kSettingsWindowGeneral,
-            kSettingsWindowBootROMLocation,
-            kSettingsWindowBootROMSelect,
+            SettingsWindowKeys,
+            SettingsWindowPressKey,
+            SettingsWindowGeneral,
+            SettingsWindowEmulatedModel,
 
             // APU window
-            kWindowAPU,
-            kWindowAPUSquare1Enable,
-            kWindowAPUSquare2Enable,
-            kWindowAPUWaveEnable,
-            kWindowAPUNoiseEnable,
+            WindowAPU,
+            WindowAPUSquare1Enable,
+            WindowAPUSquare2Enable,
+            WindowAPUWaveEnable,
+            WindowAPUNoiseEnable,
 
             // Cartridge window
-            kWindowCartridge,
-            kWindowCartridgeTitle,
-            kWindowCartridgeManufacturer,
-            kWindowCartridgeLicensee,
-            kWindowCartridgeROMSize,
-            kWindowCartridgeRAMSize,
-            kWindowCartridgeCGB,
-            kWindowCartridgeSGB,
-            kWindowCartridgeType,
-            kWindowCartridgeDestination,
+            WindowCartridge,
+            WindowCartridgeTitle,
+            WindowCartridgeManufacturer,
+            WindowCartridgeLicensee,
+            WindowCartridgeROMSize,
+            WindowCartridgeRAMSize,
+            WindowCartridgeCGB,
+            WindowCartridgeSGB,
+            WindowCartridgeType,
+            WindowCartridgeDestination,
 
             // CPU window
-            kWindowCPU,
-            kWindowCPUStep,
-            kWindowCPULimitFPS,
-            kWindowCPURegisters,
-            kWindowCPUDebugger,
+            WindowCPU,
+            WindowCPUStep,
+            WindowCPULimitFPS,
+            WindowCPURegisters,
+            WindowCPUDebugger,
 
             // Gameboy window
-            kWindowGameboy,
-            kWindowGameboyScale,
+            WindowGameboy,
+            WindowGameboyScale,
 
             // Memory window
-            kWindowMemory,
-            kWindowMemoryScrollToAddress,
-            kWindowMemoryViewer,
-            kWindowMemoryViewerAddress,
-            kWindowMemoryViewerAddressOwner,
-            kWindowMemoryViewerAddressValue,
+            WindowMemory,
+            WindowMemoryScrollToAddress,
+            WindowMemoryViewer,
+            WindowMemoryViewerAddress,
+            WindowMemoryViewerAddressOwner,
+            WindowMemoryViewerAddressValue,
 
             // PPU window
-            kWindowPPU,
-            kWindowPPUBackgroundMap,
-            kWindowPPUTileNumber,
-            kWindowPPUTileMap,
-            kWindowPPUTileAddress,
-            kWindowPPUTileAttributes,
-            kWindowPPUTileFlipX,
-            kWindowPPUTileFlipY,
-            kWindowPPUTilePalette,
-            kWindowPPUTileVRAMBank,
-            kWindowPPUTilePriority,
-            kWindowPPUTiles,
+            WindowPPU,
+            WindowPPUBackgroundMap,
+            WindowPPUTileNumber,
+            WindowPPUTileMap,
+            WindowPPUTileAddress,
+            WindowPPUTileAttributes,
+            WindowPPUTileFlipX,
+            WindowPPUTileFlipY,
+            WindowPPUTilePalette,
+            WindowPPUTileVRAMBank,
+            WindowPPUTilePriority,
+            WindowPPUTiles,
+            WindowPPUSprites,
 
             // IO window
-            kWindowIO,
+            WindowIO,
         };
 
         const char* Get(ID id);
