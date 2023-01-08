@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <set>
 
 #include <gandalf/gameboy.h>
 
@@ -9,7 +10,28 @@
 namespace {
     constexpr std::uint64_t kMaxCycles = static_cast<std::uint64_t>(1e8);
 
-    class MooneyeTest: public ::testing::TestWithParam<std::string>, protected ResourceHelper {
+    struct TestProperties
+    {
+        TestProperties(std::string rom_path): rom_path(rom_path)
+        {
+            for (int i = 0; i < static_cast<int>(gandalf::Model::LAST); ++i) {
+                models.insert(static_cast<gandalf::Model>(i));
+            }
+        }
+
+        TestProperties(std::string rom_path, std::set<gandalf::Model> models): rom_path(rom_path), models(models) {}
+
+        std::string rom_path;
+        std::set<gandalf::Model> models;
+    };
+
+    std::ostream& operator<<(std::ostream& os, const TestProperties& p)
+    {
+        os << p.rom_path;
+        return os;
+    }
+
+    class MooneyeTest: public ::testing::TestWithParam<TestProperties>, protected ResourceHelper {
     public:
         MooneyeTest(): ResourceHelper() {
         }
@@ -64,55 +86,58 @@ namespace mooneye {
     {
         using namespace gandalf;
 
-        std::string file_name = GetParam();
-        std::cout << "Running test ROM: " << file_name << std::endl;
+        TestProperties properties = GetParam();
+        std::cout << "Running test ROM: " << properties.rom_path << std::endl;
 
         ROM rom_bytes;
-        ASSERT_TRUE(ReadFileBytes("/mooneye/" + file_name, rom_bytes));
+        ASSERT_TRUE(ReadFileBytes("/mooneye/" + properties.rom_path, rom_bytes));
 
-        std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(Model::DMG);
+        for (Model model : properties.models)
+        {
+            std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(model);
 
-        ASSERT_TRUE(gb->LoadROM(rom_bytes));
-        auto& memory = gb->GetMemory();
-        SerialOutputReader p;
-        gb->RegisterAddressHandler(p);
+            ASSERT_TRUE(gb->LoadROM(rom_bytes));
+            auto& memory = gb->GetMemory();
+            SerialOutputReader p;
+            gb->RegisterAddressHandler(p);
 
-        std::size_t ticks = 0;
-        while (!p.Done() && ++ticks < kMaxCycles) {
-            gb->Run();
+            std::size_t ticks = 0;
+            while (!p.Done() && ++ticks < kMaxCycles) {
+                gb->Run();
+            }
+
+			EXPECT_TRUE(p.Passed()) << "Test failed on model: " << gandalf::GetModelName(model) << std::endl;
         }
-
-        EXPECT_TRUE(p.Passed());
     }
 
     INSTANTIATE_TEST_SUITE_P(
         acceptance_timer,
         MooneyeTest,
         ::testing::Values(
-            "acceptance/timer/div_write.gb",
-            "acceptance/timer/rapid_toggle.gb",
-            "acceptance/timer/tim00_div_trigger.gb",
-            "acceptance/timer/tim00.gb",
-            "acceptance/timer/tim00_div_trigger.gb",
-            "acceptance/timer/tim01.gb",
-            "acceptance/timer/tim01_div_trigger.gb",
-            "acceptance/timer/tim10.gb",
-            "acceptance/timer/tim10_div_trigger.gb",
-            "acceptance/timer/tim11.gb",
-            "acceptance/timer/tim11_div_trigger.gb",
-            "acceptance/timer/tima_reload.gb",
-            "acceptance/timer/tima_write_reloading.gb",
-            "acceptance/timer/tma_write_reloading.gb"
+            TestProperties("acceptance/timer/div_write.gb"),
+            TestProperties("acceptance/timer/rapid_toggle.gb"),
+            TestProperties("acceptance/timer/tim00_div_trigger.gb"),
+            TestProperties("acceptance/timer/tim00.gb"),
+            TestProperties("acceptance/timer/tim00_div_trigger.gb"),
+            TestProperties("acceptance/timer/tim01.gb"),
+            TestProperties("acceptance/timer/tim01_div_trigger.gb"),
+            TestProperties("acceptance/timer/tim10.gb"),
+            TestProperties("acceptance/timer/tim10_div_trigger.gb"),
+            TestProperties("acceptance/timer/tim11.gb"),
+            TestProperties("acceptance/timer/tim11_div_trigger.gb"),
+            TestProperties("acceptance/timer/tima_reload.gb"),
+            TestProperties("acceptance/timer/tima_write_reloading.gb"),
+            TestProperties("acceptance/timer/tma_write_reloading.gb")
         )
     );
-
+    
     INSTANTIATE_TEST_SUITE_P(
         acceptance_bits,
         MooneyeTest,
         ::testing::Values(
-            "acceptance/bits/mem_oam.gb",
-            "acceptance/bits/reg_f.gb",
-            "acceptance/bits/unused_hwio-GS.gb"
+            TestProperties("acceptance/bits/mem_oam.gb"),
+            TestProperties("acceptance/bits/reg_f.gb"),
+			TestProperties("acceptance/bits/unused_hwio-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 })
         )
     );
 
@@ -120,7 +145,7 @@ namespace mooneye {
         acceptance_instr,
         MooneyeTest,
         ::testing::Values(
-            "acceptance/instr/daa.gb"
+            TestProperties("acceptance/instr/daa.gb")
         )
     );
 
@@ -128,7 +153,7 @@ namespace mooneye {
         acceptance_interrupts,
         MooneyeTest,
         ::testing::Values(
-            "acceptance/interrupts/ie_push.gb"
+            TestProperties("acceptance/interrupts/ie_push.gb")
         )
     );
 
@@ -136,9 +161,9 @@ namespace mooneye {
         acceptance_oem_dma,
         MooneyeTest,
         ::testing::Values(
-            "acceptance/oam_dma/basic.gb",
-            "acceptance/oam_dma/reg_read.gb",
-            "acceptance/oam_dma/sources-GS.gb"
+            TestProperties("acceptance/oam_dma/basic.gb"),
+            TestProperties("acceptance/oam_dma/reg_read.gb"),
+            TestProperties("acceptance/oam_dma/sources-GS.gb")
         )
     );
 
@@ -146,7 +171,7 @@ namespace mooneye {
         acceptance_serial,
         MooneyeTest,
         ::testing::Values(
-            //"acceptance/interrupts/boot_sclk_align-dmgABCmgb.gb"
+            //TestProperties("acceptance/interrupts/boot_sclk_align-dmgABCmgb.gb")
         )
     );
 
@@ -154,47 +179,47 @@ namespace mooneye {
         acceptance,
         MooneyeTest,
         ::testing::Values(
-            "acceptance/add_sp_e_timing.gb",
-            //"acceptance/boot_div2-S.gb",
-            //"acceptance/boot_div-dmg0.gb",
-            //"acceptance/boot_div-dmgABCmgb.gb",
-            //"acceptance/boot_div-S.gb",
-            //"acceptance/boot_hwio-dmg0.gb",
-            //"acceptance/boot_hwio-dmgABCmgb.gb",
-            //"acceptance/boot_hwio-S.gb",
-            //"acceptance/boot_regs-dmg0.gb",
-            "acceptance/boot_regs-dmgABC.gb",
-            //"acceptance/boot_regs-mgb.gb",
-            //"acceptance/boot_regs-sgb.gb",
-            //"acceptance/boot_regs-sgb2.gb",
-            "acceptance/call_cc_timing.gb",
-            "acceptance/call_cc_timing2.gb",
-            "acceptance/call_timing.gb",
-            "acceptance/call_timing2.gb",
-            //"acceptance/di-timing-GS.gb",
-            "acceptance/div_timing.gb",
-            "acceptance/ei_sequence.gb",
-            "acceptance/ei_timing.gb",
-            "acceptance/halt_ime0_ei.gb",
-            //"acceptance/halt_ime0_nointr_timing.gb",
-            "acceptance/halt_ime1_timing.gb",
-            //"acceptance/halt_ime1_timing2-GS.gb",
-            "acceptance/if_ie_registers.gb",
-            //"acceptance/intr_timing.gb",
-            "acceptance/jp_cc_timing.gb",
-            "acceptance/jp_timing.gb",
-            "acceptance/ld_hl_sp_e_timing.gb",
-            "acceptance/oam_dma_start.gb",
-            "acceptance/oam_dma_timing.gb",
-            "acceptance/oam_dma_restart.gb",
-            "acceptance/pop_timing.gb",
-            "acceptance/push_timing.gb",
-            "acceptance/rapid_di_ei.gb",
-            "acceptance/ret_cc_timing.gb",
-            "acceptance/ret_timing.gb",
-            "acceptance/reti_intr_timing.gb",
-            "acceptance/reti_timing.gb",
-            "acceptance/rst_timing.gb"
+            TestProperties("acceptance/add_sp_e_timing.gb"),
+            //TestProperties("acceptance/boot_div2-S.gb"),
+            //TestProperties("acceptance/boot_div-dmg0.gb"),
+            //TestProperties("acceptance/boot_div-dmgABCmgb.gb"),
+            //TestProperties("acceptance/boot_div-S.gb"),
+            //TestProperties("acceptance/boot_hwio-dmg0.gb"),
+            //TestProperties("acceptance/boot_hwio-dmgABCmgb.gb"),
+            //TestProperties("acceptance/boot_hwio-S.gb"),
+            //TestProperties("acceptance/boot_regs-dmg0.gb"),
+            TestProperties("acceptance/boot_regs-dmgABC.gb", { Model::DMG }),
+            TestProperties("acceptance/boot_regs-mgb.gb", { Model::MGB }),
+            TestProperties("acceptance/boot_regs-sgb.gb", { Model::SGB }),
+            TestProperties("acceptance/boot_regs-sgb2.gb", { Model::SGB2 }),
+            TestProperties("acceptance/call_cc_timing.gb"),
+            TestProperties("acceptance/call_cc_timing2.gb"),
+            TestProperties("acceptance/call_timing.gb"),
+            TestProperties("acceptance/call_timing2.gb"),
+            //TestProperties("acceptance/di-timing-GS.gb"),
+            TestProperties("acceptance/div_timing.gb"),
+            TestProperties("acceptance/ei_sequence.gb"),
+            TestProperties("acceptance/ei_timing.gb"),
+            TestProperties("acceptance/halt_ime0_ei.gb"),
+            //TestProperties("acceptance/halt_ime0_nointr_timing.gb"),
+            TestProperties("acceptance/halt_ime1_timing.gb"),
+            //TestProperties("acceptance/halt_ime1_timing2-GS.gb"),
+            TestProperties("acceptance/if_ie_registers.gb"),
+            //TestProperties("acceptance/intr_timing.gb"),
+            TestProperties("acceptance/jp_cc_timing.gb"),
+            TestProperties("acceptance/jp_timing.gb"),
+            TestProperties("acceptance/ld_hl_sp_e_timing.gb"),
+            TestProperties("acceptance/oam_dma_start.gb"),
+            TestProperties("acceptance/oam_dma_timing.gb"),
+            TestProperties("acceptance/oam_dma_restart.gb"),
+            TestProperties("acceptance/pop_timing.gb"),
+            TestProperties("acceptance/push_timing.gb"),
+            TestProperties("acceptance/rapid_di_ei.gb"),
+            TestProperties("acceptance/ret_cc_timing.gb"),
+            TestProperties("acceptance/ret_timing.gb"),
+            TestProperties("acceptance/reti_intr_timing.gb"),
+            TestProperties("acceptance/reti_timing.gb"),
+            TestProperties("acceptance/rst_timing.gb")
         )
     );
 
@@ -202,19 +227,19 @@ namespace mooneye {
         emulator_only_mbc1,
         MooneyeTest,
         ::testing::Values(
-            "emulator-only/mbc1/bits_bank1.gb",
-            "emulator-only/mbc1/bits_bank2.gb",
-            "emulator-only/mbc1/bits_mode.gb",
-            "emulator-only/mbc1/bits_ramg.gb",
-            //"emulator-only/mbc1/multicart_rom_8Mb.gb", // This test requires a way of detecting multicart ROMs which is not implemented
-            "emulator-only/mbc1/ram_64kb.gb",
-            "emulator-only/mbc1/ram_256kb.gb",
-            "emulator-only/mbc1/rom_1Mb.gb",
-            "emulator-only/mbc1/rom_2Mb.gb",
-            "emulator-only/mbc1/rom_4Mb.gb",
-            "emulator-only/mbc1/rom_8Mb.gb",
-            "emulator-only/mbc1/rom_16Mb.gb",
-            "emulator-only/mbc1/rom_512kb.gb"
+            TestProperties("emulator-only/mbc1/bits_bank1.gb"),
+            TestProperties("emulator-only/mbc1/bits_bank2.gb"),
+            TestProperties("emulator-only/mbc1/bits_mode.gb"),
+            TestProperties("emulator-only/mbc1/bits_ramg.gb"),
+            //TestProperties("emulator-only/mbc1/multicart_rom_8Mb.gb", // This test requires a way of detecting multicart ROMs which is not implemente)d
+            TestProperties("emulator-only/mbc1/ram_64kb.gb"),
+            TestProperties("emulator-only/mbc1/ram_256kb.gb"),
+            TestProperties("emulator-only/mbc1/rom_1Mb.gb"),
+            TestProperties("emulator-only/mbc1/rom_2Mb.gb"),
+            TestProperties("emulator-only/mbc1/rom_4Mb.gb"),
+            TestProperties("emulator-only/mbc1/rom_8Mb.gb"),
+            TestProperties("emulator-only/mbc1/rom_16Mb.gb"),
+            TestProperties("emulator-only/mbc1/rom_512kb.gb")
         )
     );
 
@@ -222,14 +247,14 @@ namespace mooneye {
         emulator_only_mbc5,
         MooneyeTest,
         ::testing::Values(
-            "emulator-only/mbc5/rom_1Mb.gb",
-            "emulator-only/mbc5/rom_2Mb.gb",
-            "emulator-only/mbc5/rom_4Mb.gb",
-            "emulator-only/mbc5/rom_8Mb.gb",
-            "emulator-only/mbc5/rom_16Mb.gb",
-            "emulator-only/mbc5/rom_32Mb.gb",
-            "emulator-only/mbc5/rom_64Mb.gb",
-            "emulator-only/mbc5/rom_512kb.gb"
+            TestProperties("emulator-only/mbc5/rom_1Mb.gb"),
+            TestProperties("emulator-only/mbc5/rom_2Mb.gb"),
+            TestProperties("emulator-only/mbc5/rom_4Mb.gb"),
+            TestProperties("emulator-only/mbc5/rom_8Mb.gb"),
+            TestProperties("emulator-only/mbc5/rom_16Mb.gb"),
+            TestProperties("emulator-only/mbc5/rom_32Mb.gb"),
+            TestProperties("emulator-only/mbc5/rom_64Mb.gb"),
+            TestProperties("emulator-only/mbc5/rom_512kb.gb")
         )
     );
 }

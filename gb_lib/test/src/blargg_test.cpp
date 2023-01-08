@@ -150,12 +150,13 @@ namespace blargg {
         ROM rom_bytes;
         ASSERT_TRUE(ReadFileBytes("/blargg/" + file_name, rom_bytes));
 
-        std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(Model::DMG);
-        ASSERT_TRUE(gb->LoadROM(rom_bytes));
+		for (int model = 0; model < static_cast<int>(gandalf::Model::LAST); ++model) {
+            
+			gameboy_ = std::make_unique<gandalf::Gameboy>(static_cast<gandalf::Model>(model));
+			gameboy_->LoadROM(rom_bytes);
 
-        EXPECT_TRUE(p.runner->RunTestROM(*gb));
-
-        std::cout << "Test output: " << std::endl << p.runner->GetOutput() << std::endl;
+			EXPECT_TRUE(p.runner->RunTestROM(*gameboy_)) << "Test failed on model " << gandalf::GetModelName(static_cast<gandalf::Model>(model)) << std::endl << p.runner->GetOutput();
+		}
     }
 
     INSTANTIATE_TEST_SUITE_P(
