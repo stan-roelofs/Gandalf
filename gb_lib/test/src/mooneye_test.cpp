@@ -71,8 +71,8 @@ namespace mooneye {
         ASSERT_TRUE(ReadFileBytes("/mooneye/" + file_name, rom_bytes));
 
         std::unique_ptr<Gameboy> gb = std::make_unique<Gameboy>(Model::DMG);
-        
-		ASSERT_TRUE(gb->LoadROM(rom_bytes));
+
+        ASSERT_TRUE(gb->LoadROM(rom_bytes));
         auto& memory = gb->GetMemory();
         SerialOutputReader p;
         gb->RegisterAddressHandler(p);
@@ -172,6 +172,41 @@ namespace mooneye {
             "acceptance/reti_intr_timing.gb",
             "acceptance/reti_timing.gb",
             "acceptance/rst_timing.gb"
+        )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
+        emulator_only_mbc1,
+        MooneyeTest,
+        ::testing::Values(
+            "emulator-only/mbc1/bits_bank1.gb",
+            "emulator-only/mbc1/bits_bank2.gb",
+            "emulator-only/mbc1/bits_mode.gb",
+            "emulator-only/mbc1/bits_ramg.gb",
+            //"emulator-only/mbc1/multicart_rom_8Mb.gb", // This test requires a way of detecting multicart ROMs which is not implemented
+            "emulator-only/mbc1/ram_64kb.gb",
+            "emulator-only/mbc1/ram_256kb.gb",
+            "emulator-only/mbc1/rom_1Mb.gb",
+            "emulator-only/mbc1/rom_2Mb.gb",
+            "emulator-only/mbc1/rom_4Mb.gb",
+            "emulator-only/mbc1/rom_8Mb.gb",
+            "emulator-only/mbc1/rom_16Mb.gb",
+            "emulator-only/mbc1/rom_512kb.gb"
+        )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
+        emulator_only_mbc5,
+        MooneyeTest,
+        ::testing::Values(
+            "emulator-only/mbc5/rom_1Mb.gb",
+            "emulator-only/mbc5/rom_2Mb.gb",
+            "emulator-only/mbc5/rom_4Mb.gb",
+            "emulator-only/mbc5/rom_8Mb.gb",
+            "emulator-only/mbc5/rom_16Mb.gb",
+            "emulator-only/mbc5/rom_32Mb.gb",
+            "emulator-only/mbc5/rom_64Mb.gb",
+            "emulator-only/mbc5/rom_512kb.gb"
         )
     );
 }

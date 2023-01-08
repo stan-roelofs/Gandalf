@@ -16,7 +16,7 @@ namespace gandalf {
     private:
         bool ram_enabled_;
         word rom_bank_number_;
-        byte ram_bank_number_;
+        word ram_bank_number_;
         bool has_battery_; // TODO: implement battery
         bool has_rumble_;
     };
