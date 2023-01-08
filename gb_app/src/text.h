@@ -60,7 +60,6 @@ namespace gui
             WindowCPU,
             WindowCPUStep,
             WindowCPULimitFPS,
-            WindowCPURegisters,
             WindowCPUDebugger,
 
             // Gameboy window

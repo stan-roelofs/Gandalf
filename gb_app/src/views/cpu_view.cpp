@@ -36,9 +36,11 @@ namespace gui
         if (!gb_pause_)
             ImGui::EndDisabled();
 
-        if (ImGui::BeginTable(text::Get(text::ID::WindowCPURegisters), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        const auto& cpu = gameboy_->GetCPU();
+        const gandalf::Registers& registers = cpu.GetRegisters();
+
+        if (ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
-            gandalf::Registers registers = gameboy_->GetCPU().GetRegisters();
             ImGui::TableNextColumn();
             ImGui::Text("A : %02X", registers.a());
             ImGui::TableNextColumn();
@@ -66,16 +68,74 @@ namespace gui
             ImGui::EndTable();
         }
 
-        ImGui::BeginDisabled();
+#define IMGUI_DISABLED_CHECKBOX(label, value) \
+            ImGui::BeginDisabled(); \
+            ImGui::Checkbox(label, value); \
+            ImGui::EndDisabled();
+
         static bool ime = false;
-        ime = gameboy_->GetCPU().GetRegisters().interrupt_master_enable;
-        ImGui::Checkbox("IME", &ime);
-        ImGui::EndDisabled();
+        ime = cpu.GetRegisters().interrupt_master_enable;
+        IMGUI_DISABLED_CHECKBOX("IME", &ime);
+
+        if (ImGui::BeginTable("Interrupts", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableNextColumn();
+            ImGui::TableNextColumn();
+            ImGui::Text("IE : %02X", cpu.GetRegisters().interrupt_enable);
+            ImGui::TableNextColumn();
+            ImGui::Text("IF : %02X", cpu.GetRegisters().interrupt_flags);
+            ImGui::TableNextColumn();
+
+            static bool vblank, lcd, timer, serial, joypad;
+            static bool vblank_if, lcd_if, timer_if, serial_if, joypad_if;
+            vblank_if = cpu.GetRegisters().interrupt_flags & 0b1;
+            lcd_if = cpu.GetRegisters().interrupt_flags & 0b10;
+            timer_if = cpu.GetRegisters().interrupt_flags & 0b100;
+            serial_if = cpu.GetRegisters().interrupt_flags & 0b1000;
+            joypad_if = cpu.GetRegisters().interrupt_flags & 0b10000;
+            vblank = cpu.GetRegisters().interrupt_enable & 0b1;
+            lcd = cpu.GetRegisters().interrupt_enable & 0b10;
+            timer = cpu.GetRegisters().interrupt_enable & 0b100;
+            serial = cpu.GetRegisters().interrupt_enable & 0b1000;
+            joypad = cpu.GetRegisters().interrupt_enable & 0b10000;
+
+            ImGui::TextUnformatted("V-Blank");
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##vblank", &vblank);
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##vblank_if", &vblank_if);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("LCD");
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##lcd", &lcd);
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##lcd_if", &lcd_if);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Timer");
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##timer", &timer);
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##timer_if", &timer_if);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Serial");
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##serial", &serial);
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##serial_if", &serial_if);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Joypad");
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##joypad", &joypad);
+            ImGui::TableNextColumn();
+            IMGUI_DISABLED_CHECKBOX("##joypad_if", &joypad_if);
+            ImGui::TableNextColumn();
+
+            ImGui::EndTable();
+        }
 
         ImGui::Separator();
 
         const gandalf::Memory& memory = gameboy_->GetMemory();
-        const gandalf::Registers& registers = gameboy_->GetCPU().GetRegisters();
         if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
             static gandalf::word last_pc = registers.program_counter;
             if (last_pc != registers.program_counter) {

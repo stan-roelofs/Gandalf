@@ -55,7 +55,6 @@ namespace gui
             {ID::WindowCPU, "CPU"},
             {ID::WindowCPUStep, "Step"},
             {ID::WindowCPULimitFPS, "Limit FPS"},
-            {ID::WindowCPURegisters, "Registers"},
             {ID::WindowCPUDebugger, "Debugger"},
 
             {ID::WindowGameboy, "Gameboy"},
