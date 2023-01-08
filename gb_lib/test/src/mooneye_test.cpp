@@ -143,21 +143,44 @@ namespace mooneye {
     );
 
     INSTANTIATE_TEST_SUITE_P(
+        acceptance_serial,
+        MooneyeTest,
+        ::testing::Values(
+            //"acceptance/interrupts/boot_sclk_align-dmgABCmgb.gb"
+        )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
         acceptance,
         MooneyeTest,
         ::testing::Values(
             "acceptance/add_sp_e_timing.gb",
+            //"acceptance/boot_div2-S.gb",
+            //"acceptance/boot_div-dmg0.gb",
+            //"acceptance/boot_div-dmgABCmgb.gb",
+            //"acceptance/boot_div-S.gb",
+            //"acceptance/boot_hwio-dmg0.gb",
+            //"acceptance/boot_hwio-dmgABCmgb.gb",
+            //"acceptance/boot_hwio-S.gb",
+            //"acceptance/boot_regs-dmg0.gb",
             "acceptance/boot_regs-dmgABC.gb",
+            //"acceptance/boot_regs-mgb.gb",
+            //"acceptance/boot_regs-sgb.gb",
+            //"acceptance/boot_regs-sgb2.gb",
             "acceptance/call_cc_timing.gb",
             "acceptance/call_cc_timing2.gb",
             "acceptance/call_timing.gb",
             "acceptance/call_timing2.gb",
+            //"acceptance/di-timing-GS.gb",
             "acceptance/div_timing.gb",
-            "acceptance/ei_timing.gb",
             "acceptance/ei_sequence.gb",
+            "acceptance/ei_timing.gb",
             "acceptance/halt_ime0_ei.gb",
+            //"acceptance/halt_ime0_nointr_timing.gb",
             "acceptance/halt_ime1_timing.gb",
+            //"acceptance/halt_ime1_timing2-GS.gb",
             "acceptance/if_ie_registers.gb",
+            //"acceptance/intr_timing.gb",
             "acceptance/jp_cc_timing.gb",
             "acceptance/jp_timing.gb",
             "acceptance/ld_hl_sp_e_timing.gb",
