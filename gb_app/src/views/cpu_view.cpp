@@ -88,16 +88,16 @@ namespace gui
 
             static bool vblank, lcd, timer, serial, joypad;
             static bool vblank_if, lcd_if, timer_if, serial_if, joypad_if;
-            vblank_if = cpu.GetRegisters().interrupt_flags & 0b1;
-            lcd_if = cpu.GetRegisters().interrupt_flags & 0b10;
-            timer_if = cpu.GetRegisters().interrupt_flags & 0b100;
-            serial_if = cpu.GetRegisters().interrupt_flags & 0b1000;
-            joypad_if = cpu.GetRegisters().interrupt_flags & 0b10000;
-            vblank = cpu.GetRegisters().interrupt_enable & 0b1;
-            lcd = cpu.GetRegisters().interrupt_enable & 0b10;
-            timer = cpu.GetRegisters().interrupt_enable & 0b100;
-            serial = cpu.GetRegisters().interrupt_enable & 0b1000;
-            joypad = cpu.GetRegisters().interrupt_enable & 0b10000;
+            vblank = cpu.GetRegisters().interrupt_enable & gandalf::kVBlankInterruptMask;
+            lcd = cpu.GetRegisters().interrupt_enable & gandalf::kLCDInterruptMask;
+            timer = cpu.GetRegisters().interrupt_enable & gandalf::kTimerInterruptMask;
+            serial = cpu.GetRegisters().interrupt_enable & gandalf::kSerialInterruptMask;
+            joypad = cpu.GetRegisters().interrupt_enable & gandalf::kJoypadInterruptMask;
+            vblank_if = cpu.GetRegisters().interrupt_flags & gandalf::kVBlankInterruptMask;
+            lcd_if = cpu.GetRegisters().interrupt_flags & gandalf::kLCDInterruptMask;
+            timer_if = cpu.GetRegisters().interrupt_flags & gandalf::kTimerInterruptMask;
+            serial_if = cpu.GetRegisters().interrupt_flags & gandalf::kSerialInterruptMask;
+            joypad_if = cpu.GetRegisters().interrupt_flags & gandalf::kJoypadInterruptMask;
 
             ImGui::TextUnformatted("V-Blank");
             ImGui::TableNextColumn();

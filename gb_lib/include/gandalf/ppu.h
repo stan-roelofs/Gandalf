@@ -39,9 +39,12 @@ namespace gandalf {
 
     private:
         void CheckLYEqualsLYC();
+        void UpdateStatInterruptLine(byte bit, bool value);
+
         Memory& memory_;
         LCD& lcd_;
         int line_ticks_;
+        byte stat_interrupt_line_;
 
         GameboyMode mode_;
 
