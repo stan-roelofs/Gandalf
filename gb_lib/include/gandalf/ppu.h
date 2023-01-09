@@ -16,13 +16,6 @@ namespace gandalf {
             virtual void OnVBlank() = 0;
         };
 
-        enum class Mode {
-            HBlank,
-            VBlank,
-            OamSearch,
-            PixelTransfer
-        };
-
         PPU(GameboyMode mode, Memory& memory, LCD& lcd);
         virtual ~PPU();
 
@@ -39,12 +32,13 @@ namespace gandalf {
 
     private:
         void CheckLYEqualsLYC();
-        void UpdateStatInterruptLine(byte bit, bool value);
+        void UpdateStatInterruptLine(int bit, bool value);
 
         Memory& memory_;
         LCD& lcd_;
         int line_ticks_;
         byte stat_interrupt_line_;
+        LCD::Mode lcd_mode_;
 
         GameboyMode mode_;
 

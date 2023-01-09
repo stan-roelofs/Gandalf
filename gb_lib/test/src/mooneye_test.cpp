@@ -106,7 +106,7 @@ namespace mooneye {
                 gb->Run();
             }
 
-			EXPECT_TRUE(p.Passed()) << "Test failed on model: " << gandalf::GetModelName(model) << std::endl;
+            EXPECT_TRUE(p.Passed()) << "Test failed on model: " << gandalf::GetModelName(model) << std::endl;
         }
     }
 
@@ -130,14 +130,14 @@ namespace mooneye {
             TestProperties("acceptance/timer/tma_write_reloading.gb")
         )
     );
-    
+
     INSTANTIATE_TEST_SUITE_P(
         acceptance_bits,
         MooneyeTest,
         ::testing::Values(
             TestProperties("acceptance/bits/mem_oam.gb"),
             TestProperties("acceptance/bits/reg_f.gb"),
-			TestProperties("acceptance/bits/unused_hwio-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 })
+            TestProperties("acceptance/bits/unused_hwio-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 })
         )
     );
 
@@ -173,6 +173,25 @@ namespace mooneye {
         ::testing::Values(
             //TestProperties("acceptance/interrupts/boot_sclk_align-dmgABCmgb.gb")
         )
+    );
+
+    INSTANTIATE_TEST_SUITE_P(
+        acceptance_ppu,
+        MooneyeTest,
+        ::testing::Values(
+            //TestProperties("acceptance/ppu/hblank_ly_scx_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
+            //TestProperties("acceptance/ppu/intr_1_2_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
+            TestProperties("acceptance/ppu/intr_2_0_timing.gb"),
+            TestProperties("acceptance/ppu/intr_2_mode0_timing.gb"),
+            //TestProperties("acceptance/ppu/intr_2_mode0_timing_sprites.gb"),
+            TestProperties("acceptance/ppu/intr_2_mode3_timing.gb"),
+            //TestProperties("acceptance/ppu/intr_2_oam_ok_timing.gb"),
+            //TestProperties("acceptance/ppu/lcdon_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
+            //TestProperties("acceptance/ppu/lcdon_write_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
+            //TestProperties("acceptance/ppu/stat_irq_blocking.gb"),
+            //TestProperties("acceptance/ppu/stat_lyc_onoff.gb"),
+            //TestProperties("acceptance/ppu/vblank_stat_intr-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 })
+            )
     );
 
     INSTANTIATE_TEST_SUITE_P(
