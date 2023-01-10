@@ -26,7 +26,7 @@ namespace gandalf {
             return data_[0][address - 0xE000];
         else if (address >= 0xF000 && address < 0xFE00)
             return data_[wram_bank_][address - 0xF000];
-        else if (mode_ == GameboyMode::CGB && address == kSVBK)
+        else if (mode_ != GameboyMode::DMG && address == kSVBK)
             return (byte)(0xF8 | wram_bank_);
 
         return 0xFF;
@@ -44,7 +44,7 @@ namespace gandalf {
             data_[0][address - 0xE000] = value;
         else if (address >= 0xF000 && address < 0xFE00)
             data_[wram_bank_][address - 0xF000] = value;
-        else if (mode_ == GameboyMode::CGB && address == kSVBK) {
+        else if (mode_ != GameboyMode::DMG && address == kSVBK) {
             wram_bank_ = value & 0x7;
             if (wram_bank_ == 0)
                 wram_bank_ = 1;

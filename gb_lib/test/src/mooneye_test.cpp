@@ -142,6 +142,7 @@ namespace mooneye {
             TestProperties("acceptance/bits/mem_oam.gb"),
             TestProperties("acceptance/bits/reg_f.gb"),
             TestProperties("acceptance/bits/unused_hwio-GS.gb", { GROUP_G, GROUP_S })
+            //TestProperties("misc/bits/unused_hwio-C.gb", { GROUP_C })
         )
     );
 
@@ -194,7 +195,8 @@ namespace mooneye {
             //TestProperties("acceptance/ppu/lcdon_write_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/stat_irq_blocking.gb"),
             //TestProperties("acceptance/ppu/stat_lyc_onoff.gb"),
-            //TestProperties("acceptance/ppu/vblank_stat_intr-GS.gb", { GROUP_G, GROUP_S })
+            //TestProperties("acceptance/ppu/vblank_stat_intr-GS.gb", { GROUP_G, GROUP_S }),
+            //TestProperties("misc/ppu/vblank_stat_intr-C.gb", { GROUP_C }),
         )
     );
 
@@ -223,7 +225,7 @@ namespace mooneye {
             TestProperties("acceptance/call_cc_timing2.gb"),
             TestProperties("acceptance/call_timing.gb"),
             TestProperties("acceptance/call_timing2.gb"),
-            TestProperties("acceptance/di-timing-GS.gb", { GROUP_G, GROUP_S }),
+            TestProperties("acceptance/di_timing-GS.gb", { GROUP_G, GROUP_S }),
             TestProperties("acceptance/div_timing.gb"),
             TestProperties("acceptance/ei_sequence.gb"),
             TestProperties("acceptance/ei_timing.gb"),
@@ -246,8 +248,12 @@ namespace mooneye {
             TestProperties("acceptance/ret_timing.gb"),
             TestProperties("acceptance/reti_intr_timing.gb"),
             TestProperties("acceptance/reti_timing.gb"),
-            TestProperties("acceptance/rst_timing.gb")
-        )
+            TestProperties("acceptance/rst_timing.gb"),
+            //TestProperties("misc/boot_div-cgb0.gb", { Model::CGB0 }),
+            //TestProperties("misc/boot_div-cgbABCDE.gb", { Model::CGB }),
+            //TestProperties("misc/boot_hwio-C.gb", { GROUP_C }),
+            TestProperties("misc/boot_regs-cgb.gb", { GROUP_C })
+            )
     );
 
     INSTANTIATE_TEST_SUITE_P(

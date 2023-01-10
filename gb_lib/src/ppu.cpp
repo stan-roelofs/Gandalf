@@ -182,7 +182,7 @@ namespace gandalf {
             return vram_[current_vram_bank_][address - 0x8000];
         else if (address >= 0xFE00 && address < 0xFEA0)
             return oam_[address - 0xFE00];
-        else if (mode_ == GameboyMode::CGB && address == kVBK)
+        else if (mode_ != GameboyMode::DMG && address == kVBK)
             return current_vram_bank_ == 0 ? 0xFE : 0xFF;
         else if (mode_ != GameboyMode::DMG && address == kOPRI)
             return opri_;
@@ -198,7 +198,7 @@ namespace gandalf {
             vram_[current_vram_bank_][address - 0x8000] = value;
         else if (address >= 0xFE00 && address < 0xFEA0)
             oam_[address - 0xFE00] = value;
-        else if (mode_ == GameboyMode::CGB && address == kVBK)
+        else if (mode_ != GameboyMode::DMG && address == kVBK)
             current_vram_bank_ = value & 0x1;
         else if (mode_ != GameboyMode::DMG && address == kOPRI)
             opri_ = value;

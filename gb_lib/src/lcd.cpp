@@ -67,9 +67,9 @@ namespace gandalf
         case kOBP1:
             return obp1_;
         case kBCPS:
-            return mode_ != GameboyMode::DMG ? bcps_ : 0xFF;
+            return mode_ != GameboyMode::DMG ? bcps_ | 0x40 : 0xFF;
         case kOCPS:
-            return mode_ != GameboyMode::DMG ? ocps_ : 0xFF;
+            return mode_ != GameboyMode::DMG ? ocps_ | 0x40 : 0xFF;
         case kBCPD:
             return mode_ != GameboyMode::DMG ? static_cast<byte>(bcpd_[(bcps_ & 0x3F) / 2] & 0xFF) : 0xFF;
         case kOCPD:
