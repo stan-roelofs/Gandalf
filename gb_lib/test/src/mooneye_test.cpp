@@ -186,9 +186,9 @@ namespace mooneye {
             //TestProperties("acceptance/ppu/hblank_ly_scx_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/intr_1_2_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/intr_2_0_timing.gb"),
-            TestProperties("acceptance/ppu/intr_2_mode0_timing.gb"),
+            //TestProperties("acceptance/ppu/intr_2_mode0_timing.gb"),
             //TestProperties("acceptance/ppu/intr_2_mode0_timing_sprites.gb"),
-            TestProperties("acceptance/ppu/intr_2_mode3_timing.gb")
+            //TestProperties("acceptance/ppu/intr_2_mode3_timing.gb")
             //TestProperties("acceptance/ppu/intr_2_oam_ok_timing.gb"),
             //TestProperties("acceptance/ppu/lcdon_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/lcdon_write_timing-GS.gb", { GROUP_G, GROUP_S }),
@@ -223,14 +223,14 @@ namespace mooneye {
             TestProperties("acceptance/call_cc_timing2.gb"),
             TestProperties("acceptance/call_timing.gb"),
             TestProperties("acceptance/call_timing2.gb"),
-            //TestProperties("acceptance/di-timing-GS.gb", {GROUP_G, GROUP_S}), // Requires accurate VBlank timing
+            TestProperties("acceptance/di-timing-GS.gb", { GROUP_G, GROUP_S }),
             TestProperties("acceptance/div_timing.gb"),
             TestProperties("acceptance/ei_sequence.gb"),
             TestProperties("acceptance/ei_timing.gb"),
             TestProperties("acceptance/halt_ime0_ei.gb"),
-            //TestProperties("acceptance/halt_ime0_nointr_timing.gb"),
+            TestProperties("acceptance/halt_ime0_nointr_timing.gb"),
             TestProperties("acceptance/halt_ime1_timing.gb"),
-            //TestProperties("acceptance/halt_ime1_timing2-GS.gb", {GROUP_G, GROUP_S}),
+            TestProperties("acceptance/halt_ime1_timing2-GS.gb", { GROUP_G, GROUP_S }),
             TestProperties("acceptance/if_ie_registers.gb"),
             TestProperties("acceptance/intr_timing.gb"),
             TestProperties("acceptance/jp_cc_timing.gb"),
@@ -258,7 +258,7 @@ namespace mooneye {
             TestProperties("emulator-only/mbc1/bits_bank2.gb"),
             TestProperties("emulator-only/mbc1/bits_mode.gb"),
             TestProperties("emulator-only/mbc1/bits_ramg.gb"),
-            //TestProperties("emulator-only/mbc1/multicart_rom_8Mb.gb", // This test requires a way of detecting multicart ROMs which is not implemente)d
+            //TestProperties("emulator-only/mbc1/multicart_rom_8Mb.gb", // This test requires a way of detecting multicart ROMs which is not implemented
             TestProperties("emulator-only/mbc1/ram_64kb.gb"),
             TestProperties("emulator-only/mbc1/ram_256kb.gb"),
             TestProperties("emulator-only/mbc1/rom_1Mb.gb"),

@@ -800,6 +800,7 @@ namespace gandalf {
     registers_.interrupt_flags = registers_.interrupt_flags & ~(1 << interrupt_bit);
 
     const word address = 0x40 + (interrupt_bit << 3);
+    ADVANCE_IO(4); // Set program counter to the interrupt address - 1 cycle
     registers_.program_counter = address;
   }
 
@@ -1871,12 +1872,6 @@ namespace gandalf {
       CP_A_N() break;
     case 0xFF:
       RST(0x38) break;
-    }
-  }
-
-  void CPU::CheckInterrupts() {
-    if (registers_.interrupt_flags & registers_.interrupt_enable) {
-      halt_ = false;
     }
   }
 } // namespace gandalf
