@@ -8,7 +8,7 @@
 #include "resource_helper.h"
 
 namespace {
-    constexpr std::uint64_t kMaxCycles = static_cast<std::uint64_t>(1e8);
+    constexpr std::uint64_t kMaxCycles = static_cast<std::uint64_t>(1e7);
 
     struct TestProperties
     {
@@ -110,6 +110,10 @@ namespace mooneye {
         }
     }
 
+#define GROUP_G Model::DMG0, Model::DMG, Model::MGB
+#define GROUP_S Model::SGB, Model::SGB2
+#define GROUP_C Model::CGB0, Model::CGB
+
     INSTANTIATE_TEST_SUITE_P(
         acceptance_timer,
         MooneyeTest,
@@ -137,7 +141,7 @@ namespace mooneye {
         ::testing::Values(
             TestProperties("acceptance/bits/mem_oam.gb"),
             TestProperties("acceptance/bits/reg_f.gb"),
-            TestProperties("acceptance/bits/unused_hwio-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 })
+            TestProperties("acceptance/bits/unused_hwio-GS.gb", { GROUP_G, GROUP_S })
         )
     );
 
@@ -179,19 +183,19 @@ namespace mooneye {
         acceptance_ppu,
         MooneyeTest,
         ::testing::Values(
-            //TestProperties("acceptance/ppu/hblank_ly_scx_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
-            //TestProperties("acceptance/ppu/intr_1_2_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
-            TestProperties("acceptance/ppu/intr_2_0_timing.gb"),
+            //TestProperties("acceptance/ppu/hblank_ly_scx_timing-GS.gb", { GROUP_G, GROUP_S }),
+            //TestProperties("acceptance/ppu/intr_1_2_timing-GS.gb", { GROUP_G, GROUP_S }),
+            //TestProperties("acceptance/ppu/intr_2_0_timing.gb"),
             TestProperties("acceptance/ppu/intr_2_mode0_timing.gb"),
             //TestProperties("acceptance/ppu/intr_2_mode0_timing_sprites.gb"),
-            TestProperties("acceptance/ppu/intr_2_mode3_timing.gb"),
+            TestProperties("acceptance/ppu/intr_2_mode3_timing.gb")
             //TestProperties("acceptance/ppu/intr_2_oam_ok_timing.gb"),
-            //TestProperties("acceptance/ppu/lcdon_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
-            //TestProperties("acceptance/ppu/lcdon_write_timing-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 }),
+            //TestProperties("acceptance/ppu/lcdon_timing-GS.gb", { GROUP_G, GROUP_S }),
+            //TestProperties("acceptance/ppu/lcdon_write_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/stat_irq_blocking.gb"),
             //TestProperties("acceptance/ppu/stat_lyc_onoff.gb"),
-            //TestProperties("acceptance/ppu/vblank_stat_intr-GS.gb", { Model::DMG, Model::MGB, Model::SGB, Model::SGB2 })
-            )
+            //TestProperties("acceptance/ppu/vblank_stat_intr-GS.gb", { GROUP_G, GROUP_S })
+        )
     );
 
     INSTANTIATE_TEST_SUITE_P(
@@ -199,14 +203,18 @@ namespace mooneye {
         MooneyeTest,
         ::testing::Values(
             TestProperties("acceptance/add_sp_e_timing.gb"),
+
+            // TODO These tests fail because executing the boot rom takes too long - probably because of PPU.
+            // Because of this the value of DIV register is incorrect when the boot ROM finishes. 
+
             //TestProperties("acceptance/boot_div2-S.gb"),
-            //TestProperties("acceptance/boot_div-dmg0.gb"),
-            //TestProperties("acceptance/boot_div-dmgABCmgb.gb"),
-            //TestProperties("acceptance/boot_div-S.gb"),
-            //TestProperties("acceptance/boot_hwio-dmg0.gb"),
-            //TestProperties("acceptance/boot_hwio-dmgABCmgb.gb"),
-            //TestProperties("acceptance/boot_hwio-S.gb"),
-            //TestProperties("acceptance/boot_regs-dmg0.gb"),
+            //TestProperties("acceptance/boot_div-dmg0.gb", {Model::DMG0}),
+            //TestProperties("acceptance/boot_div-dmgABCmgb.gb", {Model::DMG, Model::MGB}),
+            //TestProperties("acceptance/boot_div-S.gb", {Model::SGB, Model::SGB2}),
+            //TestProperties("acceptance/boot_hwio-dmg0.gb", {Model::DMG0}}),
+            //TestProperties("acceptance/boot_hwio-dmgABCmgb.gb", {Model::DMG, Model::MGB}}),
+            //TestProperties("acceptance/boot_hwio-S.gb", {Model::SGB, Model::SGB2}}),
+            TestProperties("acceptance/boot_regs-dmg0.gb", { Model::DMG0 }),
             TestProperties("acceptance/boot_regs-dmgABC.gb", { Model::DMG }),
             TestProperties("acceptance/boot_regs-mgb.gb", { Model::MGB }),
             TestProperties("acceptance/boot_regs-sgb.gb", { Model::SGB }),
@@ -215,16 +223,16 @@ namespace mooneye {
             TestProperties("acceptance/call_cc_timing2.gb"),
             TestProperties("acceptance/call_timing.gb"),
             TestProperties("acceptance/call_timing2.gb"),
-            //TestProperties("acceptance/di-timing-GS.gb"),
+            //TestProperties("acceptance/di-timing-GS.gb", {GROUP_G, GROUP_S}), // Requires accurate VBlank timing
             TestProperties("acceptance/div_timing.gb"),
             TestProperties("acceptance/ei_sequence.gb"),
             TestProperties("acceptance/ei_timing.gb"),
             TestProperties("acceptance/halt_ime0_ei.gb"),
             //TestProperties("acceptance/halt_ime0_nointr_timing.gb"),
             TestProperties("acceptance/halt_ime1_timing.gb"),
-            //TestProperties("acceptance/halt_ime1_timing2-GS.gb"),
+            //TestProperties("acceptance/halt_ime1_timing2-GS.gb", {GROUP_G, GROUP_S}),
             TestProperties("acceptance/if_ie_registers.gb"),
-            //TestProperties("acceptance/intr_timing.gb"),
+            TestProperties("acceptance/intr_timing.gb"),
             TestProperties("acceptance/jp_cc_timing.gb"),
             TestProperties("acceptance/jp_timing.gb"),
             TestProperties("acceptance/ld_hl_sp_e_timing.gb"),

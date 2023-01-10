@@ -13,7 +13,7 @@ namespace {
 namespace gandalf
 {
     // TODO is initial value correct? verify using tests
-    Timer::Timer(Memory& memory): Memory::AddressHandler("Timer"), div_(0xAB00), tma_(0), tima_(0), tac_(0), memory_(memory), reload_counter_(0), selected_bit_(0), enabled_(false)
+    Timer::Timer(Memory& memory): Memory::AddressHandler("Timer"), div_(0), tma_(0), tima_(0), tac_(0), memory_(memory), reload_counter_(0), selected_bit_(0), enabled_(false)
     {
     }
 

@@ -10,11 +10,13 @@ namespace gandalf {
     {
         switch (model)
         {
+        case Model::DMG0:
         case Model::DMG:
         case Model::MGB:
         case Model::SGB:
         case Model::SGB2:
             return GameboyMode::DMG;
+        case Model::CGB0:
         case Model::CGB:
             return GameboyMode::CGB;
         default:

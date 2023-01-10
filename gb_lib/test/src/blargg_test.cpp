@@ -7,7 +7,7 @@
 #include "resource_helper.h"
 
 namespace {
-    constexpr std::uint64_t kMaxCycles = static_cast<std::uint64_t>(1e8);
+    constexpr std::uint64_t kMaxCycles = static_cast<std::uint64_t>(1e7);
 
     class TestRunner
     {
@@ -18,9 +18,15 @@ namespace {
         virtual const std::string& GetOutput() const = 0;
     };
 
+    enum class TestOutput
+    {
+        Serial,
+        Memory
+    };
+
     struct TestProperties
     {
-        std::shared_ptr<TestRunner> runner;
+        TestOutput validator;
         std::string rom_path;
     };
 
@@ -48,7 +54,7 @@ namespace blargg {
     class SerialOutputValidator: public Memory::AddressHandler, public TestRunner
     {
     public:
-        SerialOutputValidator(): Memory::AddressHandler("BlarggTest - SerialOutputReader"), done_(false), last_character_(false) {}
+        SerialOutputValidator(): Memory::AddressHandler("BlarggTest - SerialOutputReader"), done_(false), last_character_(0) {}
         void Write(word address, byte value) override
         {
             if (address == kSC) {
@@ -98,6 +104,15 @@ namespace blargg {
     // Test will write output to memory. Address 0xA000 holds the overall status, 0x80 means the test is still running.
     class MemoryValidator: public TestRunner
     {
+        bool CheckResultValid(const Memory& memory)
+        {
+            bool result_valid = true;
+            result_valid &= memory.Read(0xA001, false) == 0xDE;
+            result_valid &= memory.Read(0xA002, false) == 0xB0;
+            result_valid &= memory.Read(0xA003, false) == 0x61;
+            return result_valid;
+        }
+        
         bool RunTestROM(Gameboy& gb)
         {
             std::uint64_t i = 0;
@@ -107,18 +122,17 @@ namespace blargg {
                 gb.Run();
 
                 // 0xA000 holds the status code, check it every once in a while to detect if the test has finished.
-                // Note: 0xA000 is the cartridge RAM and it returns 0xFF when disabled. 
-                if (i % 1000 == 0 && memory.Read(0xA000, false) != 0xFF && memory.Read(0xA000, false) != 0x80)
-                    break;
+                if (i % 10000 == 0)
+                {
+                    if (memory.Read(0xA000, false) != 0x80 && CheckResultValid(memory))
+                        break;
+                }
 
                 ++i;
             }
 
-            bool result_valid = true;
-            result_valid &= memory.Read(0xA001, false) == 0xDE;
-            result_valid &= memory.Read(0xA002, false) == 0xB0;
-            result_valid &= memory.Read(0xA003, false) == 0x61;
-            byte result_code = memory.Read(0xA000, false);
+            const bool result_valid = CheckResultValid(memory);
+            const byte result_code = memory.Read(0xA000, false);
 
             word address = 0xA004;
             if (result_valid) {
@@ -150,30 +164,40 @@ namespace blargg {
         ROM rom_bytes;
         ASSERT_TRUE(ReadFileBytes("/blargg/" + file_name, rom_bytes));
 
-		for (int model = 0; model < static_cast<int>(gandalf::Model::LAST); ++model) {
-            
-			gameboy_ = std::make_unique<gandalf::Gameboy>(static_cast<gandalf::Model>(model));
-			gameboy_->LoadROM(rom_bytes);
+        for (int model = 0; model < static_cast<int>(gandalf::Model::LAST); ++model) {
+            std::unique_ptr<TestRunner> runner;
+            switch (p.validator)
+            {
+            case TestOutput::Serial:
+                runner = std::make_unique<SerialOutputValidator>();
+                break;
+            case TestOutput::Memory:
+                runner = std::make_unique<MemoryValidator>();
+                break;
+            }
 
-			EXPECT_TRUE(p.runner->RunTestROM(*gameboy_)) << "Test failed on model " << gandalf::GetModelName(static_cast<gandalf::Model>(model)) << std::endl << p.runner->GetOutput();
-		}
+            gameboy_ = std::make_unique<gandalf::Gameboy>(static_cast<gandalf::Model>(model));
+            ASSERT_TRUE(gameboy_->LoadROM(rom_bytes));
+
+            EXPECT_TRUE(runner->RunTestROM(*gameboy_)) << "Test failed on model " << gandalf::GetModelName(static_cast<gandalf::Model>(model)) << std::endl << runner->GetOutput();
+        }
     }
 
     INSTANTIATE_TEST_SUITE_P(
         cpu_instrs,
         BlarggTest,
         ::testing::Values(
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/01-special.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/02-interrupts.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/03-op sp,hl.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/04-op r,imm.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/05-op rp.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/06-ld r,r.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/07-jr,jp,call,ret,rst.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/08-misc instrs.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/09-op r,r.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/10-bit ops.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "cpu_instrs/11-op a,(hl).gb" }
+            TestProperties{ TestOutput::Serial, "cpu_instrs/01-special.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/02-interrupts.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/03-op sp,hl.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/04-op r,imm.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/05-op rp.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/06-ld r,r.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/07-jr,jp,call,ret,rst.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/08-misc instrs.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/09-op r,r.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/10-bit ops.gb" },
+            TestProperties{ TestOutput::Serial, "cpu_instrs/11-op a,(hl).gb" }
         )
     );
 
@@ -181,9 +205,9 @@ namespace blargg {
         mem_timing,
         BlarggTest,
         ::testing::Values(
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/01-read_timing.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/02-write_timing.gb" },
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "mem_timing/03-modify_timing.gb" }
+            TestProperties{ TestOutput::Serial, "mem_timing/01-read_timing.gb" },
+            TestProperties{ TestOutput::Serial, "mem_timing/02-write_timing.gb" },
+            TestProperties{ TestOutput::Serial, "mem_timing/03-modify_timing.gb" }
         )
     );
 
@@ -191,9 +215,9 @@ namespace blargg {
         mem_timing2,
         BlarggTest,
         ::testing::Values(
-            TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/01-read_timing.gb" },
-            TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/02-write_timing.gb" },
-            TestProperties{ std::make_shared<MemoryValidator>(), "mem_timing-2/03-modify_timing.gb" }
+            TestProperties{ TestOutput::Memory, "mem_timing-2/01-read_timing.gb" },
+            TestProperties{ TestOutput::Memory, "mem_timing-2/02-write_timing.gb" },
+            TestProperties{ TestOutput::Memory, "mem_timing-2/03-modify_timing.gb" }
 
         )
     );
@@ -202,7 +226,7 @@ namespace blargg {
         instr_timing,
         BlarggTest,
         ::testing::Values(
-            TestProperties{ std::make_shared<SerialOutputValidator>(), "instr_timing/instr_timing.gb" }
+            TestProperties{ TestOutput::Serial, "instr_timing/instr_timing.gb" }
         )
     );
 }
