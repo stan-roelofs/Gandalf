@@ -90,8 +90,16 @@ namespace gandalf
         switch (address)
         {
         case kLCDC:
+        {
             lcdc_ = value;
+            // LCD disabled?
+            if ((lcdc_ & 0x80) == 0)
+            {
+                ly_ = 0;
+                SetMode(Mode::HBlank);
+            }
             break;
+        }
         case kSTAT:
             stat_ = (stat_ & 0b11) | (value & 0xFC);
             break;

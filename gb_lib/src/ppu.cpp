@@ -6,7 +6,7 @@
 #include <gandalf/util.h>
 
 namespace {
-    constexpr int kTicksPerLine = 455;
+    constexpr int kTicksPerLine = 456;
     constexpr int kLinesPerFrame = 154;
 
     constexpr int kStatBitLYC = 6;
@@ -49,6 +49,8 @@ namespace gandalf {
 
     void PPU::Tick()
     {
+        if ((lcd_.GetLCDControl() & 0x80) == 0)
+            return;
         // TODO: block access to vram/oam/palettes
         ++line_ticks_;
 
@@ -99,7 +101,7 @@ namespace gandalf {
             pipeline_.Process();
 
             if (pipeline_.Done()) {
-                //assert(BETWEEN(line_ticks_, 252, 369));
+                assert(BETWEEN(line_ticks_, 172 + 80, 289 + 80));
                 lcd_mode_ = LCD::Mode::HBlank;
             }
             break;
@@ -253,16 +255,11 @@ namespace gandalf {
 
     bool PPU::Pipeline::Done() const
     {
-        return pixels_pushed_ == kScreenWidth;
+        return pixels_pushed_ == kScreenWidth && fetcher_state_ == FetcherState::FetchTileSleep;
     }
 
     void PPU::Pipeline::Process()
     {
-        if ((lcd_.GetLCDControl() & 0x80) == 0) {
-            ++pixels_pushed_;
-            return;
-        }
-
         // TODO we only need to check once x increases after this check fails, but for now this is easier
         // TODO this wont work for sprites with x < 8
         if (!sprite_in_progress_ && lcd_.GetLCDControl() & 0x2) {
@@ -440,6 +437,11 @@ namespace gandalf {
 
     void PPU::Pipeline::TryPush()
     {
+        if (pixels_pushed_ == 160) {
+            fetcher_state_ = FetcherState::FetchTileSleep;
+            return;
+        }
+        
         if (background_fifo_.size() <= 8) {
             for (byte i = 0; i < 8; ++i)
             {
@@ -452,7 +454,7 @@ namespace gandalf {
                 background_fifo_.push_back({ color, palette, 0, 0 });
             }
             fetch_x_ = (fetch_x_ + 1) & 0x1F;
-            fetcher_state_ = FetcherState::FetchTile;
+            fetcher_state_ = FetcherState::FetchTileSleep;
         }
     }
 
