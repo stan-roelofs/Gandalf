@@ -7,7 +7,7 @@
 
 namespace {
     constexpr int kTicksPerLine = 456;
-    constexpr int kLinesPerFrame = 154;
+    constexpr int kLinesPerFrame = 153;
 
     constexpr int kStatBitLYC = 6;
     constexpr int kStatBitModeOAM = 5;
@@ -73,8 +73,6 @@ namespace gandalf {
         {
         case LCD::Mode::OamSearch:
         {
-            UpdateStatInterruptLine(kStatBitModeOAM, true);
-
             if (line_ticks_ % 2 == 1 && fetched_sprites_.size() < 10)
             {
                 const byte sprite_size = (lcd_.GetLCDControl() & 0x4) ? 16 : 8;
@@ -123,17 +121,16 @@ namespace gandalf {
             break;
         case LCD::Mode::VBlank:
             if (line_ticks_ >= kTicksPerLine) {
+                line_ticks_ = 0;
+
                 lcd_.SetLY(lcd_.GetLY() + 1);
 
-                CheckLYEqualsLYC();
-
-                if (lcd_.GetLY() >= kLinesPerFrame) {
+                if (lcd_.GetLY() > kLinesPerFrame) {
                     lcd_mode_ = LCD::Mode::OamSearch;
                     fetched_sprites_.clear();
                     lcd_.SetLY(0);
-                }
-
-                line_ticks_ = 0;
+                } else 
+                    CheckLYEqualsLYC();
             }
             break;
         }

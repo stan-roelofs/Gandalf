@@ -185,11 +185,11 @@ namespace mooneye {
         MooneyeTest,
         ::testing::Values(
             //TestProperties("acceptance/ppu/hblank_ly_scx_timing-GS.gb", { GROUP_G, GROUP_S }),
-            //TestProperties("acceptance/ppu/intr_1_2_timing-GS.gb", { GROUP_G, GROUP_S }),
-            //TestProperties("acceptance/ppu/intr_2_0_timing.gb"),
-            //TestProperties("acceptance/ppu/intr_2_mode0_timing.gb"),
+            TestProperties("acceptance/ppu/intr_1_2_timing-GS.gb", { GROUP_G, GROUP_S }),
+            TestProperties("acceptance/ppu/intr_2_0_timing.gb"),
+            TestProperties("acceptance/ppu/intr_2_mode0_timing.gb"),
             //TestProperties("acceptance/ppu/intr_2_mode0_timing_sprites.gb"),
-            //TestProperties("acceptance/ppu/intr_2_mode3_timing.gb")
+            TestProperties("acceptance/ppu/intr_2_mode3_timing.gb")
             //TestProperties("acceptance/ppu/intr_2_oam_ok_timing.gb"),
             //TestProperties("acceptance/ppu/lcdon_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/lcdon_write_timing-GS.gb", { GROUP_G, GROUP_S }),

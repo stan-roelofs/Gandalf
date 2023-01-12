@@ -23,12 +23,13 @@ namespace gandalf {
 #define CLEAR_CFLAG() registers_.f() &= ~kCFlagMask;
 
 #define READ(address, destination)                                             \
-  ADVANCE_IO(4);                                                  \
-  (destination) = memory_.Read(address);
+  (destination) = memory_.Read(address); \
+  ADVANCE_IO(4);                                                  
+
 
 #define WRITE(address, value)                                                  \
-  ADVANCE_IO(4);                                                  \
-  memory_.Write(address, value);
+  memory_.Write(address, value); \
+  ADVANCE_IO(4);                                                  
 
 #define READ_PC(destination) READ(registers_.program_counter++, destination)
 #define READ_SP(destination) READ(registers_.stack_pointer++, destination)
