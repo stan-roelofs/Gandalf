@@ -189,14 +189,14 @@ namespace mooneye {
             TestProperties("acceptance/ppu/intr_2_0_timing.gb"),
             TestProperties("acceptance/ppu/intr_2_mode0_timing.gb"),
             //TestProperties("acceptance/ppu/intr_2_mode0_timing_sprites.gb"),
-            TestProperties("acceptance/ppu/intr_2_mode3_timing.gb")
+            TestProperties("acceptance/ppu/intr_2_mode3_timing.gb"),
             //TestProperties("acceptance/ppu/intr_2_oam_ok_timing.gb"),
             //TestProperties("acceptance/ppu/lcdon_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/lcdon_write_timing-GS.gb", { GROUP_G, GROUP_S }),
             //TestProperties("acceptance/ppu/stat_irq_blocking.gb"),
             //TestProperties("acceptance/ppu/stat_lyc_onoff.gb"),
-            //TestProperties("acceptance/ppu/vblank_stat_intr-GS.gb", { GROUP_G, GROUP_S }),
-            //TestProperties("misc/ppu/vblank_stat_intr-C.gb", { GROUP_C }),
+            TestProperties("acceptance/ppu/vblank_stat_intr-GS.gb", { GROUP_G, GROUP_S })
+            //TestProperties("misc/ppu/vblank_stat_intr-C.gb", { GROUP_C }) // Too late: on CGB stat_m2_144 is triggered one cycle before a vblank is
         )
     );
 
@@ -206,8 +206,8 @@ namespace mooneye {
         ::testing::Values(
             TestProperties("acceptance/add_sp_e_timing.gb"),
 
-            // TODO These tests fail because executing the boot rom takes too long - probably because of PPU.
-            // Because of this the value of DIV register is incorrect when the boot ROM finishes. 
+            // TODO These tests fail because executing the boot rom takes too long??
+            // The value of the DIV register is incorrect when the boot ROM finishes. 
 
             //TestProperties("acceptance/boot_div2-S.gb"),
             //TestProperties("acceptance/boot_div-dmg0.gb", {Model::DMG0}),

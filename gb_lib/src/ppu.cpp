@@ -57,12 +57,17 @@ namespace gandalf {
         const LCD::Mode mode = lcd_.GetMode();
         if (mode != lcd_mode_)
         {
+            if (mode == LCD::Mode::VBlank)
+                UpdateStatInterruptLine(kStatBitModeOAM, false);
+
             lcd_.SetMode(lcd_mode_);
             UpdateStatInterruptLine(mode_to_stat_bit[static_cast<int>(mode)], false);
             UpdateStatInterruptLine(mode_to_stat_bit[static_cast<int>(lcd_mode_)], true);
 
             if (lcd_mode_ == LCD::Mode::VBlank)
             {
+                UpdateStatInterruptLine(kStatBitModeOAM, true); // This bit also triggers an interrupt when VBlank starts
+
                 memory_.Write(kIF, memory_.Read(kIF) | kVBlankInterruptMask);
                 for (auto listener : vblank_listeners_)
                     listener->OnVBlank();
@@ -129,7 +134,8 @@ namespace gandalf {
                     lcd_mode_ = LCD::Mode::OamSearch;
                     fetched_sprites_.clear();
                     lcd_.SetLY(0);
-                } else 
+                }
+                else
                     CheckLYEqualsLYC();
             }
             break;
@@ -158,7 +164,7 @@ namespace gandalf {
     {
         if (bit < 0)
             return;
-        
+
         if (value && (lcd_.GetLCDStatus() & (1 << bit)))
         {
             if (stat_interrupt_line_ == 0)
@@ -438,7 +444,7 @@ namespace gandalf {
             fetcher_state_ = FetcherState::FetchTileSleep;
             return;
         }
-        
+
         if (background_fifo_.size() <= 8) {
             for (byte i = 0; i < 8; ++i)
             {
