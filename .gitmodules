@@ -1,0 +1,3 @@
+[submodule "external/libgb"]
+	path = external/libgb
+	url = https://github.com/stan-roelofs/libgb.git
