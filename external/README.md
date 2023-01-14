@@ -1,0 +1,1 @@
+This directory contains external code used by the project.
