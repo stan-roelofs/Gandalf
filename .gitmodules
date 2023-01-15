@@ -4,3 +4,12 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "external/SDL"]
+	path = external/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "external/json"]
+	path = external/json
+	url = https://github.com/nlohmann/json.git
+[submodule "external/nativefiledialog-extended"]
+	path = external/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended.git

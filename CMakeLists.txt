@@ -6,15 +6,9 @@ project(Gandalf)
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 
-include(FetchContent)
-FetchContent_Declare(
-  sdl2
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-  GIT_TAG 2a25b69ba580ff63ede93f2b19fa1bca09dab484
-)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(sdl2)
+add_subdirectory(external/SDL)
 
 add_subdirectory(external/libgb)
 
@@ -29,19 +23,8 @@ add_library(imgui external/imgui/imgui.cpp
 target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
 target_link_libraries(imgui SDL2main SDL2-static)
 
-FetchContent_Declare(
-  nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG bc889afb4c5bf1c0d8ee29ef35eaaf4c8bef8a5d
-)
-FetchContent_MakeAvailable(nlohmann_json)
-
-FetchContent_Declare(
-  nfd
-  GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
-  GIT_TAG d4df2b6ad5420f5300c00f418bf28d86291fa675
-)
-FetchContent_MakeAvailable(nfd)
+add_subdirectory(external/json)
+add_subdirectory(external/nativefiledialog-extended)
 
 set(HEADERS
   src/audio_handler.h
