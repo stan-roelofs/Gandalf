@@ -24,6 +24,11 @@ Now build the code
 cmake --build .
 ```
 
+If you are building on Windows using MSVC: 
+```
+cmake --build . --config Release
+```
+
 Note: Compiling as Release or RelWithDebInfo is recommended. The STL containers used by the emulator can be extremely slow in Debug mode because of iterator debugging. 
 
 ## Accuracy
