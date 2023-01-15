@@ -1,3 +1,6 @@
 [submodule "external/libgb"]
 	path = external/libgb
 	url = https://github.com/stan-roelofs/libgb.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git

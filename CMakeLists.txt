@@ -16,24 +16,17 @@ set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(sdl2)
 
-FetchContent_Declare(
-  imgui
-  GIT_REPOSITORY https://github.com/ocornut/imgui.git
-  GIT_TAG c191faf0ba478e9c58a69c63306986a21ebfb6e4
-)
-FetchContent_MakeAvailable(imgui)
-
-message(${imgui_SOURCE_DIR})
+add_subdirectory(external/libgb)
 
 # Compile as static library
-add_library(imgui ${imgui_SOURCE_DIR}/imgui.cpp
-  ${imgui_SOURCE_DIR}/imgui_demo.cpp
-  ${imgui_SOURCE_DIR}/imgui_draw.cpp
-  ${imgui_SOURCE_DIR}/imgui_tables.cpp
-  ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-  ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
-  ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
-target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+add_library(imgui external/imgui/imgui.cpp
+  external/imgui/imgui_demo.cpp
+  external/imgui/imgui_draw.cpp
+  external/imgui/imgui_tables.cpp
+  external/imgui/imgui_widgets.cpp
+  external/imgui/backends/imgui_impl_sdl.cpp
+  external/imgui/backends/imgui_impl_opengl3.cpp)
+target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
 target_link_libraries(imgui SDL2main SDL2-static)
 
 FetchContent_Declare(
@@ -91,5 +84,3 @@ target_link_libraries(gb_app libgb SDL2main SDL2-static imgui nlohmann_json::nlo
 target_include_directories(gb_app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 configure_file(data/imgui.ini ${CMAKE_CURRENT_BINARY_DIR}/imgui.ini COPYONLY)
-
-add_subdirectory(external/libgb)
