@@ -29,8 +29,9 @@ If you are building on Windows using MSVC:
 cmake --build . --config Release
 ```
 
-Note: OpenGL needs to be installed in order to compile. 
-Note: Compiling as Release or RelWithDebInfo is recommended. The STL containers used by the emulator can be extremely slow in Debug mode because of iterator debugging. 
+Note 1: OpenGL needs to be installed in order to compile. 
+
+Note 2: Compiling as Release or RelWithDebInfo is recommended. The STL containers used by the emulator can be extremely slow in Debug mode because of iterator debugging. 
 
 ## Accuracy
 The emulator is fairly accurate, passing the majority of test ROMs. The PPU implementation requires work, but finding accurate documentation is difficult. 
