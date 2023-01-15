@@ -30,6 +30,6 @@ Note: Compiling as Release or RelWithDebInfo is recommended. The STL containers 
 The emulator is fairly accurate, passing the majority of test ROMs. The PPU implementation requires work, but finding accurate documentation is difficult. 
 
 ## Preview
-![gold.png](res/gold.png)
+![gold.png](data/gold.png)
 
-![dkc.png](res/dkc.png)
+![dkc.png](data/dkc.png)

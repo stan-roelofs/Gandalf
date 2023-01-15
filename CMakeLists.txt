@@ -90,4 +90,6 @@ add_executable(gb_app ${HEADERS} ${SOURCES})
 target_link_libraries(gb_app libgb SDL2main SDL2-static imgui nlohmann_json::nlohmann_json nfd ${OPENGL_LIBRARIES})
 target_include_directories(gb_app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+configure_file(data/imgui.ini ${CMAKE_CURRENT_BINARY_DIR}/imgui.ini COPYONLY)
+
 add_subdirectory(external/libgb)
