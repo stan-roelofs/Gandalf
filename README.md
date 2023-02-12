@@ -1,4 +1,6 @@
 # Gandalf
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/stan-roelofs/Gandalf/cmake.yml?branch=main)
+![GitHub](https://img.shields.io/github/license/stan-roelofs/Gandalf)
 
 A Gameboy color emulator with debugging tools.
 
