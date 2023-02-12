@@ -10,7 +10,7 @@ set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/SDL)
 
-add_subdirectory(external/libgb)
+add_subdirectory(external/gandalf-lib)
 
 # Compile as static library
 add_library(imgui external/imgui/imgui.cpp

@@ -1,6 +1,3 @@
-[submodule "external/libgb"]
-	path = external/libgb
-	url = https://github.com/stan-roelofs/libgb.git
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
@@ -13,3 +10,6 @@
 [submodule "external/nativefiledialog-extended"]
 	path = external/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended.git
+[submodule "external/gandalf-lib"]
+	path = external/gandalf-lib
+	url = https://github.com/stan-roelofs/gandalf-lib.git
