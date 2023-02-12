@@ -26,7 +26,7 @@ namespace gui
 
         vram_buffer_.fill(0);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, gandalf::TotalScreenWidth, gandalf::TotalScreenHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
 
         glGenTextures(1, &sprite_texture_);
         glBindTexture(GL_TEXTURE_2D, sprite_texture_);
@@ -69,11 +69,11 @@ namespace gui
                 current_tab_ = Tab::Background;
 
                 glBindTexture(GL_TEXTURE_2D, background_texture_);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::kTotalScreenWidth, gandalf::kTotalScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::TotalScreenWidth, gandalf::TotalScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
 
                 ImVec2 pos = ImGui::GetCursorScreenPos();
 
-                ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(gandalf::kTotalScreenWidth * kScale, gandalf::kTotalScreenHeight * kScale));
+                ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(gandalf::TotalScreenWidth * kScale, gandalf::TotalScreenHeight * kScale));
 
                 if (ImGui::IsItemHovered())
                 {
@@ -91,7 +91,7 @@ namespace gui
 
                     // TODO draw grid
 
-                    constexpr float kTextureSize = gandalf::kTotalScreenWidth;
+                    constexpr float kTextureSize = gandalf::TotalScreenWidth;
 
                     ImVec2 uv0 = ImVec2(region_x / kTextureSize, region_y / kTextureSize);
                     ImVec2 uv1 = ImVec2((region_x + kTileSize) / kTextureSize, (region_y + kTileSize) / kTextureSize);
@@ -273,7 +273,7 @@ namespace gui
                         const gandalf::byte color = color_bit_0 | (color_bit_1 << 1);
 
                         const gandalf::LCD::ABGR1555 abgr_color = lcd.GetBackgroundColor(color, tile_data.palette);
-                        vram_buffer_[((tile_y * 8 + line) * gandalf::kTotalScreenWidth) + tile_x * 8 + x] = abgr_color;
+                        vram_buffer_[((tile_y * 8 + line) * gandalf::TotalScreenWidth) + tile_x * 8 + x] = abgr_color;
                     }
                 }
 
@@ -284,18 +284,18 @@ namespace gui
         // Draw a rectangle to show the currently visible area
         const gandalf::byte left = lcd.GetSCX();
         const gandalf::byte top = lcd.GetSCY();
-        const gandalf::byte right = left + gandalf::kScreenWidth;
-        const gandalf::byte bottom = lcd.GetSCY() + gandalf::kScreenHeight;
+        const gandalf::byte right = left + gandalf::ScreenWidth;
+        const gandalf::byte bottom = lcd.GetSCY() + gandalf::ScreenHeight;
         const gandalf::LCD::ABGR1555 color = 0b11111 | 0x8000;
-        for (int x = 0; x < gandalf::kScreenWidth; ++x)
+        for (int x = 0; x < gandalf::ScreenWidth; ++x)
         {
-            vram_buffer_[gandalf::kTotalScreenWidth * top + (gandalf::byte)(left + x)] = color;
-            vram_buffer_[gandalf::kTotalScreenWidth * bottom + (gandalf::byte)(left + x)] = color;
+            vram_buffer_[gandalf::TotalScreenWidth * top + (gandalf::byte)(left + x)] = color;
+            vram_buffer_[gandalf::TotalScreenWidth * bottom + (gandalf::byte)(left + x)] = color;
         }
-        for (int y = 0; y < gandalf::kScreenHeight; ++y)
+        for (int y = 0; y < gandalf::ScreenHeight; ++y)
         {
-            vram_buffer_[gandalf::kTotalScreenWidth * (gandalf::byte)(top + y) + left] = color;
-            vram_buffer_[gandalf::kTotalScreenWidth * (gandalf::byte)(top + y) + right] = color;
+            vram_buffer_[gandalf::TotalScreenWidth * (gandalf::byte)(top + y) + left] = color;
+            vram_buffer_[gandalf::TotalScreenWidth * (gandalf::byte)(top + y) + right] = color;
         }
     }
 

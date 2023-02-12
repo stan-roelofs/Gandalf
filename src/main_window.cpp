@@ -140,21 +140,21 @@ namespace gui
 
         const auto& settings = gui_context_.GetSettings();
         if (key == settings.key_a)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kA, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::A, pressed);
         else if (key == settings.key_b)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kB, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::B, pressed);
         else if (key == settings.key_start)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kStart, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::Start, pressed);
         else if (key == settings.key_select)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kSelect, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::Select, pressed);
         else if (key == settings.key_up)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kUp, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::Up, pressed);
         else if (key == settings.key_down)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kDown, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::Down, pressed);
         else if (key == settings.key_left)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kLeft, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::Left, pressed);
         else if (key == settings.key_right)
-            gameboy_->SetButtonState(gandalf::Joypad::Button::kRight, pressed);
+            gameboy_->SetButtonState(gandalf::Joypad::Button::Right, pressed);
     }
 
     void MainWindow::DockSpace()

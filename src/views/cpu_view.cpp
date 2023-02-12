@@ -88,16 +88,16 @@ namespace gui
 
             static bool vblank, lcd, timer, serial, joypad;
             static bool vblank_if, lcd_if, timer_if, serial_if, joypad_if;
-            vblank = cpu.GetRegisters().interrupt_enable & gandalf::kVBlankInterruptMask;
-            lcd = cpu.GetRegisters().interrupt_enable & gandalf::kLCDInterruptMask;
-            timer = cpu.GetRegisters().interrupt_enable & gandalf::kTimerInterruptMask;
-            serial = cpu.GetRegisters().interrupt_enable & gandalf::kSerialInterruptMask;
-            joypad = cpu.GetRegisters().interrupt_enable & gandalf::kJoypadInterruptMask;
-            vblank_if = cpu.GetRegisters().interrupt_flags & gandalf::kVBlankInterruptMask;
-            lcd_if = cpu.GetRegisters().interrupt_flags & gandalf::kLCDInterruptMask;
-            timer_if = cpu.GetRegisters().interrupt_flags & gandalf::kTimerInterruptMask;
-            serial_if = cpu.GetRegisters().interrupt_flags & gandalf::kSerialInterruptMask;
-            joypad_if = cpu.GetRegisters().interrupt_flags & gandalf::kJoypadInterruptMask;
+            vblank = cpu.GetRegisters().interrupt_enable & gandalf::VBlankInterruptMask;
+            lcd = cpu.GetRegisters().interrupt_enable & gandalf::LCDInterruptMask;
+            timer = cpu.GetRegisters().interrupt_enable & gandalf::TimerInterruptMask;
+            serial = cpu.GetRegisters().interrupt_enable & gandalf::SerialInterruptMask;
+            joypad = cpu.GetRegisters().interrupt_enable & gandalf::JoypadInterruptMask;
+            vblank_if = cpu.GetRegisters().interrupt_flags & gandalf::VBlankInterruptMask;
+            lcd_if = cpu.GetRegisters().interrupt_flags & gandalf::LCDInterruptMask;
+            timer_if = cpu.GetRegisters().interrupt_flags & gandalf::TimerInterruptMask;
+            serial_if = cpu.GetRegisters().interrupt_flags & gandalf::SerialInterruptMask;
+            joypad_if = cpu.GetRegisters().interrupt_flags & gandalf::JoypadInterruptMask;
 
             ImGui::TextUnformatted("V-Blank");
             ImGui::TableNextColumn();

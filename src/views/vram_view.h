@@ -34,7 +34,7 @@ namespace gui
             Sprites
         };
 
-        std::array<gandalf::LCD::ABGR1555, gandalf::kTotalScreenHeight* gandalf::kTotalScreenWidth> vram_buffer_;
+        std::array<gandalf::LCD::ABGR1555, gandalf::TotalScreenHeight* gandalf::TotalScreenWidth> vram_buffer_;
         std::array<gandalf::LCD::ABGR1555, 40 * 8 * 16> sprite_buffer_;
         Tab current_tab_;
         const bool& debug_enabled_;

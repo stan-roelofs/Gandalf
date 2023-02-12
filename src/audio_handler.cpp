@@ -13,7 +13,7 @@ namespace
     constexpr int kNumberOfChannels = 2;
     constexpr int kBufferSizeSamples = 1024;
     constexpr int kBufferSizeBytes = kBufferSizeSamples * kNumberOfChannels * SDL_AUDIO_BITSIZE(kFormat) / 8;
-    constexpr int kDownSampling = gandalf::kCPUFrequency / kFrequency; // TODO how to call this constant...
+    constexpr int kDownSampling = gandalf::CPUFrequency / kFrequency; // TODO how to call this constant...
 }
 
 SDLAudioHandler::SDLAudioHandler(const bool& wait, const bool& gb_thread_running) :
