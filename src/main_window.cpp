@@ -122,6 +122,24 @@ namespace gui
             ImGui::EndPopup();
         }
 
+        if (ImGui::BeginPopupModal("Error##SaveState", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted(text::Get(text::ID::ErrorSaveState));
+            ImGui::Separator();
+
+            if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
+        }
+
+        if (ImGui::BeginPopupModal("Error##LoadState", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted(text::Get(text::ID::ErrorLoadState));
+            ImGui::Separator();
+
+            if (ImGui::Button("Ok", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
+        }
+
         if (ImGui::BeginPopupModal("Error##GameboyLoadROMFailed", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::TextUnformatted(text::Get(text::ID::ErrorLoad));
@@ -224,6 +242,53 @@ namespace gui
 
                     if (!rom_to_load.empty())
                         LoadROM(rom_to_load);
+                }
+
+                ImGui::Separator();
+                if (ImGui::MenuItem(text::Get(text::ID::MenuFileSaveState)))
+                {
+                    if (!gameboy_)
+                        return;
+
+                    bool unpause = !gb_pause_;
+                    if (!gb_pause_)
+                        gb_pause_ = true;
+
+                    NFD::UniquePath path;
+                    nfdfilteritem_t filter_item[] = { {"Save", "savestate"} };
+                    auto result = NFD::SaveDialog(path, filter_item, 1);
+                    if (result == NFD_OKAY)
+                    {
+                        std::ofstream output = std::ofstream(path.get(), std::ios::binary);
+                        if (!gameboy_->SaveState(output))
+                            show_popup_ = "Error##SaveState";
+                    }
+
+                    if (unpause)
+                        gb_pause_ = false;
+                }
+
+                if (ImGui::MenuItem(text::Get(text::ID::MenuFileLoadState)))
+                {
+                    if (!gameboy_)
+                        return; // TODO create gb here
+
+                    bool unpause = !gb_pause_;
+                    if (!gb_pause_)
+                        gb_pause_ = true;
+
+                    NFD::UniquePath path;
+                    nfdfilteritem_t filter_item[] = { {"Save", "savestate"} };
+                    auto result = NFD::OpenDialog(path, filter_item, 1);
+                    if (result == NFD_OKAY)
+                    {
+                        std::ifstream input = std::ifstream(path.get(), std::ios::binary);
+                        if (!gameboy_->LoadState(input))
+                            show_popup_ = "Error##LoadState";
+                    }
+
+                    if (unpause)
+                        gb_pause_ = false;
                 }
 
                 ImGui::EndMenu();

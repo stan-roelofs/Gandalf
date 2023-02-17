@@ -8,7 +8,7 @@ namespace gui
 {
     namespace text
     {
-        using TextMap = std::map<ID, const char*>;
+        using TextMap = std::map<ID, const char*>; // TODO could be an array...
 
         static const TextMap texts_ = {
             {ID::AppName, "Gandalf"},
@@ -17,10 +17,14 @@ namespace gui
             {ID::Pause, "Pause"},
 
             {ID::ErrorLoad, "Error loading file"},
+            {ID::ErrorSaveState, "Error saving state"},
+            {ID::ErrorLoadState, "Error loading state"},
 
             {ID::MenuFile, "File"},
             {ID::MenuFileOpenROM, "Open ROM"},
             {ID::MenuFileRecentROMs, "Recent ROMs"},
+            {ID::MenuFileSaveState, "Save state"},
+            {ID::MenuFileLoadState, "Load state"},
 
             {ID::MenuSettings, "Settings"},
             {ID::MenuSettingsOpen, "All Settings"},

@@ -14,11 +14,15 @@ namespace gui
 
             // Errors
             ErrorLoad,
+            ErrorSaveState,
+            ErrorLoadState,
 
             // File Menu
             MenuFile,
             MenuFileOpenROM,
             MenuFileRecentROMs,
+            MenuFileSaveState,
+            MenuFileLoadState,
 
             // Settings Menu
             MenuSettings,
