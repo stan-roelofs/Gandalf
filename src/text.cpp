@@ -24,7 +24,9 @@ namespace gui
             {ID::MenuFileOpenROM, "Open ROM"},
             {ID::MenuFileRecentROMs, "Recent ROMs"},
             {ID::MenuFileSaveState, "Save state"},
+            {ID::MenuFileQuickSaveState, "Quick save state"},
             {ID::MenuFileLoadState, "Load state"},
+            {ID::MenuFileQuickLoadState, "Quick load state"},
 
             {ID::MenuSettings, "Settings"},
             {ID::MenuSettingsOpen, "All Settings"},

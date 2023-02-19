@@ -13,7 +13,7 @@
 #include "views/gui_element.h"
 
 namespace gui {
-    class MainWindow : gandalf::PPU::VBlankListener, KeyboardHandler {
+    class MainWindow: gandalf::PPU::VBlankListener, KeyboardHandler {
     public:
         MainWindow(GUIContext& context);
         ~MainWindow();
@@ -31,6 +31,9 @@ namespace gui {
         std::unique_ptr<gandalf::ROM> LoadBootROM(const std::filesystem::path& path);
 
         void OnVBlank() override;
+
+        void QuickSave();
+        void QuickLoad();
 
         std::shared_ptr<gandalf::Gameboy> gameboy_;
         std::optional<gandalf::word> breakpoint_;

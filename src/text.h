@@ -22,7 +22,9 @@ namespace gui
             MenuFileOpenROM,
             MenuFileRecentROMs,
             MenuFileSaveState,
+            MenuFileQuickSaveState,
             MenuFileLoadState,
+            MenuFileQuickLoadState,
 
             // Settings Menu
             MenuSettings,

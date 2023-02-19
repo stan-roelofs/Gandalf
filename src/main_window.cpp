@@ -29,6 +29,11 @@ namespace {
     const unsigned int kWidth = 1280;
     const unsigned int kHeight = 720;
     const unsigned int kROMHistorySize = 10;
+
+    const std::string save_path = ""; // TODO
+
+    constexpr SDL_KeyCode KEY_QUICK_SAVE = SDLK_F5;
+    constexpr SDL_KeyCode KEY_QUICK_LOAD = SDLK_F6;
 }
 
 namespace gui
@@ -157,7 +162,17 @@ namespace gui
             return;
 
         const auto& settings = gui_context_.GetSettings();
-        if (key == settings.key_a)
+
+
+        if (key == KEY_QUICK_SAVE && pressed)
+        {
+            QuickSave();
+        }
+        else if (key == KEY_QUICK_LOAD && pressed)
+        {
+            QuickLoad();
+        }
+        else if (key == settings.key_a)
             gameboy_->SetButtonState(gandalf::Joypad::Button::A, pressed);
         else if (key == settings.key_b)
             gameboy_->SetButtonState(gandalf::Joypad::Button::B, pressed);
@@ -173,6 +188,40 @@ namespace gui
             gameboy_->SetButtonState(gandalf::Joypad::Button::Left, pressed);
         else if (key == settings.key_right)
             gameboy_->SetButtonState(gandalf::Joypad::Button::Right, pressed);
+    }
+
+    void MainWindow::QuickSave()
+    {
+        if (!gameboy_)
+            return;
+
+        bool unpause = !gb_pause_;
+        if (!gb_pause_)
+            gb_pause_ = true;
+
+        std::ofstream output = std::ofstream(save_path + "quicksave.savestate", std::ios::binary);
+        if (!gameboy_->SaveState(output))
+            show_popup_ = "Error##SaveState";
+
+        if (unpause)
+            gb_pause_ = false;
+    }
+
+    void MainWindow::QuickLoad()
+    {
+        if (!gameboy_ || !std::filesystem::exists(save_path + "quicksave.savestate"))
+            return;
+
+        bool unpause = !gb_pause_;
+        if (!gb_pause_)
+            gb_pause_ = true;
+
+        std::ifstream input(save_path + "quicksave.savestate", std::ios::binary);
+        if (!gameboy_->LoadState(input))
+            show_popup_ = "Error##LoadState";
+
+        if (unpause)
+            gb_pause_ = false;
     }
 
     void MainWindow::DockSpace()
@@ -245,7 +294,7 @@ namespace gui
                 }
 
                 ImGui::Separator();
-                if (ImGui::MenuItem(text::Get(text::ID::MenuFileSaveState)))
+                if (ImGui::MenuItem(text::Get(text::ID::MenuFileSaveState), nullptr, false, gameboy_ != nullptr))
                 {
                     if (!gameboy_)
                         return;
@@ -266,6 +315,11 @@ namespace gui
 
                     if (unpause)
                         gb_pause_ = false;
+                }
+
+                if (ImGui::MenuItem(text::Get(text::ID::MenuFileQuickSaveState), SDL_GetKeyName(KEY_QUICK_SAVE), false, gameboy_ != nullptr))
+                {
+                    QuickSave();
                 }
 
                 if (ImGui::MenuItem(text::Get(text::ID::MenuFileLoadState)))
@@ -289,6 +343,11 @@ namespace gui
 
                     if (unpause)
                         gb_pause_ = false;
+                }
+
+                if (ImGui::MenuItem(text::Get(text::ID::MenuFileQuickLoadState), SDL_GetKeyName(KEY_QUICK_LOAD), false, gameboy_ != nullptr))
+                {
+                    QuickLoad();
                 }
 
                 ImGui::EndMenu();
