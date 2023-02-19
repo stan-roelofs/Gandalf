@@ -2,9 +2,10 @@
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/stan-roelofs/Gandalf/cmake.yml?branch=main)
 ![GitHub](https://img.shields.io/github/license/stan-roelofs/Gandalf)
 
-A Gameboy color emulator with debugging tools.
+A Gameboy color emulator with debugging tools. The Gameboy emulation code resides in a seperate repository which can be found here [gandalf-lib](https://github.com/stan-roelofs/gandalf-lib). 
 
-Work in progress. If you want to play Gameboy games I recommend finding a better emulator.
+
+This is a work in progress. If you want to play Gameboy games I recommend finding a better emulator.
 
 ## Building
 Clone the repository and its submodules
@@ -34,9 +35,6 @@ cmake --build . --config Release
 Note 1: OpenGL needs to be installed in order to compile. 
 
 Note 2: Compiling as Release or RelWithDebInfo is recommended. The STL containers used by the emulator can be extremely slow in Debug mode because of iterator debugging. 
-
-## Accuracy
-The emulator is fairly accurate, passing the majority of test ROMs. The PPU implementation requires work, but finding accurate documentation is difficult. 
 
 ## Preview
 ![gold.png](data/gold.png)
