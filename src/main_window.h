@@ -38,7 +38,8 @@ namespace gui {
         std::shared_ptr<gandalf::Gameboy> gameboy_;
         std::optional<gandalf::word> breakpoint_;
         bool step_;
-        bool gb_pause_;
+        bool gb_pause_; // TODO should these bools be volatile ?
+        bool gb_is_paused_;
         bool gb_thread_run_;
         unsigned int gb_fps_;
         bool block_audio_;

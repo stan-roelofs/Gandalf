@@ -38,19 +38,30 @@ namespace {
 
 namespace gui
 {
-    void GameboyThread(gandalf::Gameboy* gb, const bool* thread_run, bool* gb_paused, bool* step, std::optional<gandalf::word>* breakpoint)
+    void GameboyThread(gandalf::Gameboy* gb, const bool* thread_run, bool* gb_paused, bool* gb_is_paused, bool* step, std::optional<gandalf::word>* breakpoint)
     {
         while (*thread_run)
         {
             if (*breakpoint && *breakpoint == gb->GetCPU().GetRegisters().program_counter)
+            {
                 *gb_paused = true;
+                *gb_is_paused = true;
+            }
 
             if (!*gb_paused)
+            {
+                *gb_is_paused = false;
                 gb->Run();
+            }
             else if (*step)
             {
                 gb->Run();
                 *step = false;
+                *gb_is_paused = true;
+            }
+            else
+            {
+                *gb_is_paused = true;
             }
         }
     }
@@ -58,6 +69,7 @@ namespace gui
     MainWindow::MainWindow(GUIContext& context):
         step_(false),
         gb_pause_(false),
+        gb_is_paused_(false),
         gb_thread_run_(false),
         gb_fps_(0),
         block_audio_(true),
@@ -199,9 +211,23 @@ namespace gui
         if (!gb_pause_)
             gb_pause_ = true;
 
+        std::size_t i = 0;
+        while (!gb_is_paused_ && i++ < 1000)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+        if (!gb_is_paused_)
+        {
+            if (unpause)
+                gb_pause_ = false;
+            show_popup_ = "Error##SaveState";
+            return;
+        }
+
         std::ofstream output = std::ofstream(save_path + "quicksave.savestate", std::ios::binary);
         if (!gameboy_->SaveState(output))
+        {
             show_popup_ = "Error##SaveState";
+        }
 
         if (unpause)
             gb_pause_ = false;
@@ -216,7 +242,19 @@ namespace gui
         if (!gb_pause_)
             gb_pause_ = true;
 
-        std::ifstream input(save_path + "quicksave.savestate", std::ios::binary);
+        std::size_t i = 0;
+        while (!gb_is_paused_ && i++ < 1000)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+        if (!gb_is_paused_)
+        {
+            if (unpause)
+                gb_pause_ = false;
+            show_popup_ = "Error##LoadState";
+            return;
+        }
+
+        std::ifstream input(save_path + "quicksave.savestate", std::ios::binary); // TODO add rom name 
         if (!gameboy_->LoadState(input))
             show_popup_ = "Error##LoadState";
 
@@ -417,7 +455,7 @@ namespace gui
             element->SetGameboy(gameboy_);
 
         gb_thread_run_ = true;
-        gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_, &step_, &breakpoint_);
+        gb_thread_ = std::thread(GameboyThread, gameboy_.get(), &gb_thread_run_, &gb_pause_, &gb_is_paused_, &step_, &breakpoint_);
     }
 
     std::unique_ptr<gandalf::ROM> MainWindow::LoadBootROM(const std::filesystem::path& path)
