@@ -62,6 +62,7 @@ namespace gui
             {ID::WindowCPUStep, "Step"},
             {ID::WindowCPULimitFPS, "Limit FPS"},
             {ID::WindowCPUDebugger, "Debugger"},
+            {ID::WindowCPUJump, "Jump to"},
 
             {ID::WindowGameboy, "Gameboy"},
             {ID::WindowGameboyScale, "Scale"},

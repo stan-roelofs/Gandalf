@@ -135,6 +135,23 @@ namespace gui
 
         ImGui::Separator();
 
+        static char address[5];
+        address[4] = '\0';
+        ImGui::InputText("Address", address, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+        ImGui::SameLine();
+
+        std::optional<gandalf::word> scroll_target;
+        bool should_scroll = false;
+        if (ImGui::Button(text::Get(text::ID::WindowCPUJump))) {
+            auto address_value = std::strtoul(address, nullptr, 16);
+            if (address_value < 0)
+                address_value = 0;
+            if (address_value > 0xFFFF)
+                address_value = 0xFFFF;
+
+            scroll_target = static_cast<gandalf::word>(address_value);
+        }
+
         const gandalf::Memory& memory = gameboy_->GetMemory();
         if (ImGui::BeginTable("Debugger", 3, ImGuiTableFlags_ScrollY)) {
             static gandalf::word last_pc = registers.program_counter;
@@ -142,6 +159,10 @@ namespace gui
                 ImGui::SetScrollY(registers.program_counter * ImGui::GetTextLineHeightWithSpacing());
                 last_pc = registers.program_counter;
             }
+
+            static float memory_item_height = 0.f;
+            if (scroll_target)
+                ImGui::SetScrollY(*scroll_target * memory_item_height);
 
             ImGuiListClipper clipper(0x10000, ImGui::GetTextLineHeightWithSpacing());
             while (clipper.Step())
@@ -199,6 +220,9 @@ namespace gui
                         break;
                     }
                 }
+
+                if (clipper.ItemsHeight > 0)
+                    memory_item_height = clipper.ItemsHeight;
             }
             ImGui::EndTable();
         }

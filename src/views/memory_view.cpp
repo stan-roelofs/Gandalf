@@ -24,7 +24,6 @@ namespace gui
         ImGui::SameLine();
 
         std::optional<gandalf::word> scroll_target;
-        bool should_scroll = false;
         if (ImGui::Button(text::Get(text::ID::WindowMemoryScrollToAddress))) {
             auto address_value = std::strtoul(address, nullptr, 16);
             if (address_value < 0)
@@ -68,7 +67,8 @@ namespace gui
                     }
                 }
 
-                if (clipper.ItemsHeight > 0) memory_item_height = clipper.ItemsHeight;
+                if (clipper.ItemsHeight > 0)
+                    memory_item_height = clipper.ItemsHeight;
             }
             clipper.End();
 
