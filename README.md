@@ -7,6 +7,9 @@ A Gameboy color emulator with debugging tools. The Gameboy emulation code reside
 
 This is a work in progress. If you want to play Gameboy games I recommend finding a better emulator.
 
+## Download
+You can find a prebuilt binary for Windows under [Releases](https://github.com/stan-roelofs/Gandalf/releases)
+
 ## Building
 Clone the repository and its submodules
 
