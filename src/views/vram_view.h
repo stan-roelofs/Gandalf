@@ -11,7 +11,7 @@
 
 namespace gui
 {
-    class VRAMView: public GUIElement, public gandalf::PPU::VBlankListener
+    class VRAMView : public GUIElement, public gandalf::PPU::VBlankListener
     {
     public:
         VRAMView(const bool& debug_enabled);
@@ -22,14 +22,15 @@ namespace gui
 
     private:
         void OnVBlank() override;
-
-        void UpdateBackground();
+        void RenderBackground(bool window);
+        void UpdateBackground(bool window);
         void UpdateTiles();
         void UpdateSprites();
 
         enum class Tab
         {
             Background,
+            Window,
             Tiles,
             Sprites
         };
@@ -45,6 +46,7 @@ namespace gui
         {
             std::uint8_t tile_number;
             std::uint16_t tile_address;
+            std::uint16_t map_offset;
             std::uint16_t map_address;
             std::uint8_t attributes;
             unsigned int vram_bank;
@@ -54,8 +56,9 @@ namespace gui
             bool priority;
         };
 
-        struct SpriteData: TileData
+        struct SpriteData : TileData
         {
+            std::uint16_t address;
             std::uint8_t y;
             std::uint8_t x;
         };

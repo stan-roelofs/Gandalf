@@ -66,7 +66,7 @@ namespace gui
         }
     }
 
-    MainWindow::MainWindow(GUIContext& context):
+    MainWindow::MainWindow(GUIContext& context) :
         step_(false),
         gb_pause_(false),
         gb_is_paused_(false),
@@ -110,7 +110,7 @@ namespace gui
     {
         // Render our GUI elements
         DockSpace();
-        // ImGui::ShowDemoWindow();
+       // ImGui::ShowDemoWindow();
 
         for (auto& element : gui_elements_)
             element->Render();

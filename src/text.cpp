@@ -75,7 +75,9 @@ namespace gui
             {ID::WindowMemoryViewerAddressValue, "Value"},
 
             {ID::WindowPPU, "PPU"},
-            {ID::WindowPPUBackgroundMap, "Background map"},
+            {ID::WindowPPUBackground, "Background"},
+            {ID::WindowPPUWindow, "Window"},
+            {ID::WindowPPUTileMapOffset, "Background map offset"},
             {ID::WindowPPUTileNumber, "Tile number"},
             {ID::WindowPPUTileMap, "Tile map"},
             {ID::WindowPPUTileAddress, "Tile address"},

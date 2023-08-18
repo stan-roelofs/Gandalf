@@ -83,9 +83,11 @@ namespace gui
 
             // PPU window
             WindowPPU,
-            WindowPPUBackgroundMap,
+            WindowPPUBackground,
+            WindowPPUWindow,
             WindowPPUTileNumber,
             WindowPPUTileMap,
+            WindowPPUTileMapOffset,
             WindowPPUTileAddress,
             WindowPPUTileAttributes,
             WindowPPUTileFlipX,

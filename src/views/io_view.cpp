@@ -30,13 +30,21 @@ namespace gui
 
         // LCD
         const auto& lcd = gameboy_->GetLCD();
+        const auto& dma = gameboy_->GetDMA();
+
         ImGui::Text("FF40 LCDC: %02X", lcd.GetLCDControl());
         ImGui::Text("FF41 STAT: %02X", lcd.GetLCDStatus());
         ImGui::Text("FF42 SCY: %02X", lcd.GetSCY());
         ImGui::Text("FF43 SCX: %02X", lcd.GetSCX());
         ImGui::Text("FF44 LY: %02X", lcd.GetLY());
         ImGui::Text("FF45 LYC: %02X", lcd.GetLYC());
-        //ImGui::Text("FF46 DMA: %02X", );
+        
+        ImGui::Text("FF46 DMA: %02X", dma.Read(0xFF46));
+		bool in_progress = dma.InProgress();
+        ImGui::SameLine(); ImGui::BeginDisabled(); ImGui::Checkbox("In progress", &in_progress); ImGui::EndDisabled();
+        ImGui::SameLine(); ImGui::Text("Source: %04X", dma.GetSource()); 
+        ImGui::SameLine(); ImGui::Text("Remaining: %d", dma.GetBytesRemaining());
+
         ImGui::Text("FF47 BGP: %02X", lcd.GetBGP());
         ImGui::Text("FF48 OBP0: %02X", lcd.GetOBP0());
         ImGui::Text("FF49 OBP1: %02X", lcd.GetOBP1());

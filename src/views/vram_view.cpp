@@ -14,7 +14,7 @@ namespace
 
 namespace gui
 {
-    VRAMView::VRAMView(const bool& debug_enabled): debug_enabled_(debug_enabled), current_tab_(Tab::Background)
+    VRAMView::VRAMView(const bool& debug_enabled) : debug_enabled_(debug_enabled), current_tab_(Tab::Background)
     {
         glGenTextures(1, &background_texture_);
         glBindTexture(GL_TEXTURE_2D, background_texture_);
@@ -54,6 +54,83 @@ namespace gui
         vram_buffer_.fill(0);
     }
 
+    void VRAMView::RenderBackground(bool window)
+    {
+        glBindTexture(GL_TEXTURE_2D, background_texture_);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::TotalScreenWidth, gandalf::TotalScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
+
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+
+        ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(gandalf::TotalScreenWidth * kScale, gandalf::TotalScreenHeight * kScale));
+
+        if (ImGui::IsItemHovered())
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+            ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
+
+            ImGui::BeginTooltip();
+
+            const int tile_x = (io.MousePos.x - pos.x) / kTileSizePx;
+            const int tile_y = (io.MousePos.y - pos.y) / kTileSizePx;
+
+            const int region_x = tile_x * kTileSize;
+            const int region_y = tile_y * kTileSize;
+
+            // TODO draw grid
+
+            constexpr float kTextureSize = gandalf::TotalScreenWidth;
+
+            ImVec2 uv0 = ImVec2(region_x / kTextureSize, region_y / kTextureSize);
+            ImVec2 uv1 = ImVec2((region_x + kTileSize) / kTextureSize, (region_y + kTileSize) / kTextureSize);
+            ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
+
+            ImGui::Separator();
+            assert(tile_x < 32 && tile_y < 32);
+            auto& tile_data = tile_data_[tile_y][tile_x];
+            ImGui::BeginTable("Tile data", 2);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("X");
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", tile_x);
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Y");
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", tile_y);
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileNumber));
+            ImGui::TableNextColumn();
+            ImGui::Text("%2.2X", tile_data.tile_number);
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileMap));
+            ImGui::TableNextColumn();
+            ImGui::Text("%4.4X", tile_data.map_address);
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileMap)); // TODO
+            ImGui::TableNextColumn();
+            ImGui::Text("%4.4X", tile_data.map_offset);
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileAddress));
+            ImGui::TableNextColumn();
+            ImGui::Text("%4.4X", tile_data.tile_address);
+            ImGui::EndTable();
+
+            ImGui::Separator();
+            ImGui::Text("%s: %X", text::Get(text::ID::WindowPPUTileAttributes), tile_data.attributes);
+            ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipX), &tile_data.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipY), &tile_data.y_flip);
+            ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTilePalette), tile_data.palette);
+            ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTileVRAMBank), tile_data.vram_bank);
+            ImGui::Checkbox(text::Get(text::ID::WindowPPUTilePriority), &tile_data.priority);
+
+            ImGui::EndTooltip();
+        }
+    }
+
     void VRAMView::Render()
     {
         if (!gameboy_ || !debug_enabled_)
@@ -64,78 +141,20 @@ namespace gui
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
         if (ImGui::BeginTabBar("PPUTabBar", tab_bar_flags))
         {
-            if (ImGui::BeginTabItem(text::Get(text::ID::WindowPPUBackgroundMap)))
+            if (ImGui::BeginTabItem(text::Get(text::ID::WindowPPUBackground)))
             {
                 current_tab_ = Tab::Background;
 
-                glBindTexture(GL_TEXTURE_2D, background_texture_);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gandalf::TotalScreenWidth, gandalf::TotalScreenHeight, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, vram_buffer_.data());
+                RenderBackground(false);
 
-                ImVec2 pos = ImGui::GetCursorScreenPos();
+                ImGui::EndTabItem();
+            }
 
-                ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(gandalf::TotalScreenWidth * kScale, gandalf::TotalScreenHeight * kScale));
+            if (ImGui::BeginTabItem(text::Get(text::ID::WindowPPUWindow)))
+            {
+                current_tab_ = Tab::Window;
 
-                if (ImGui::IsItemHovered())
-                {
-                    ImGuiIO& io = ImGui::GetIO();
-                    ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
-                    ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
-
-                    ImGui::BeginTooltip();
-
-                    const int tile_x = (io.MousePos.x - pos.x) / kTileSizePx;
-                    const int tile_y = (io.MousePos.y - pos.y) / kTileSizePx;
-
-                    const int region_x = tile_x * kTileSize;
-                    const int region_y = tile_y * kTileSize;
-
-                    // TODO draw grid
-
-                    constexpr float kTextureSize = gandalf::TotalScreenWidth;
-
-                    ImVec2 uv0 = ImVec2(region_x / kTextureSize, region_y / kTextureSize);
-                    ImVec2 uv1 = ImVec2((region_x + kTileSize) / kTextureSize, (region_y + kTileSize) / kTextureSize);
-                    ImGui::Image((void*)(intptr_t)background_texture_, ImVec2(kTileSize * kScaleTooltip, kTileSize * kScaleTooltip), uv0, uv1, tint_col, border_col);
-
-                    ImGui::Separator();
-                    assert(tile_x < 32 && tile_y < 32);
-                    auto& tile_data = tile_data_[tile_y][tile_x];
-                    ImGui::BeginTable("Tile data", 2);
-                    ImGui::TableNextColumn();
-                    ImGui::TextUnformatted("X");
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%d", tile_x);
-
-                    ImGui::TableNextColumn();
-                    ImGui::TextUnformatted("Y");
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%d", tile_y);
-
-                    ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileNumber));
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%2.2X", tile_data.tile_number);
-
-                    ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileMap));
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%4.4X", tile_data.map_address);
-
-                    ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(text::Get(text::ID::WindowPPUTileAddress));
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%4.4X", tile_data.tile_address);
-                    ImGui::EndTable();
-
-                    ImGui::Separator();
-                    ImGui::Text("%s: %X", text::Get(text::ID::WindowPPUTileAttributes), tile_data.attributes);
-                    ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipX), &tile_data.x_flip); ImGui::SameLine(); ImGui::Checkbox(text::Get(text::ID::WindowPPUTileFlipY), &tile_data.y_flip);
-                    ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTilePalette), tile_data.palette);
-                    ImGui::Text("%s: %d", text::Get(text::ID::WindowPPUTileVRAMBank), tile_data.vram_bank);
-                    ImGui::Checkbox(text::Get(text::ID::WindowPPUTilePriority), &tile_data.priority);
-
-                    ImGui::EndTooltip();
-                }
+                RenderBackground(true);
 
                 ImGui::EndTabItem();
             }
@@ -175,6 +194,12 @@ namespace gui
 
                             ImGui::Separator();
                             ImGui::BeginTable("Tile data", 2);
+
+                            ImGui::TableNextColumn();
+                            ImGui::TextUnformatted("Address");
+                            ImGui::TableNextColumn();
+                            ImGui::Text("%4.4X", sprite.address);
+
                             ImGui::TableNextColumn();
                             ImGui::TextUnformatted("X");
                             ImGui::TableNextColumn();
@@ -227,36 +252,38 @@ namespace gui
 
         switch (current_tab_)
         {
-        case Tab::Background: UpdateBackground(); break;
+        case Tab::Background: UpdateBackground(false); break;
+        case Tab::Window: UpdateBackground(true); break;
         case Tab::Tiles: UpdateTiles(); break;
         case Tab::Sprites: UpdateSprites(); break;
         }
     }
 
-    void VRAMView::UpdateBackground()
+    void VRAMView::UpdateBackground(bool window)
     {
         const auto& lcd = gameboy_->GetLCD();
         const auto& ppu = gameboy_->GetPPU();
         const gandalf::byte lcdc = gameboy_->GetLCD().GetLCDControl();
-        const bool tile_map_select = (lcdc & 0x08) != 0;
+        const bool tile_map_select = window ? ((lcdc & 0x40) != 0) : ((lcdc & 0x08) != 0);
 
         const gandalf::word map = tile_map_select ? 0x1C00 : 0x1800;
         const gandalf::word tile_data_area = (lcdc & 0x10) == 0 ? 0x1000 : 0;
-
 
         for (int tile_y = 0; tile_y < 32; ++tile_y)
         {
             for (int tile_x = 0; tile_x < 32; ++tile_x)
             {
                 TileData& tile_data = tile_data_.at(tile_y).at(tile_x);
-                tile_data.tile_number = ppu.DebugReadVRam(0, map + tile_y * 32 + tile_x);
-                tile_data.attributes = gameboy_->GetMode() == gandalf::GameboyMode::CGB ? ppu.DebugReadVRam(1, map + tile_y * 32 + tile_x) : 0;
+                tile_data.map_offset = map + tile_y * 32 + tile_x;
+                tile_data.tile_number = ppu.DebugReadVRam(0, tile_data.map_offset);
+                tile_data.attributes = gameboy_->GetMode() == gandalf::GameboyMode::CGB ? ppu.DebugReadVRam(1, tile_data.map_offset) : 0;
                 tile_data.y_flip = (tile_data.attributes & 0b1000000) != 0;
                 tile_data.x_flip = (tile_data.attributes & 0b100000) != 0;
                 tile_data.vram_bank = (tile_data.attributes & 0b1000) >> 3;
                 tile_data.palette = tile_data.attributes & 0b111;
                 tile_data.map_address = map + 0x8000;
                 tile_data.priority = (tile_data.attributes & 0x80) != 0;
+                tile_data.map_offset += 0x8000;
 
                 const int tile_offset = (tile_data_area == 0 ? tile_data.tile_number : (gandalf::signed_byte)(tile_data.tile_number));
                 tile_data.tile_address = 0x8000 + (tile_data_area + tile_offset * 16);
@@ -282,10 +309,10 @@ namespace gui
         }
 
         // Draw a rectangle to show the currently visible area
-        const gandalf::byte left = lcd.GetSCX();
-        const gandalf::byte top = lcd.GetSCY();
+        const gandalf::byte left = window ? lcd.GetWX() : lcd.GetSCX();
+        const gandalf::byte top = window ? lcd.GetWY() : lcd.GetSCY();
         const gandalf::byte right = left + gandalf::ScreenWidth;
-        const gandalf::byte bottom = lcd.GetSCY() + gandalf::ScreenHeight;
+        const gandalf::byte bottom = top + gandalf::ScreenHeight;
         const gandalf::LCD::ABGR1555 color = 0b11111 | 0x8000;
         for (int x = 0; x < gandalf::ScreenWidth; ++x)
         {
@@ -313,10 +340,11 @@ namespace gui
         for (int sprite_index = 0; sprite_index < 40; ++sprite_index)
         {
             SpriteData& data = sprite_data_.at(sprite_index);
-            data.y = memory.Read(0xFE00 + sprite_index * 4);
-            data.x = memory.Read(0xFE00 + sprite_index * 4 + 1);
-            data.tile_number = memory.Read(0xFE00 + sprite_index * 4 + 2);
-            data.attributes = memory.Read(0xFE00 + sprite_index * 4 + 3);
+            data.address = 0xFE00 + sprite_index * 4;
+            data.y = memory.Read(data.address);
+            data.x = memory.Read(data.address + 1);
+            data.tile_number = memory.Read(data.address + 2);
+            data.attributes = memory.Read(data.address + 3);
             data.priority = (data.attributes & 0x80) != 0;
             data.y_flip = (data.attributes & 0b1000000) != 0;
             data.x_flip = (data.attributes & 0b100000) != 0;
